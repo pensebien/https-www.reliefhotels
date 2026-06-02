@@ -1,0 +1,26 @@
+import { getServerConfig } from "@/lib/config";
+import { getActivity } from "@/lib/demo-store";
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const key = searchParams.get("key");
+  const config = getServerConfig();
+
+  if (key !== config.demoDashboardKey) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const activity = await getActivity();
+
+  return NextResponse.json({
+    ok: true,
+    config: {
+      demoMode: config.demoMode,
+      paystackConfigured: config.paystack.configured,
+      emailConfigured: config.email.configured,
+      appUrl: config.appUrl,
+    },
+    ...activity,
+  });
+}

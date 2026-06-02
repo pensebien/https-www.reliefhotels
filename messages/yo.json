@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Relief Hotels & Suites | Ọtélù ìtẹ́wọ́gbọ́ ní Calabar",
+    "description": "Ṣàwárí Relief Hotels & Suites ní Calabar fún ààyè ìsun àtọ̀wọ́, àwọn yàrá àmì, ìdájọ aladani, spa, àti ìṣẹ́ concierge."
+  },
+  "nav": {
+    "home": "Ilé",
+    "book": "Ṣe Àgbékalẹ̀",
+    "contact": "Kan sí Wa"
+  },
+  "hero": {
+    "eyebrow": "Ṣàwárí {highlight} — ààyè ìsun tí a ṣe déédé, iṣẹ́ tó dára, àti àkókò tí kò ní parẹ́ láàrin ìlú.",
+    "highlight": "ìtọ́jú àleé",
+    "title": "Relief Hotels & Suites",
+    "cta": "Ṣètò ìsun rẹ"
+  },
+  "contact": {
+    "title": "Jẹ́ kí ẹgbẹ́ wa ṣe ààyè ìsun tó ní àlàáfíà, ayẹyẹ, àti ìtẹ́wọ́gbọ́ tí ó rọrùn.",
+    "submit": "Beere Àgbékalẹ̀"
+  },
+  "footer": {
+    "title": "Ìtọ́jú àleé tó dára tó da lórí ààlàáfíà rẹ.",
+    "book": "Ṣe àgbékalẹ̀ ìsun rẹ"
+  }
+}

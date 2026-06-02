@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# live demo submissions (local only)
+/data/demo-store.json
+/data/inquiries.json
+
 # vercel
 .vercel
 

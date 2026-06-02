@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "title": "Relief Hotels & Suites | Ụlọ ọcha dị elu na Calabar",
+    "description": "Chọpụta Relief Hotels & Suites na Calabar maka ebe obibi dị mma, suites akara, nri nkeonwe, spa, na ọrụ concierge."
+  },
+  "nav": {
+    "home": "Ụlọ",
+    "book": "Debe Ebe Obibi",
+    "contact": "Kpọtụrụ Anyị"
+  },
+  "hero": {
+    "eyebrow": "Chọpụta {highlight} — ebe obibi ahaziri ahazi, ọrụ dị mma, na oge a gaghị echefu na etiti obodo.",
+    "highlight": "ọmarịcha nnabata",
+    "title": "Relief Hotels & Suites",
+    "cta": "Mee atụmatụ obibi gị"
+  },
+  "contact": {
+    "title": "Ka ndị otu anyị mee ebe obibi gburugburu ụtọ, ememe, na ọcha dị mfe.",
+    "submit": "Rịọ Nchekwa"
+  },
+  "footer": {
+    "title": "Ọmarịcha nnabata haziri ahazi maka ụtọ gị.",
+    "book": "Debe ebe obibi gị"
+  }
+}

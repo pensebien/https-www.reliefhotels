@@ -1,0 +1,469 @@
+{
+  "meta": {
+    "title": "Relief Hotels & Suites | Luxury Hotel in Calabar",
+    "description": "Discover Relief Hotels & Suites in Calabar, Nigeria for refined stays, signature suites, private dining, spa experiences, and concierge-led hospitality."
+  },
+  "nav": {
+    "home": "Home",
+    "suites": "Suites",
+    "rooms": "Rooms & Suites",
+    "experiences": "Experiences",
+    "tours": "Tours & Guides",
+    "gallery": "Gallery",
+    "events": "Meetings & Events",
+    "dineWine": "Dine & Wine",
+    "contact": "Contact",
+    "book": "Book Your Stay",
+    "menu": "Menu",
+    "theme": "Toggle theme"
+  },
+  "hero": {
+    "eyebrow": "Discover {highlight} with bespoke stays, intuitive service, and unforgettable moments in the heart of the city.",
+    "highlight": "refined hospitality",
+    "title": "Relief Hotels & Suites",
+    "cta": "Plan your stay"
+  },
+  "intro": {
+    "title": "An elevated escape defined by gracious service, elegant interiors, and curated experiences for discerning travelers."
+  },
+  "stats": {
+    "suites": "Luxury suites and signature rooms",
+    "years": "Years of timeless hospitality",
+    "experiences": "Curated dining and wellness experiences"
+  },
+  "experiences": {
+    "presidential": {
+      "title": "Presidential Suite",
+      "subtitle": "Panoramic skyline views"
+    },
+    "dining": {
+      "title": "Rooftop Dining",
+      "subtitle": "Seasonal tasting menus"
+    },
+    "spa": {
+      "title": "Spa Sanctuary",
+      "subtitle": "Private wellness rituals"
+    },
+    "lounge": {
+      "title": "Grand Lounge",
+      "subtitle": "Afternoon tea and live piano"
+    }
+  },
+  "highlights": {
+    "badge": "Hotel Highlights",
+    "title": "Experience elevated stays",
+    "description": "Explore the signature comforts, culinary moments, and personalized services that define every stay at Relief Hotels & Suites.",
+    "cta": "Reserve Your Stay"
+  },
+  "services": {
+    "suites": {
+      "title": "Signature Suites",
+      "description": "Retreat into generously appointed rooms with plush bedding, marble bathrooms, and thoughtful in-room touches designed for complete comfort."
+    },
+    "dining": {
+      "title": "Private Dining",
+      "description": "Savour chef-led tasting menus, intimate rooftop evenings, and Nigerian-inspired plates crafted for celebration and quiet indulgence."
+    },
+    "wellness": {
+      "title": "Wellness & Spa",
+      "description": "Restore with private spa rituals, calming therapies, and restorative treatments designed for travellers who value calm and renewal."
+    },
+    "concierge": {
+      "title": "Concierge Services",
+      "description": "From airport transfers to bespoke itineraries across Calabar and Cross River State, our concierge team shapes every detail around you."
+    }
+  },
+  "cta": {
+    "title": "Let every arrival feel extraordinary with a stay tailored to your pace, taste, and sense of occasion.",
+    "button": "Book Your Escape"
+  },
+  "marquee": {
+    "transfer": "Private airport transfers and priority arrival service available on request.",
+    "suites": "Reserve signature suites with skyline views, marble baths, and butler service.",
+    "dining": "Enjoy chef-curated dining, restorative spa rituals, and rooftop evenings.",
+    "concierge": "Plan celebrations, executive stays, and romantic escapes with our concierge team."
+  },
+  "contact": {
+    "eyebrow": "Reservations & concierge",
+    "title": "Allow our team to craft a stay shaped around comfort, celebration, and effortless luxury.",
+    "phone": "Phone",
+    "email": "Email",
+    "location": "Location",
+    "formBadge": "Tailored reservations",
+    "formTitle": "Start planning your stay",
+    "formDescription": "Share your preferred suite style, travel occasion, and special details. Our team will shape a reservation experience that feels seamless from arrival to departure.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "emailLabel": "Email address",
+    "stayPreference": "Stay preference",
+    "stayPlaceholder": "Select your stay style",
+    "details": "Reservation details",
+    "detailsPlaceholder": "Tell us your preferred dates, suite style, or any special requests",
+    "terms": "I agree to be contacted about my reservation inquiry",
+    "termsNote": "Your details stay private and are used only to coordinate your stay preferences.",
+    "submit": "Request Reservation",
+    "success": "Thank you. Our concierge team will reach out shortly.",
+    "successEmail": "A confirmation has been emailed to our reservations team.",
+    "successDemo": "Demo mode: inquiry saved — view it on the demo dashboard.",
+    "error": "Something went wrong. Please try again or call us directly."
+  },
+  "form": {
+    "stay": {
+      "signature": "Signature Suite",
+      "presidential": "Presidential Suite",
+      "executive": "Executive Room",
+      "romantic": "Romantic Escape",
+      "wellness": "Wellness Retreat",
+      "extended": "Extended Stay"
+    }
+  },
+  "footer": {
+    "brand": "Relief Hotels & Suites",
+    "title": "Luxury hospitality shaped around your comfort.",
+    "description": "From elegant suites to concierge-led experiences, every stay is designed to feel calm, personal, and memorable in the heart of Calabar.",
+    "book": "Book your stay",
+    "explore": "Explore",
+    "experiencesList": "Experiences",
+    "experienceItems": {
+      "suites": "Signature suites",
+      "dining": "Private dining",
+      "wellness": "Wellness & spa",
+      "concierge": "Concierge service"
+    },
+    "contact": "Contact",
+    "rights": "All rights reserved.",
+    "tagline": "Luxury stays, bespoke service, and memorable arrivals in Calabar."
+  },
+  "rooms": {
+    "pageTitle": "Rooms & Signature Suites",
+    "pageDescription": "Choose a suite or room crafted for comfort, celebration, and the Calabar experience.",
+    "from": "From",
+    "perNight": "per night",
+    "viewDetails": "View details",
+    "bookRoom": "Request via concierge",
+    "payDeposit": "Pay deposit online",
+    "amenities": "Amenities",
+    "signature": {
+      "name": "Signature Suite",
+      "description": "Generously appointed with plush bedding, marble bathroom, and city views — our most popular choice for discerning guests."
+    },
+    "presidential": {
+      "name": "Presidential Suite",
+      "description": "Panoramic views, separate living space, and butler service for guests who expect the finest arrival in Calabar."
+    },
+    "executive": {
+      "name": "Executive Room",
+      "description": "Designed for business travellers with a work zone, premium linens, and lounge access for focused, comfortable stays."
+    },
+    "wellness": {
+      "name": "Wellness Retreat Suite",
+      "description": "A calming sanctuary with spa credits, restorative in-room amenities, and access to private wellness rituals."
+    },
+    "amenities": {
+      "kingBed": "King bed & premium linens",
+      "marbleBath": "Marble bathroom",
+      "cityView": "City skyline view",
+      "butler": "Butler service",
+      "panoramic": "Panoramic views",
+      "livingRoom": "Separate living room",
+      "airportTransfer": "Complimentary airport transfer",
+      "workDesk": "Executive work desk",
+      "rainShower": "Rain shower",
+      "loungeAccess": "Grand lounge access",
+      "spaCredit": "Spa treatment credit",
+      "healthyMenu": "Wellness dining menu",
+      "yoga": "In-room yoga mat"
+    }
+  },
+  "tours": {
+    "pageTitle": "Tours & Local Guides",
+    "pageDescription": "Explore Calabar, Cross River, and Nigeria with trusted guides curated by our concierge team.",
+    "guideIncluded": "Licensed guide included",
+    "from": "From",
+    "bookTour": "Request via concierge",
+    "payNow": "Pay online",
+    "heritage": {
+      "name": "Calabar Heritage Walk",
+      "description": "Discover historic Calabar, local markets, and cultural landmarks with a knowledgeable guide who brings the city to life.",
+      "duration": "Half day · 4 hours"
+    },
+    "marina": {
+      "name": "Marina & Tinapa Excursion",
+      "description": "A relaxed day by the waterfront with shopping, leisure, and scenic views tailored for families and first-time visitors.",
+      "duration": "Full day · 7 hours"
+    },
+    "obudu": {
+      "name": "Obudu Plateau Day Trip",
+      "description": "Escape to cooler highlands, cable car views, and breathtaking landscapes — one of Nigeria's most memorable natural escapes.",
+      "duration": "Full day · 10 hours"
+    },
+    "culinary": {
+      "name": "Calabar Culinary Trail",
+      "description": "Taste regional flavours, street specialities, and chef-selected stops that celebrate Cross River's rich food culture.",
+      "duration": "Half day · 5 hours"
+    }
+  },
+  "experiencesPage": {
+    "pageTitle": "Curated Experiences",
+    "pageDescription": "Dining, wellness, celebrations, and city moments — all shaped by our concierge for an unforgettable stay."
+  },
+  "city": {
+    "carnival": {
+      "name": "Carnival & Festival Hosting",
+      "description": "Priority reservations, transport, and event access during Calabar's world-renowned carnival season."
+    },
+    "river": {
+      "name": "River & Marina Evenings",
+      "description": "Sunset cruises and waterfront dining arranged for couples, families, and corporate groups."
+    },
+    "executive": {
+      "name": "Executive & Diplomatic Hosting",
+      "description": "Discreet arrivals, meeting support, and tailored hospitality for business and government delegations."
+    }
+  },
+  "language": {
+    "label": "Language"
+  },
+  "gallery": {
+    "pageTitle": "Photo Gallery",
+    "pageDescription": "Step inside Relief Hotels & Suites — suites, dining, wellness, and the beauty of Calabar.",
+    "filterAll": "All",
+    "close": "Close",
+    "categories": {
+      "suites": "Suites",
+      "dining": "Dining",
+      "wellness": "Wellness",
+      "lobby": "Lobby & Lounge",
+      "calabar": "Calabar & Tours"
+    },
+    "items": {
+      "suite01": "Signature Suite — evening light",
+      "suite02": "Presidential Suite living area",
+      "suite03": "Executive Room workspace",
+      "suite04": "Marble bathroom detail",
+      "dining01": "Rooftop tasting menu",
+      "dining02": "Private dining salon",
+      "dining03": "Chef's table experience",
+      "wellness01": "Spa sanctuary",
+      "wellness02": "Wellness ritual room",
+      "lobby01": "Grand arrival lobby",
+      "lobby02": "Afternoon tea lounge",
+      "calabar01": "Calabar waterfront",
+      "calabar02": "Heritage district",
+      "calabar03": "Obudu Plateau excursion"
+    }
+  },
+  "booking": {
+    "pageTitle": "Secure Checkout",
+    "title": "Complete your booking",
+    "email": "Email for receipt",
+    "nights": "Nights",
+    "guests": "Guests",
+    "depositNote": "Amount due now (20% room deposit or tour total):",
+    "payDeposit": "Pay deposit with Paystack",
+    "payTest": "Quick test — ₦5,000",
+    "secureCheckout": "Paystack · Test or Live",
+    "notFound": "We could not find that room or tour.",
+    "browseRooms": "Browse rooms",
+    "preferConcierge": "Prefer to speak with concierge? Request a callback →"
+  },
+  "payment": {
+    "verifying": "Verifying your payment…",
+    "successTitle": "Payment successful",
+    "successDescription": "Thank you. Our team will confirm your reservation shortly.",
+    "failedTitle": "Payment not completed",
+    "failedDescription": "The transaction was cancelled or declined. You can try again.",
+    "reference": "Reference",
+    "demoNote": "Demo/simulated payment — no real charge when Paystack keys are absent.",
+    "backHome": "Back to home",
+    "viewDashboard": "View demo dashboard",
+    "tryAgain": "Try again",
+    "missingReference": "Missing payment reference."
+  },
+  "demo": {
+    "title": "Demo Dashboard",
+    "subtitle": "Live reservations and payments for client presentations.",
+    "refresh": "Refresh",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load data",
+    "unauthorized": "Invalid dashboard key.",
+    "reservations": "Reservations",
+    "payments": "Payments",
+    "status": {
+      "paystack": "Paystack",
+      "email": "Email (Resend)",
+      "app": "App URL",
+      "demoPayments": "Simulated checkout",
+      "live": "Test/Live keys",
+      "resend": "Sending via Resend",
+      "console": "Logged to server console"
+    }
+  },
+  "reviews": {
+    "eyebrow": "Guest reflections",
+    "title": "Trusted by travellers across Nigeria and beyond"
+  },
+  "phase1": {
+    "meetings": {
+      "eyebrow": "Meetings & Events",
+      "title": "Host with confidence in Calabar",
+      "description": "From executive board meetings to landmark celebrations, our venues combine Nigerian warmth with international standards — inspired by leading business hotels across the region.",
+      "cta": "Explore event spaces",
+      "spaces": {
+        "ballroom": {
+          "capacity": "Up to 450 guests",
+          "title": "Grand Ballroom",
+          "description": "Flexible theatre, banquet, and reception layouts with premium AV support."
+        },
+        "boardroom": {
+          "capacity": "Up to 120 guests",
+          "title": "Executive Boardroom",
+          "description": "Private setting for leadership retreats, negotiations, and strategy sessions."
+        },
+        "pavilion": {
+          "capacity": "Up to 220 guests",
+          "title": "Garden Pavilion",
+          "description": "Open-air elegance for weddings, galas, and sunset receptions."
+        }
+      },
+      "types": {
+        "corporate": "Corporate summits",
+        "wedding": "Weddings",
+        "gala": "Galas & awards",
+        "diplomatic": "Diplomatic hosting"
+      }
+    },
+    "experiences": {
+      "eyebrow": "Signature experiences",
+      "title": "Calabar moments worth remembering",
+      "description": "Curated activities for Nigerian guests, regional travellers, and international visitors — from romantic evenings to heritage excursions.",
+      "picnic": {
+        "title": "Garden picnic",
+        "description": "Relaxed outdoor moments with friends and family in a serene setting."
+      },
+      "romantic": {
+        "title": "Romantic dining",
+        "description": "Private tables, candlelight, and chef-led menus under the stars."
+      },
+      "heritage": {
+        "title": "Heritage walks",
+        "description": "Discover Calabar's culture, markets, and historic landmarks with expert guides."
+      },
+      "wellness": {
+        "title": "Wellness rituals",
+        "description": "Spa therapies and restorative treatments designed for complete renewal."
+      }
+    }
+  },
+  "phase2": {
+    "events": {
+      "eyebrow": "Meetings & Events",
+      "pageTitle": "Meetings & Signature Events",
+      "pageDescription": "Premium venues for corporate conferences, weddings, diplomatic functions, and private celebrations in Calabar.",
+      "capacity": "Up to {count} guests",
+      "formTitle": "Request an event proposal",
+      "formDescription": "Tell us about your occasion and our events team will respond with tailored options.",
+      "spaces": {
+        "ballroom": {
+          "name": "Grand Ballroom",
+          "description": "Our flagship hall for large conferences, product launches, and formal banquets.",
+          "style": "Theatre · Banquet · Reception"
+        },
+        "salon": {
+          "name": "Executive Salon",
+          "description": "Intimate, technology-enabled space for board meetings and executive briefings.",
+          "style": "Boardroom · U-shape"
+        },
+        "pavilion": {
+          "name": "Garden Pavilion",
+          "description": "Al fresco venue for weddings, cultural evenings, and sunset cocktails.",
+          "style": "Outdoor · Garden"
+        }
+      },
+      "form": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "phone": "Phone",
+        "eventType": "Event type",
+        "guestCount": "Expected guests",
+        "message": "Event details",
+        "submit": "Submit inquiry",
+        "success": "Thank you. Our events team will contact you shortly.",
+        "error": "Could not submit. Please try again.",
+        "types": {
+          "corporate": "Corporate",
+          "wedding": "Wedding",
+          "gala": "Gala",
+          "conference": "Conference",
+          "private": "Private celebration"
+        }
+      }
+    },
+    "dining": {
+      "eyebrow": "Dine & Wine",
+      "pageTitle": "Dine & Wine",
+      "pageDescription": "Rooftop evenings, private salons, and Nigerian-inspired cuisine crafted for celebration and quiet indulgence.",
+      "menuTitle": "Menu highlights",
+      "formTitle": "Reserve a table",
+      "formDescription": "Share your preferred date, venue, and party size — our team will confirm availability.",
+      "menu": {
+        "seafood": "Coastal seafood grill",
+        "grill": "Signature charcoal grill",
+        "vegan": "Plant-forward plates",
+        "pastry": "Artisan pastries & desserts"
+      },
+      "venues": {
+        "rooftop": {
+          "name": "Rooftop Terrace",
+          "description": "Skyline views with seasonal tasting menus and curated wine pairings.",
+          "cuisine": "Contemporary · Seasonal"
+        },
+        "lounge": {
+          "name": "Grand Lounge",
+          "description": "Afternoon tea, live piano, and light bites in an elegant setting.",
+          "cuisine": "Lounge · Afternoon tea"
+        },
+        "salon": {
+          "name": "Private Dining Salon",
+          "description": "Intimate room for anniversaries, proposals, and executive dinners.",
+          "cuisine": "Private dining · Chef's table"
+        }
+      },
+      "form": {
+        "firstName": "First name",
+        "lastName": "Last name",
+        "email": "Email",
+        "venue": "Preferred venue",
+        "partySize": "Party size",
+        "notes": "Special requests (optional)",
+        "submit": "Request reservation",
+        "success": "Thank you. We will confirm your table shortly.",
+        "error": "Could not submit. Please try again.",
+        "venues": {
+          "rooftop": "Rooftop Terrace",
+          "grand-lounge": "Grand Lounge",
+          "private-salon": "Private Dining Salon"
+        }
+      }
+    }
+  },
+  "phase3": {
+    "seo": {
+      "luxury": {
+        "body": "Relief Hotels & Suites offers five-star hospitality in the heart of Calabar — signature suites, attentive concierge service, and curated experiences across Cross River State. Whether you are visiting for business, celebration, or leisure, every stay is shaped around comfort, culture, and calm."
+      },
+      "conference": {
+        "body": "Host your next summit, wedding, or diplomatic function at Relief Hotels & Suites. Our flexible event spaces, professional AV support, and dedicated events team deliver the reliability executives expect and the warmth Nigerian hospitality is known for."
+      },
+      "romantic": {
+        "body": "Celebrate love with private dining, rooftop evenings, and bespoke table settings. From proposals to anniversaries, our culinary team crafts memorable evenings for couples visiting Calabar and guests from across Nigeria and abroad."
+      },
+      "cta": {
+        "rooms": "View rooms & suites",
+        "events": "Plan your event",
+        "dining": "Reserve dining"
+      }
+    }
+  }
+}

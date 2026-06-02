@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "title": "Relief Hotels & Suites | Luxury Hotel for Calabar",
+    "description": "Come experience Relief Hotels & Suites for Calabar — fine rooms, private dining, spa, and concierge wey go treat you well."
+  },
+  "nav": {
+    "home": "Home",
+    "suites": "Suites",
+    "rooms": "Rooms & Suites",
+    "experiences": "Experiences",
+    "tours": "Tours & Guides",
+    "contact": "Contact",
+    "book": "Book Your Stay",
+    "menu": "Menu",
+    "theme": "Change theme"
+  },
+  "hero": {
+    "eyebrow": "Come enjoy {highlight} — bespoke stay, sharp service, and moments wey you no go forget for city centre.",
+    "highlight": "fine hospitality",
+    "title": "Relief Hotels & Suites",
+    "cta": "Plan your stay"
+  },
+  "intro": {
+    "title": "Better escape with kind service, fine interior, and experiences wey dem pick well for people wey sabi travel."
+  },
+  "stats": {
+    "suites": "Luxury suites and signature rooms",
+    "years": "Years of fine hospitality",
+    "experiences": "Dining and wellness experiences dem arrange"
+  },
+  "experiences": {
+    "presidential": {
+      "title": "Presidential Suite",
+      "subtitle": "City view full ground"
+    },
+    "dining": {
+      "title": "Rooftop Dining",
+      "subtitle": "Season food wey dem arrange"
+    },
+    "spa": {
+      "title": "Spa Sanctuary",
+      "subtitle": "Private wellness treatment"
+    },
+    "lounge": {
+      "title": "Grand Lounge",
+      "subtitle": "Afternoon tea and live piano"
+    }
+  },
+  "highlights": {
+    "badge": "Hotel Highlights",
+    "title": "Enjoy stay wey high pass",
+    "description": "See the comfort, food, and personal service wey make every stay for Relief Hotels & Suites special.",
+    "cta": "Reserve Your Stay"
+  },
+  "services": {
+    "suites": {
+      "title": "Signature Suites",
+      "description": "Enter room wey big well with soft bed, marble bathroom, and small-small touch wey go make you comfortable."
+    },
+    "dining": {
+      "title": "Private Dining",
+      "description": "Chop chef food, rooftop evening, and Nigerian flavour for celebration or quiet enjoyment."
+    },
+    "wellness": {
+      "title": "Wellness & Spa",
+      "description": "Rest with private spa, calm therapy, and treatment for people wey want peace."
+    },
+    "concierge": {
+      "title": "Concierge Services",
+      "description": "From airport pick-up to Calabar and Cross River tour — our team go arrange everything for you."
+    }
+  },
+  "cta": {
+    "title": "Make every arrival feel special — stay wey match your style and occasion.",
+    "button": "Book Your Escape"
+  },
+  "marquee": {
+    "transfer": "Private airport pick-up and priority arrival dey available on request.",
+    "suites": "Book signature suites with view, marble bath, and butler service.",
+    "dining": "Enjoy chef food, spa ritual, and rooftop evening.",
+    "concierge": "Plan celebration, business stay, and romantic escape with our team."
+  },
+  "contact": {
+    "eyebrow": "Reservation & concierge",
+    "title": "Make our team arrange stay wey full comfort, celebration, and easy luxury.",
+    "phone": "Phone",
+    "email": "Email",
+    "location": "Location",
+    "formBadge": "Tailored reservation",
+    "formTitle": "Start to plan your stay",
+    "formDescription": "Tell us the suite you want, why you dey travel, and any special thing. Our team go make arrival to departure smooth.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "emailLabel": "Email address",
+    "stayPreference": "Stay preference",
+    "stayPlaceholder": "Choose your stay style",
+    "details": "Reservation details",
+    "detailsPlaceholder": "Tell us date, suite type, or special request",
+    "terms": "I agree make una contact me about my reservation",
+    "termsNote": "Your info dey private — we only use am to arrange your stay.",
+    "submit": "Request Reservation",
+    "success": "Thank you. Our team go reach you soon.",
+    "error": "Something fail. Try again or call us."
+  },
+  "form": {
+    "stay": {
+      "signature": "Signature Suite",
+      "presidential": "Presidential Suite",
+      "executive": "Executive Room",
+      "romantic": "Romantic Escape",
+      "wellness": "Wellness Retreat",
+      "extended": "Extended Stay"
+    }
+  },
+  "footer": {
+    "brand": "Relief Hotels & Suites",
+    "title": "Luxury hospitality wey focus on your comfort.",
+    "description": "From fine suite to concierge experience — every stay dey calm, personal, and memorable for Calabar.",
+    "book": "Book your stay",
+    "explore": "Explore",
+    "experiencesList": "Experiences",
+    "experienceItems": {
+      "suites": "Signature suites",
+      "dining": "Private dining",
+      "wellness": "Wellness & spa",
+      "concierge": "Concierge service"
+    },
+    "contact": "Contact",
+    "rights": "All rights reserved.",
+    "tagline": "Luxury stay, bespoke service, memorable arrival for Calabar."
+  },
+  "rooms": {
+    "pageTitle": "Rooms & Signature Suites",
+    "pageDescription": "Choose room or suite for comfort, celebration, and Calabar experience.",
+    "from": "From",
+    "perNight": "per night",
+    "viewDetails": "See details",
+    "bookRoom": "Reserve this room",
+    "amenities": "Amenities",
+    "signature": {
+      "name": "Signature Suite",
+      "description": "Big room with soft bed, marble bathroom, and city view — popular well for guests wey sabi quality."
+    },
+    "presidential": {
+      "name": "Presidential Suite",
+      "description": "Panoramic view, living room separate, and butler for guests wey want the best for Calabar."
+    },
+    "executive": {
+      "name": "Executive Room",
+      "description": "For business people — work desk, fine linen, and lounge access."
+    },
+    "wellness": {
+      "name": "Wellness Retreat Suite",
+      "description": "Quiet place with spa credit and private wellness ritual."
+    },
+    "amenities": {
+      "kingBed": "King bed & fine linen",
+      "marbleBath": "Marble bathroom",
+      "cityView": "City view",
+      "butler": "Butler service",
+      "panoramic": "Panoramic view",
+      "livingRoom": "Separate living room",
+      "airportTransfer": "Free airport transfer",
+      "workDesk": "Executive desk",
+      "rainShower": "Rain shower",
+      "loungeAccess": "Grand lounge access",
+      "spaCredit": "Spa credit",
+      "healthyMenu": "Wellness menu",
+      "yoga": "Yoga mat for room"
+    }
+  },
+  "tours": {
+    "pageTitle": "Tours & Local Guides",
+    "pageDescription": "Explore Calabar and Cross River with guides wey our concierge trust.",
+    "guideIncluded": "Licensed guide dey included",
+    "from": "From",
+    "bookTour": "Book this experience",
+    "heritage": {
+      "name": "Calabar Heritage Walk",
+      "description": "See historic Calabar, market, and culture with guide wey sabi the story.",
+      "duration": "Half day · 4 hours"
+    },
+    "marina": {
+      "name": "Marina & Tinapa Trip",
+      "description": "Relaxed day for water front, shopping, and view — good for family and first-time visitor.",
+      "duration": "Full day · 7 hours"
+    },
+    "obudu": {
+      "name": "Obudu Plateau Day Trip",
+      "description": "Cool mountain, cable car, and scenery wey you no go forget.",
+      "duration": "Full day · 10 hours"
+    },
+    "culinary": {
+      "name": "Calabar Food Trail",
+      "description": "Taste local food and chef pick for Cross River flavour.",
+      "duration": "Half day · 5 hours"
+    }
+  },
+  "experiencesPage": {
+    "pageTitle": "Curated Experiences",
+    "pageDescription": "Food, wellness, celebration, and city moment — concierge go arrange am."
+  },
+  "city": {
+    "carnival": {
+      "name": "Carnival & Festival Hosting",
+      "description": "Priority booking and transport for Calabar carnival season."
+    },
+    "river": {
+      "name": "River & Marina Evening",
+      "description": "Sunset cruise and waterfront dining for couple, family, or company."
+    },
+    "executive": {
+      "name": "Executive & Diplomatic Hosting",
+      "description": "Quiet arrival and special service for business and government guest."
+    }
+  },
+  "language": {
+    "label": "Language"
+  }
+}

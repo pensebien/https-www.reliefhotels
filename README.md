@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Relief Hotels & Suites
 
-## Getting Started
+A modern, multi-language luxury hotel website for **Relief Hotels & Suites** in Calabar, Cross River, Nigeria. Content is captured from [reliefhotelsandsuites.com](https://www.reliefhotelsandsuites.com/) and extended with rooms, tours, and concierge experiences.
 
-First, run the development server:
+## Features
+
+- **5-star aesthetic** — EB Garamond + DM Sans, teal accents, video hero, elegant cards
+- **Full source content** — hero, stats, experiences, highlights, CTA marquee, contact form, footer
+- **Book & explore** — `/rooms`, `/tours`, `/experiences` with pricing in NGN
+- **Multi-language** — English, French, Nigerian Pidgin, Igbo, Yorùbá (`next-intl`)
+- **Secure reservations** — validated `POST /api/reservations` (wire to email/CRM next)
+- **Easy to modify** — copy in `messages/*.json`, structure in `src/content/site.ts`
+- **Fast & cheap** — Next.js static pages, Tailwind CSS 4, no heavy CMS required
+
+## Getting started
 
 ```bash
+cd reliefhotels
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Client demo in the next few hours?** Read **[DEMO.md](./DEMO.md)** — Paystack test setup, 20-minute demo script, dummy data, and dashboard walkthrough.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+| Path | Purpose |
+|------|---------|
+| `src/content/site.ts` | Rooms, tours, media URLs, contact details |
+| `messages/en.json` | English copy (base for all locales) |
+| `messages/fr.json`, `pcm.json`, … | Translations |
+| `src/components/sections/` | Homepage sections |
+| `src/app/[locale]/` | Localized pages |
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Deploy to [Vercel](https://vercel.com) for global CDN, preview URLs, and zero-config Next.js hosting.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Next steps
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Connect `/api/reservations` to Resend, SendGrid, or your PMS
+2. Replace Unsplash placeholders with professional hotel photography
+3. Add payment gateway (Paystack / Flutterwave) for instant bookings
+4. Expand Igbo/Yorùbá translations in `messages/ig.json` and `messages/yo.json`

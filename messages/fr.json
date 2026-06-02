@@ -1,0 +1,220 @@
+{
+  "meta": {
+    "title": "Relief Hotels & Suites | Hôtel de luxe à Calabar",
+    "description": "Découvrez Relief Hotels & Suites à Calabar, Nigeria : suites signature, restauration privée, spa et service de conciergerie personnalisé."
+  },
+  "nav": {
+    "home": "Accueil",
+    "suites": "Suites",
+    "rooms": "Chambres & Suites",
+    "experiences": "Expériences",
+    "tours": "Visites & Guides",
+    "contact": "Contact",
+    "book": "Réserver",
+    "menu": "Menu",
+    "theme": "Changer le thème"
+  },
+  "hero": {
+    "eyebrow": "Découvrez une {highlight} avec des séjours sur mesure, un service intuitif et des moments inoubliables au cœur de la ville.",
+    "highlight": "hospitalité raffinée",
+    "title": "Relief Hotels & Suites",
+    "cta": "Planifier votre séjour"
+  },
+  "intro": {
+    "title": "Une escapade raffinée définie par un service attentionné, des intérieurs élégants et des expériences choisies pour les voyageurs exigeants."
+  },
+  "stats": {
+    "suites": "Suites de luxe et chambres signature",
+    "years": "Années d'hospitalité intemporelle",
+    "experiences": "Expériences gastronomiques et bien-être"
+  },
+  "experiences": {
+    "presidential": {
+      "title": "Suite Présidentielle",
+      "subtitle": "Vues panoramiques sur la ville"
+    },
+    "dining": {
+      "title": "Restaurant Rooftop",
+      "subtitle": "Menus dégustation de saison"
+    },
+    "spa": {
+      "title": "Sanctuaire Spa",
+      "subtitle": "Rituels bien-être privés"
+    },
+    "lounge": {
+      "title": "Grand Salon",
+      "subtitle": "Thé l'après-midi et piano live"
+    }
+  },
+  "highlights": {
+    "badge": "Points forts",
+    "title": "Vivez un séjour d'exception",
+    "description": "Explorez les conforts signature, les moments culinaires et les services personnalisés qui définissent chaque séjour chez Relief Hotels & Suites.",
+    "cta": "Réserver votre séjour"
+  },
+  "services": {
+    "suites": {
+      "title": "Suites Signature",
+      "description": "Retraitez dans des chambres généreusement aménagées avec literie somptueuse, salles de bain en marbre et attentions raffinées."
+    },
+    "dining": {
+      "title": "Restauration Privée",
+      "description": "Savourez des menus du chef, des soirées rooftop intimes et une cuisine inspirée du Nigeria."
+    },
+    "wellness": {
+      "title": "Bien-être & Spa",
+      "description": "Régénérez-vous avec des rituels spa privés et des soins restaurateurs pour les voyageurs en quête de calme."
+    },
+    "concierge": {
+      "title": "Services Concierge",
+      "description": "Transferts aéroport, itinéraires sur mesure à Calabar et dans l'État de Cross River — chaque détail est pensé pour vous."
+    }
+  },
+  "cta": {
+    "title": "Que chaque arrivée soit extraordinaire, avec un séjour adapté à votre rythme, vos goûts et l'occasion.",
+    "button": "Réserver votre escapade"
+  },
+  "marquee": {
+    "transfer": "Transferts aéroport privés et service d'arrivée prioritaire sur demande.",
+    "suites": "Réservez des suites signature avec vues, salles de bain en marbre et service de majordome.",
+    "dining": "Profitez d'une cuisine du chef, de rituels spa et de soirées rooftop.",
+    "concierge": "Planifiez célébrations, séjours d'affaires et escapades romantiques avec notre équipe."
+  },
+  "contact": {
+    "eyebrow": "Réservations & conciergerie",
+    "title": "Laissez notre équipe créer un séjour autour du confort, de la célébration et du luxe discret.",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "location": "Adresse",
+    "formBadge": "Réservations sur mesure",
+    "formTitle": "Commencez à planifier votre séjour",
+    "formDescription": "Partagez votre style de suite, l'occasion du voyage et vos demandes spéciales. Notre équipe orchestrera une expérience fluide de l'arrivée au départ.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "emailLabel": "Adresse e-mail",
+    "stayPreference": "Préférence de séjour",
+    "stayPlaceholder": "Choisissez votre style",
+    "details": "Détails de réservation",
+    "detailsPlaceholder": "Dates souhaitées, type de suite ou demandes particulières",
+    "terms": "J'accepte d'être contacté concernant ma demande de réservation",
+    "termsNote": "Vos informations restent privées et servent uniquement à coordonner votre séjour.",
+    "submit": "Demander une réservation",
+    "success": "Merci. Notre équipe vous contactera sous peu.",
+    "error": "Une erreur s'est produite. Réessayez ou appelez-nous."
+  },
+  "form": {
+    "stay": {
+      "signature": "Suite Signature",
+      "presidential": "Suite Présidentielle",
+      "executive": "Chambre Executive",
+      "romantic": "Escapade Romantique",
+      "wellness": "Retraite Bien-être",
+      "extended": "Séjour Prolongé"
+    }
+  },
+  "footer": {
+    "brand": "Relief Hotels & Suites",
+    "title": "Une hospitalité de luxe centrée sur votre confort.",
+    "description": "Des suites élégantes aux expériences concierge, chaque séjour est calme, personnel et mémorable au cœur de Calabar.",
+    "book": "Réserver",
+    "explore": "Explorer",
+    "experiencesList": "Expériences",
+    "experienceItems": {
+      "suites": "Suites signature",
+      "dining": "Restauration privée",
+      "wellness": "Bien-être & spa",
+      "concierge": "Service concierge"
+    },
+    "contact": "Contact",
+    "rights": "Tous droits réservés.",
+    "tagline": "Séjours de luxe, service sur mesure et arrivées mémorables à Calabar."
+  },
+  "rooms": {
+    "pageTitle": "Chambres & Suites Signature",
+    "pageDescription": "Choisissez une suite ou chambre conçue pour le confort, la célébration et l'expérience Calabar.",
+    "from": "À partir de",
+    "perNight": "par nuit",
+    "viewDetails": "Voir les détails",
+    "bookRoom": "Réserver cette chambre",
+    "amenities": "Équipements",
+    "signature": {
+      "name": "Suite Signature",
+      "description": "Aménagement généreux, literie somptueuse, salle de bain en marbre et vue sur la ville."
+    },
+    "presidential": {
+      "name": "Suite Présidentielle",
+      "description": "Vues panoramiques, salon séparé et service de majordome pour une arrivée d'exception à Calabar."
+    },
+    "executive": {
+      "name": "Chambre Executive",
+      "description": "Espace de travail, literie premium et accès au salon pour les voyageurs d'affaires."
+    },
+    "wellness": {
+      "name": "Suite Retraite Bien-être",
+      "description": "Sanctuaire apaisant avec crédits spa et rituels bien-être privés."
+    },
+    "amenities": {
+      "kingBed": "Lit king & literie premium",
+      "marbleBath": "Salle de bain en marbre",
+      "cityView": "Vue sur la ville",
+      "butler": "Service de majordome",
+      "panoramic": "Vues panoramiques",
+      "livingRoom": "Salon séparé",
+      "airportTransfer": "Transfert aéroport offert",
+      "workDesk": "Bureau executive",
+      "rainShower": "Douche pluie",
+      "loungeAccess": "Accès au grand salon",
+      "spaCredit": "Crédit spa",
+      "healthyMenu": "Menu bien-être",
+      "yoga": "Tapis de yoga en chambre"
+    }
+  },
+  "tours": {
+    "pageTitle": "Visites & Guides Locaux",
+    "pageDescription": "Explorez Calabar et le Cross River avec des guides de confiance sélectionnés par notre conciergerie.",
+    "guideIncluded": "Guide agréé inclus",
+    "from": "À partir de",
+    "bookTour": "Réserver cette expérience",
+    "heritage": {
+      "name": "Balade Patrimoine Calabar",
+      "description": "Découvrez l'histoire, les marchés et les sites culturels avec un guide passionné.",
+      "duration": "Demi-journée · 4 heures"
+    },
+    "marina": {
+      "name": "Excursion Marina & Tinapa",
+      "description": "Journée détente au bord de l'eau avec shopping et vues panoramiques.",
+      "duration": "Journée · 7 heures"
+    },
+    "obudu": {
+      "name": "Excursion Plateau Obudu",
+      "description": "Hauts plateaux frais, téléphérique et paysages à couper le souffle.",
+      "duration": "Journée · 10 heures"
+    },
+    "culinary": {
+      "name": "Parcours Culinaire Calabar",
+      "description": "Saveurs régionales et adresses sélectionnées par nos chefs.",
+      "duration": "Demi-journée · 5 heures"
+    }
+  },
+  "experiencesPage": {
+    "pageTitle": "Expériences Curatées",
+    "pageDescription": "Gastronomie, bien-être, célébrations et moments urbains — orchestrés par notre conciergerie."
+  },
+  "city": {
+    "carnival": {
+      "name": "Accueil Carnaval & Festivals",
+      "description": "Réservations prioritaires et accès événements pendant la saison du carnaval de Calabar."
+    },
+    "river": {
+      "name": "Soirées Fleuve & Marina",
+      "description": "Croisières au coucher du soleil et dîners au bord de l'eau."
+    },
+    "executive": {
+      "name": "Accueil Executive & Diplomatique",
+      "description": "Arrivées discrètes et hospitalité sur mesure pour délégations."
+    }
+  },
+  "language": {
+    "label": "Langue"
+  }
+}
