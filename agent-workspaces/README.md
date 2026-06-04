@@ -32,10 +32,24 @@ Commit baseline on `main` first if you have uncommitted work.
 
 ## PR & merge
 
+**PRs require commits on the agent branch that are not on `main`.**  
+If every branch matches `main`, GitHub returns: *No commits between main and features/agent-*`.
+
 ```bash
-./scripts/agent-pr-create.sh      # after push -u origin <branch>
-./scripts/agent-merge-queue.sh    # after QA, on main
+# 1. Work only in this folder, commit here
+cd agent-workspaces/agent-d-api-services
+git add -A && git commit -m "feat(agent-d): ..."
+git push -u origin features/agent-d-api-services
+
+# 2. Verify diff, then PR
+git log main..HEAD --oneline
+./scripts/agent-pr-create.sh
+
+# 3. After all PRs merged
+./scripts/agent-merge-queue.sh
 ```
+
+Do **not** run `agent-sync-worktrees.sh` before PRs unless you intend to fast-forward agents to `main` with no open PRs.
 
 ## List / remove worktrees
 

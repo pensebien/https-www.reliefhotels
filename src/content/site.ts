@@ -39,9 +39,24 @@ export const media = {
 } as const;
 
 export const stats = [
-  { value: 48, labelKey: "stats.suites" },
-  { value: 12, labelKey: "stats.years" },
-  { value: 24, labelKey: "stats.experiences" },
+  { value: 24, labelKey: "stats.suites" },
+  { value: 150, labelKey: "stats.seating" },
+  { value: 3, labelKey: "stats.venues" },
+] as const;
+
+export const hotelAmenities = [
+  "outdoorBar",
+  "nonSmokingRooms",
+  "digitalKey",
+  "concierge",
+  "privateLounge",
+  "onSiteRestaurant",
+  "guestGym",
+  "wifi",
+  "roomService",
+  "barbecueGrill",
+  "meetingRooms",
+  "barbingSalon",
 ] as const;
 
 export const experienceCards = [

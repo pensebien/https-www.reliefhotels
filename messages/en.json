@@ -5,14 +5,13 @@
   },
   "nav": {
     "home": "Home",
-    "suites": "Suites",
-    "rooms": "Rooms & Suites",
+    "rooms": "Rooms",
+    "dining": "Dining",
+    "eventsMeetings": "Events and Meetings",
+    "gallery": "Gallery",
+    "experience": "Experience",
     "experiences": "Experiences",
     "tours": "Tours & Guides",
-    "gallery": "Gallery",
-    "events": "Meetings & Events",
-    "dineWine": "Dine & Wine",
-    "contact": "Contact",
     "book": "Book Your Stay",
     "menu": "Menu",
     "theme": "Toggle theme"
@@ -27,9 +26,25 @@
     "title": "An elevated escape defined by gracious service, elegant interiors, and curated experiences for discerning travelers."
   },
   "stats": {
-    "suites": "Luxury suites and signature rooms",
-    "years": "Years of timeless hospitality",
-    "experiences": "Curated dining and wellness experiences"
+    "suites": "Luxury Suites",
+    "seating": "indoor and outdoor seating",
+    "venues": "VIP bar, Private Lounge and Restaurant"
+  },
+  "amenities": {
+    "title": "Our Amenities",
+    "subtitle": "Everything you need for a comfortable, connected stay",
+    "outdoorBar": "Outdoor bar",
+    "nonSmokingRooms": "Non-smoking rooms",
+    "digitalKey": "Digital Key",
+    "concierge": "Concierge",
+    "privateLounge": "Private lounge",
+    "onSiteRestaurant": "On-site restaurant",
+    "guestGym": "Guest only Gym",
+    "wifi": "Wifi",
+    "roomService": "Room service",
+    "barbecueGrill": "Barbecue and grill",
+    "meetingRooms": "Meeting rooms",
+    "barbingSalon": "Barbing Salon"
   },
   "experiences": {
     "presidential": {

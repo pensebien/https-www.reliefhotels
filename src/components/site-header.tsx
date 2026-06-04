@@ -11,19 +11,21 @@ import { useEffect, useState } from "react";
 
 const navKeys = [
   { href: "/#home" as const, key: "home" },
-  { href: "/#suites" as const, key: "suites" },
   { href: "/rooms" as const, key: "rooms" },
-  { href: "/#experiences" as const, key: "experiences" },
-  { href: "/tours" as const, key: "tours" },
-  { href: "/events" as const, key: "events" },
-  { href: "/dine-wine" as const, key: "dineWine" },
+  { href: "/dine-wine" as const, key: "dining" },
+  { href: "/events" as const, key: "eventsMeetings" },
   { href: "/gallery" as const, key: "gallery" },
-  { href: "/#contact" as const, key: "contact" },
+] as const;
+
+const experienceMenuKeys = [
+  { href: "/experiences" as const, key: "experiences" },
+  { href: "/tours" as const, key: "tours" },
 ] as const;
 
 export function SiteHeader() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const [experienceOpen, setExperienceOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -69,7 +71,10 @@ export function SiteHeader() {
           <ThemeToggle />
           <button
             type="button"
-            onClick={() => setOpen(!open)}
+            onClick={() => {
+              setOpen(!open);
+              if (open) setExperienceOpen(false);
+            }}
             aria-label={t("menu")}
             aria-expanded={open}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white p-2.5 text-black outline-none sm:h-12 sm:w-12 sm:p-4"
@@ -95,6 +100,33 @@ export function SiteHeader() {
                 {t(item.key)}
               </Link>
             ))}
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setExperienceOpen(!experienceOpen)}
+                aria-expanded={experienceOpen}
+                className="text-lg text-white/90 transition-colors hover:text-teal"
+              >
+                {t("experience")}
+              </button>
+              {experienceOpen && (
+                <div className="flex flex-col gap-3 border-l border-white/15 pl-4">
+                  {experienceMenuKeys.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => {
+                        setOpen(false);
+                        setExperienceOpen(false);
+                      }}
+                      className="text-base text-white/75 transition-colors hover:text-teal"
+                    >
+                      {t(item.key)}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <Link
               href="/#contact"
               onClick={() => setOpen(false)}

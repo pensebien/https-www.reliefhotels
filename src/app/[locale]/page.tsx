@@ -2,6 +2,7 @@ import {
   MeetingsEventsTeaser,
   SignatureExperiencesTeaser,
 } from "@/features/phase-1-foundation";
+import { AmenitiesSection } from "@/components/sections/amenities-section";
 import { ReviewsSection } from "@/components/sections/reviews-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { CtaSection } from "@/components/sections/cta-section";
@@ -25,6 +26,7 @@ export default async function HomePage({
       <HeroSection />
       <StatsSection />
       <ExperienceGrid />
+      <AmenitiesSection />
       <HighlightsSection />
       <MeetingsEventsTeaser />
       <SignatureExperiencesTeaser />

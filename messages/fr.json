@@ -5,11 +5,13 @@
   },
   "nav": {
     "home": "Accueil",
-    "suites": "Suites",
-    "rooms": "Chambres & Suites",
+    "rooms": "Chambres",
+    "dining": "Restauration",
+    "eventsMeetings": "Événements et réunions",
+    "gallery": "Galerie",
+    "experience": "Expérience",
     "experiences": "Expériences",
     "tours": "Visites & Guides",
-    "contact": "Contact",
     "book": "Réserver",
     "menu": "Menu",
     "theme": "Changer le thème"
@@ -24,9 +26,25 @@
     "title": "Une escapade raffinée définie par un service attentionné, des intérieurs élégants et des expériences choisies pour les voyageurs exigeants."
   },
   "stats": {
-    "suites": "Suites de luxe et chambres signature",
-    "years": "Années d'hospitalité intemporelle",
-    "experiences": "Expériences gastronomiques et bien-être"
+    "suites": "Suites de luxe",
+    "seating": "places assises intérieures et extérieures",
+    "venues": "bar VIP, salon privé et restaurant"
+  },
+  "amenities": {
+    "title": "Nos équipements",
+    "subtitle": "Tout ce qu'il faut pour un séjour confortable et connecté",
+    "outdoorBar": "Bar extérieur",
+    "nonSmokingRooms": "Chambres non-fumeurs",
+    "digitalKey": "Clé numérique",
+    "concierge": "Conciergerie",
+    "privateLounge": "Salon privé",
+    "onSiteRestaurant": "Restaurant sur place",
+    "guestGym": "Salle de sport réservée aux clients",
+    "wifi": "Wifi",
+    "roomService": "Service en chambre",
+    "barbecueGrill": "Barbecue et grill",
+    "meetingRooms": "Salles de réunion",
+    "barbingSalon": "Salon de coiffure"
   },
   "experiences": {
     "presidential": {
