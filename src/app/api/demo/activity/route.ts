@@ -20,6 +20,9 @@ export async function GET(request: Request) {
       paystackConfigured: config.paystack.configured,
       emailConfigured: config.email.configured,
       appUrl: config.appUrl,
+      storageMode: config.storage.mode,
+      supabaseConfigured: config.storage.supabaseConfigured,
+      notifyChannel: config.notifications.channel,
     },
     ...activity,
   });

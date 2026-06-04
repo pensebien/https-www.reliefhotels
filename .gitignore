@@ -37,6 +37,13 @@ yarn-error.log*
 /data/demo-store.json
 /data/inquiries.json
 
+# bvdlc local scaffolding script
+/bvdlc.sh
+
+# git worktrees (keep agent-workspaces/README.md tracked)
+/agent-workspaces/*
+!/agent-workspaces/README.md
+
 # vercel
 .vercel
 

@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph dev [Development]
+    Dev[localhost:3000]
+    Ngrok[ngrok tunnel]
+    Dev --- Ngrok
+  end
+
+  subgraph prod [Production target]
+    DNS[Custom domain\nreliefhotelsandsuites.com]
+    Host[Render\nNode runtime]
+    App[Next.js build]
+    DB[(Supabase Postgres)]
+    DNS --> Host
+    Host --> App
+    App --> DB
+  end
+
+  subgraph saas [Managed SaaS]
+    Paystack[Paystack]
+    Resend[Resend]
+    Termii[Termii]
+  end
+
+  App --> Paystack
+  App --> Resend
+  App --> Termii
+
+  Guest[Guest] --> DNS
+  Guest -.demo.-> Ngrok

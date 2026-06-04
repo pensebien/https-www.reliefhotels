@@ -1,6 +1,7 @@
 import { getServerConfig } from "@/lib/config";
 import { updatePaymentByReference } from "@/lib/demo-store";
 import { sendPaymentConfirmationEmail } from "@/lib/email";
+import { notifyManager } from "@/lib/notifications";
 import { verifyPayment } from "@/lib/paystack";
 import { NextResponse } from "next/server";
 
@@ -34,6 +35,13 @@ export async function GET(request: Request) {
           reference,
           amountKobo,
           itemLabel: updated?.itemLabel ?? "Relief Hotels booking",
+        });
+        const amountNgn = Math.round(amountKobo / 100);
+        await notifyManager({
+          event: "payment.verified",
+          referenceId: reference,
+          email,
+          summary: `₦${amountNgn.toLocaleString("en-NG")} — ${updated?.itemLabel ?? "booking"}`,
         });
       }
     } else if (result.status === "failed") {

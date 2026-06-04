@@ -1,5 +1,8 @@
 /** Runtime configuration — safe to import on server and client (public vars only on client) */
 
+import { isSupabaseEnabled } from "@/lib/db/client";
+import { getStorageMode } from "@/lib/demo-store";
+
 export function getServerConfig() {
   const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
   const paystackPublic =
@@ -9,13 +12,26 @@ export function getServerConfig() {
   const demoMode = process.env.DEMO_MODE === "true" || !paystackSecret;
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000");
+    (process.env.RENDER_EXTERNAL_URL
+      ? process.env.RENDER_EXTERNAL_URL
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000");
+
+  const notifyChannel = (process.env.NOTIFY_CHANNEL ?? "console") as
+    | "sms"
+    | "whatsapp"
+    | "both"
+    | "console"
+    | "none";
 
   return {
     appUrl,
     demoMode,
+    storage: {
+      mode: getStorageMode(),
+      supabaseConfigured: isSupabaseEnabled(),
+    },
     paystack: {
       configured: Boolean(paystackSecret && paystackPublic),
       publicKey: paystackPublic ?? "",
@@ -29,6 +45,12 @@ export function getServerConfig() {
       to:
         process.env.RESERVATION_EMAIL ??
         "reservations@reliefhotelsandsuites.com",
+    },
+    notifications: {
+      channel: notifyChannel,
+      termiiConfigured: Boolean(process.env.TERMII_API_KEY),
+      whatsappProvider: process.env.WHATSAPP_PROVIDER ?? "termii",
+      managerPhoneSet: Boolean(process.env.MANAGER_PHONE),
     },
     demoDashboardKey: process.env.DEMO_DASHBOARD_KEY ?? "relief-demo-2026",
   };

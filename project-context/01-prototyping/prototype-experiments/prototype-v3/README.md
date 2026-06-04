@@ -1,5 +1,13 @@
 # Prototype V3 - Notification Reliability
 
+| Field | Value |
+|-------|-------|
+| **Delivery agent** | F — `features/agent-f-notifications` |
+| **Wave** | 3 (merge **last**) |
+| **QA doc** | `docs/testing/agent-f-notifications-TESTS.md` |
+| **POC plan** | `validation-reports/notification-poc-plan.md` |
+| **Business KPI** | Manager notification ≥95% · response ≤15 min |
+
 ## Objective
 
 Validate operational readiness: every booking/reservation should trigger manager alerts via SMS/WhatsApp (or both).

@@ -1,0 +1,35 @@
+flowchart TB
+  subgraph users [Users]
+    Guest[Guest / Event planner]
+    Manager[Hotel manager]
+  end
+
+  subgraph app [Relief Hotels Next.js App]
+    MW[middleware.ts\nnext-intl]
+    Pages["app/[locale]/*\nMarketing + forms"]
+    API["app/api/*\nRoute Handlers"]
+    Lib["lib/*\nstores · email · paystack · notify"]
+    MW --> Pages
+    Pages --> API
+    API --> Lib
+  end
+
+  subgraph data [Persistence]
+    Files[(JSON files\ndemo/local)]
+    PG[(Supabase Postgres\nproduction)]
+  end
+
+  subgraph external [External services]
+    PS[Paystack]
+    RS[Resend]
+    TM[Termii SMS]
+  end
+
+  Guest -->|HTTPS| MW
+  API --> Files
+  API --> PG
+  Lib --> PS
+  Lib --> RS
+  Lib --> TM
+  TM -->|SMS| Manager
+  RS -->|email| Manager

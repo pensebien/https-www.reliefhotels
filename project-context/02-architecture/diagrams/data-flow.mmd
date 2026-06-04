@@ -1,0 +1,33 @@
+sequenceDiagram
+  participant G as Guest browser
+  participant P as Next.js page
+  participant A as API Route Handler
+  participant S as Store / Postgres
+  participant E as Resend
+  participant N as notifyManager
+  participant T as Termii
+  participant M as Manager phone
+
+  Note over G,M: Room reservation flow
+  G->>P: Submit booking form
+  P->>A: POST /api/reservations
+  A->>A: Zod validate
+  A->>S: persist reservation
+  A->>E: sendReservationEmail (optional)
+  A->>N: reservation.created
+  alt NOTIFY_CHANNEL=sms + keys set
+    N->>T: send SMS
+    T->>M: alert
+  else demo
+    N->>N: console log
+  end
+  A-->>G: { ok, id, emailSent }
+
+  Note over G,M: Payment flow
+  G->>A: POST /api/paystack/initialize
+  A->>G: authorizationUrl
+  G->>G: Paystack hosted checkout
+  G->>A: GET /api/paystack/verify
+  A->>S: addPayment
+  A->>N: payment.verified
+  N->>M: SMS or console

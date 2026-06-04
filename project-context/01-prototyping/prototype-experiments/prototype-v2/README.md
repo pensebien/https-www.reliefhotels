@@ -1,5 +1,11 @@
 # Prototype V2 - Experience + Events Conversion
 
+| Field | Value |
+|-------|-------|
+| **Delivery agent** | E — `features/agent-e-prototype-v2-experiences` |
+| **Wave** | 3 (parallel with V1, F) |
+| **QA doc** | `docs/testing/agent-e-prototype-v2-experiences-TESTS.md` |
+
 ## Objective
 
 Validate demand and usability for event inquiries and curated experiences (Ibom/Hilton-inspired content strategy).

@@ -1,3 +1,8 @@
+import {
+  dbAddDiningReservation,
+  dbAddEventInquiry,
+} from "@/lib/db/inquiry-store";
+import { isSupabaseEnabled } from "@/lib/db/client";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
@@ -52,6 +57,8 @@ async function writeStore(store: InquiryStore): Promise<void> {
 export async function addEventInquiry(
   data: Omit<EventInquiry, "id" | "createdAt">,
 ): Promise<EventInquiry> {
+  if (isSupabaseEnabled()) return dbAddEventInquiry(data);
+
   const store = await readStore();
   const record: EventInquiry = {
     id: randomUUID(),
@@ -66,6 +73,8 @@ export async function addEventInquiry(
 export async function addDiningReservation(
   data: Omit<DiningReservation, "id" | "createdAt">,
 ): Promise<DiningReservation> {
+  if (isSupabaseEnabled()) return dbAddDiningReservation(data);
+
   const store = await readStore();
   const record: DiningReservation = {
     id: randomUUID(),
