@@ -1,12 +1,19 @@
 "use client";
 
 import { site } from "@/content/site";
+import {
+  experienceNavLinks,
+  mainNavLinks,
+  roomCategoryLinks,
+} from "@/content/navigation";
 import { Link } from "@/i18n/navigation";
 import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 export function SiteFooter() {
   const t = useTranslations("footer");
+  const tNav = useTranslations("nav");
+  const tRoomTypes = useTranslations("roomTypes");
   const year = new Date().getFullYear();
 
   return (
@@ -37,42 +44,50 @@ export function SiteFooter() {
             </Link>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-sm uppercase tracking-[0.22em] text-white/60">
-              {t("explore")}
-            </p>
-            <div className="grid gap-3">
-              <Link href="/#home" className="text-white/80 hover:text-teal">
-                Home
-              </Link>
-              <Link href="/#suites" className="text-white/80 hover:text-teal">
-                Suites
-              </Link>
-              <Link href="/rooms" className="text-white/80 hover:text-teal">
-                Rooms
-              </Link>
-              <Link href="/tours" className="text-white/80 hover:text-teal">
-                Tours
-              </Link>
-              <Link href="/gallery" className="text-white/80 hover:text-teal">
-                Gallery
-              </Link>
-              <Link href="/#contact" className="text-white/80 hover:text-teal">
-                Contact
-              </Link>
-              <Link href="/demo" className="text-white/50 hover:text-teal text-xs">
-                Demo dashboard
-              </Link>
-            </div>
-            <div className="pt-4">
-              <p className="mb-3 text-sm uppercase tracking-[0.22em] text-white/60">
-                {t("experiencesList")}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <p className="text-sm uppercase tracking-[0.22em] text-white/60">
+                {t("explore")}
               </p>
-              <ul className="space-y-2 text-sm text-white/70">
-                <li>{t("experienceItems.suites")}</li>
-                <li>{t("experienceItems.dining")}</li>
-                <li>{t("experienceItems.wellness")}</li>
-                <li>{t("experienceItems.concierge")}</li>
+              <div className="grid gap-3">
+                {mainNavLinks.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className="text-white/80 hover:text-teal"
+                  >
+                    {tNav(item.key)}
+                  </Link>
+                ))}
+                <p className="pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
+                  {tNav("experience")}
+                </p>
+                {experienceNavLinks.map((item) => (
+                  <Link
+                    key={item.key}
+                    href={item.href}
+                    className="pl-2 text-white/80 hover:text-teal"
+                  >
+                    {tNav(item.key)}
+                  </Link>
+                ))}
+                <Link href="/#contact" className="text-white/80 hover:text-teal">
+                  {t("contactLink")}
+                </Link>
+              </div>
+            </div>
+            <div>
+              <p className="mb-3 text-sm uppercase tracking-[0.22em] text-white/60">
+                {t("roomsList")}
+              </p>
+              <ul className="space-y-2">
+                {roomCategoryLinks.map(({ category, href }) => (
+                  <li key={category}>
+                    <Link href={href} className="text-sm text-white/70 hover:text-teal">
+                      {tRoomTypes(`${category}.title`)}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

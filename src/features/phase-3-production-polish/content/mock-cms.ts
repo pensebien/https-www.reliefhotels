@@ -12,7 +12,7 @@ const seoPages: CmsSeoPage[] = [
     slug: "luxury-hotel-calabar",
     title: "Luxury Hotel in Calabar | Relief Hotels & Suites",
     description:
-      "Five-star hospitality in Calabar with signature suites, concierge service, and curated Cross River experiences.",
+      "Five-star hospitality in Calabar with Guest Rooms, Executive rooms, Suites, Penthouse, and curated Cross River experiences.",
     h1: "Luxury Hotel in Calabar",
     body: "phase3.seo.luxury.body",
     keywords: ["luxury hotel calabar", "5 star hotel nigeria", "calabar suites"],

@@ -66,10 +66,99 @@ body {
   animation-play-state: paused;
 }
 
+.rooms-page-container {
+  width: 100%;
+}
+
 .field {
   @apply h-12 w-full rounded-xl border border-border/70 bg-background px-4 text-base outline-none focus:border-teal focus:ring-2 focus:ring-teal/20;
 }
 
 .btn-primary {
   @apply inline-flex h-12 items-center justify-center rounded-full bg-teal px-6 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark disabled:opacity-60;
+}
+
+/* Hilton-style date range picker (react-day-picker v10) */
+/* Force dark text on white modal — day cells use color:inherit from the page otherwise. */
+.hilton-date-picker {
+  --rdp-accent-color: #104c97;
+  --rdp-accent-background-color: rgb(16 76 151 / 0.12);
+  --rdp-day_button-border-radius: 2px;
+  --rdp-day_button-height: 40px;
+  --rdp-day_button-width: 40px;
+  --rdp-day-height: 42px;
+  --rdp-day-width: 42px;
+  --rdp-months-gap: 2.5rem;
+  --rdp-today-color: #104c97;
+  --rdp-range_start-color: #ffffff;
+  --rdp-range_end-color: #ffffff;
+  --rdp-range_middle-color: #171717;
+  --rdp-disabled-opacity: 0.45;
+  --rdp-outside-opacity: 1;
+  --rdp-weekday-opacity: 1;
+  --rdp-weekday-padding: 0.35rem 0;
+  --rdp-weekday-text-align: center;
+  color: #171717;
+}
+
+.hilton-date-picker .rdp-root {
+  color: #171717;
+}
+
+.hilton-date-picker .rdp-month_caption,
+.hilton-date-picker .rdp-caption_label {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #171717;
+}
+
+.hilton-date-picker .rdp-month_caption {
+  justify-content: center;
+  padding-bottom: 0.75rem;
+}
+
+.hilton-date-picker .rdp-weekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #171717;
+  opacity: 1;
+}
+
+.hilton-date-picker .rdp-day_button {
+  color: #171717;
+}
+
+.hilton-date-picker .rdp-outside .rdp-day_button {
+  color: #737373;
+}
+
+.hilton-date-picker .rdp-disabled:not(.rdp-selected) .rdp-day_button {
+  color: #a3a3a3;
+}
+
+.hilton-date-picker .rdp-day_button:hover:not(:disabled) {
+  background-color: #e5e5e5;
+  color: #171717;
+}
+
+.hilton-date-picker .rdp-range_middle .rdp-day_button {
+  color: #171717;
+  font-weight: 500;
+}
+
+.hilton-date-picker .rdp-range_start .rdp-day_button,
+.hilton-date-picker .rdp-range_end .rdp-day_button,
+.hilton-date-picker .rdp-selected .rdp-day_button {
+  background-color: #104c97;
+  color: #ffffff;
+  font-weight: 600;
+  border-color: #104c97;
+}
+
+.hilton-date-picker .rdp-today:not(.rdp-selected):not(.rdp-range_start):not(.rdp-range_end)
+  .rdp-day_button {
+  background-color: #e5e5e5;
+  color: #171717;
 }

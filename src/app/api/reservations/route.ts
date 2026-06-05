@@ -4,28 +4,28 @@ import { notifyManager } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const reservationSchema = z.object({
-  firstName: z.string().min(1).max(100),
-  lastName: z.string().min(1).max(100),
-  email: z.string().email().max(254),
-  stayPreference: z.string().min(1).max(64),
+const feedbackSchema = z.object({
   message: z.string().min(1).max(5000),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const parsed = reservationSchema.safeParse(body);
+    const parsed = feedbackSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid reservation data", details: parsed.error.flatten() },
+        { error: "Invalid feedback data", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
 
     const record = await addReservation({
-      ...parsed.data,
+      firstName: "Feedback",
+      lastName: "Guest",
+      email: "feedback@reliefhotelsandsuites.com",
+      stayPreference: "feedback",
+      message: parsed.data.message,
       emailSent: false,
       status: "pending",
     });
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       referenceId: record.id,
       guestName: `${record.firstName} ${record.lastName}`,
       email: record.email,
-      summary: `Stay: ${record.stayPreference}`,
+      summary: `Feedback: ${record.message.slice(0, 120)}`,
     });
 
     return NextResponse.json({

@@ -78,7 +78,7 @@ export const demoPayments: PaymentRecord[] = [
     status: "abandoned",
     itemType: "room",
     itemId: "signature-suite",
-    itemLabel: "Signature Suite — test deposit",
+    itemLabel: "Suite — test deposit",
     source: "demo",
     createdAt: "2026-05-29T11:05:00.000Z",
   },

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Relief Hotels & Suites | Luxury Hotel for Calabar",
-    "description": "Come experience Relief Hotels & Suites for Calabar — fine rooms, private dining, spa, and concierge wey go treat you well."
+    "description": "Come experience Relief Hotels & Suites for Calabar — Guest Room, Executive, Suites, and Penthouse wey go treat you well."
   },
   "nav": {
     "home": "Home",
@@ -21,6 +21,40 @@
     "highlight": "fine hospitality",
     "title": "Relief Hotels & Suites",
     "cta": "Plan your stay"
+  },
+  "propertyBar": {
+    "ariaLabel": "Relief Hotels & Suites property information",
+    "navAria": "Property navigation",
+    "location": "Location",
+    "checkIn": "Check-in date",
+    "checkOut": "Check-out date",
+    "datesModalTitle": "Select dates",
+    "datesModalClose": "Close",
+    "datesMonthNavAria": "Choose month",
+    "shopByPrice": "Shop by price",
+    "cancel": "Cancel",
+    "datesModalHint": "Choose your check-in and check-out dates.",
+    "datesSelectCheckout": "Select your check-out date",
+    "datesSelected": "{checkIn} – {checkOut}",
+    "roomsGuests": "Rooms and guests",
+    "roomsGuestsSummary": "{rooms, plural, one {# room} other {# rooms}}, {guests, plural, one {# guest} other {# guests}}",
+    "roomsGuestsModalTitle": "Rooms and guests",
+    "roomsLabel": "Rooms",
+    "adultsLabel": "Adults",
+    "childrenLabel": "Children",
+    "roomsGuestsHint": "Children na guests wey dey under 18 years.",
+    "specialRates": "Special rates",
+    "specialRatesModalTitle": "Special rates",
+    "corporateCode": "Corporate account code",
+    "corporateCodePlaceholder": "Enter corporate code",
+    "promoCode": "Promotional code",
+    "promoCodePlaceholder": "Enter promotional code",
+    "rateOptions": "Rate options",
+    "aaaRate": "AAA/CAA rate",
+    "seniorRate": "Senior rate (65+)",
+    "done": "Done",
+    "apply": "Apply",
+    "checkRoomsRates": "Check Rooms & Rates"
   },
   "intro": {
     "title": "Better escape with kind service, fine interior, and experiences wey dem pick well for people wey sabi travel."
@@ -47,45 +81,59 @@
     "barbingSalon": "Barbing Salon"
   },
   "experiences": {
-    "presidential": {
-      "title": "Presidential Suite",
-      "subtitle": "City view full ground"
+    "guestRoom": {
+      "subtitle": "Premium comfort for leisure and business stay"
     },
-    "dining": {
-      "title": "Rooftop Dining",
-      "subtitle": "Season food wey dem arrange"
+    "executive": {
+      "subtitle": "Work zone, lounge access, and fine finish"
     },
-    "spa": {
-      "title": "Spa Sanctuary",
-      "subtitle": "Private wellness treatment"
+    "suites": {
+      "subtitle": "Separate living area and marble bath"
     },
-    "lounge": {
-      "title": "Grand Lounge",
-      "subtitle": "Afternoon tea and live piano"
+    "penthouse": {
+      "subtitle": "Panoramic view and bespoke service"
     }
   },
   "highlights": {
     "badge": "Hotel Highlights",
     "title": "Enjoy stay wey high pass",
-    "description": "See the comfort, food, and personal service wey make every stay for Relief Hotels & Suites special.",
+    "description": "See Guest Room, Executive, Suites, and Penthouse — each category wey make every stay for Relief Hotels & Suites special.",
     "cta": "Reserve Your Stay"
   },
   "services": {
+    "guestRoom": {
+      "title": "Guest Room",
+      "description": "Comfortable room with fine bed and modern things — good for leisure and business travel."
+    },
+    "executive": {
+      "title": "Executive",
+      "description": "Big room with work desk, executive lounge access, and fine finish for productive stay."
+    },
     "suites": {
-      "title": "Signature Suites",
-      "description": "Enter room wey big well with soft bed, marble bathroom, and small-small touch wey go make you comfortable."
+      "title": "Suites",
+      "description": "Large suites with living area separate, marble bathroom, and extra comfort for long or special stay."
     },
-    "dining": {
-      "title": "Private Dining",
-      "description": "Chop chef food, rooftop evening, and Nigerian flavour for celebration or quiet enjoyment."
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Our best room with panoramic view, private lounge, and bespoke service for top guests."
+    }
+  },
+  "roomTypes": {
+    "guestRoom": {
+      "title": "Guest Room",
+      "description": "Comfortable room with fine bed and modern things — good for leisure and business travel."
     },
-    "wellness": {
-      "title": "Wellness & Spa",
-      "description": "Rest with private spa, calm therapy, and treatment for people wey want peace."
+    "executive": {
+      "title": "Executive",
+      "description": "Big room with work desk, executive lounge access, and fine finish for productive stay."
     },
-    "concierge": {
-      "title": "Concierge Services",
-      "description": "From airport pick-up to Calabar and Cross River tour — our team go arrange everything for you."
+    "suites": {
+      "title": "Suites",
+      "description": "Large suites with living area separate, marble bathroom, and extra comfort for long or special stay."
+    },
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Our best room with panoramic view, private lounge, and bespoke service for top guests."
     }
   },
   "cta": {
@@ -93,83 +141,100 @@
     "button": "Book Your Escape"
   },
   "marquee": {
-    "transfer": "Private airport pick-up and priority arrival dey available on request.",
-    "suites": "Book signature suites with view, marble bath, and butler service.",
-    "dining": "Enjoy chef food, spa ritual, and rooftop evening.",
-    "concierge": "Plan celebration, business stay, and romantic escape with our team."
+    "guestRoom": "Guest Room with premium bed and modern amenities for every traveller.",
+    "executive": "Executive room with work zone and lounge access for business stay.",
+    "suites": "Suites with separate living area, marble bath, and elevated comfort.",
+    "penthouse": "Penthouse with panoramic view and bespoke service."
   },
   "contact": {
-    "eyebrow": "Reservation & concierge",
+    "eyebrow": "Contact Us",
     "title": "Make our team arrange stay wey full comfort, celebration, and easy luxury.",
     "phone": "Phone",
     "email": "Email",
     "location": "Location",
-    "formBadge": "Tailored reservation",
-    "formTitle": "Start to plan your stay",
-    "formDescription": "Tell us the suite you want, why you dey travel, and any special thing. Our team go make arrival to departure smooth.",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "emailLabel": "Email address",
-    "stayPreference": "Stay preference",
-    "stayPlaceholder": "Choose your stay style",
-    "details": "Reservation details",
-    "detailsPlaceholder": "Tell us date, suite type, or special request",
-    "terms": "I agree make una contact me about my reservation",
-    "termsNote": "Your info dey private — we only use am to arrange your stay.",
-    "submit": "Request Reservation",
-    "success": "Thank you. Our team go reach you soon.",
+    "formBadge": "Customer Service",
+    "formTitle": "We appreciate your feedback",
+    "formDescription": "Tell us about your experience or share suggestion. Our customer service team go review am and reply quick.",
+    "details": "Feedback",
+    "detailsPlaceholder": "Share your feedback, suggestion, or question",
+    "terms": "I agree make una contact me about my feedback",
+    "termsNote": "Your feedback dey help us improve. Your info dey private.",
+    "submit": "Submit Feedback",
+    "success": "Thank you for your feedback. Our team go review am soon.",
     "error": "Something fail. Try again or call us."
   },
   "form": {
     "stay": {
-      "signature": "Signature Suite",
-      "presidential": "Presidential Suite",
-      "executive": "Executive Room",
-      "romantic": "Romantic Escape",
-      "wellness": "Wellness Retreat",
-      "extended": "Extended Stay"
+      "guestRoom": "Guest Room",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
     }
   },
   "footer": {
     "brand": "Relief Hotels & Suites",
     "title": "Luxury hospitality wey focus on your comfort.",
-    "description": "From fine suite to concierge experience — every stay dey calm, personal, and memorable for Calabar.",
+    "description": "Guest Room, Executive, Suites, and Penthouse — every stay dey calm, personal, and memorable for Calabar.",
     "book": "Book your stay",
     "explore": "Explore",
-    "experiencesList": "Experiences",
-    "experienceItems": {
-      "suites": "Signature suites",
-      "dining": "Private dining",
-      "wellness": "Wellness & spa",
-      "concierge": "Concierge service"
-    },
+    "roomsList": "Rooms & Suites",
+    "contactLink": "Contact",
     "contact": "Contact",
     "rights": "All rights reserved.",
     "tagline": "Luxury stay, bespoke service, memorable arrival for Calabar."
   },
   "rooms": {
-    "pageTitle": "Rooms & Signature Suites",
+    "pageTitle": "Rooms & Suites",
     "pageDescription": "Choose room or suite for comfort, celebration, and Calabar experience.",
+    "catalogTitle": "Rooms & Suites",
+    "stayIncludesTitle": "Your stay includes",
+    "tabsAria": "Room categories",
+    "emptyCategory": "No rooms dey for this category now.",
+    "selectDatesPrompt": "Choose your check-in and check-out dates for di bar above make you see rooms and suites wey dey available.",
+    "availabilityLoading": "We dey check availability for your dates…",
+    "availabilityError": "We no fit load availability now. Try again.",
+    "availabilityForDates": "Showing availability for {checkIn} – {checkOut} ({nights, plural, one {# night} other {# nights}}).",
+    "noRoomsAvailable": "No room or suite dey available for these dates. Try different dates or reduce rooms.",
+    "totalForStay": "Total for {nights, plural, one {# night} other {# nights}}:",
+    "limitedAvailability": "Only {count} remain for these dates",
+    "tabs": {
+      "all": "All",
+      "guestRoom": "Guest Rooms",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
+    },
+    "stayIncludes": {
+      "nonSmokingRooms": "Non-smoking rooms",
+      "onSiteRestaurant": "On-site restaurant",
+      "outdoorBar": "Outdoor bar",
+      "fitnessCenter": "Fitness center",
+      "vipBar": "VIP bar"
+    },
     "from": "From",
     "perNight": "per night",
     "viewDetails": "See details",
     "bookRoom": "Reserve this room",
     "amenities": "Amenities",
-    "signature": {
-      "name": "Signature Suite",
-      "description": "Big room with soft bed, marble bathroom, and city view — popular well for guests wey sabi quality."
+    "guest": {
+      "name": "Guest Room",
+      "description": "Comfortable room with fine bed and modern things for restful stay."
+    },
+    "suites": {
+      "name": "Suite",
+      "description": "Big suite with soft bed, marble bathroom, and city view — elevated comfort for special stay."
     },
     "presidential": {
-      "name": "Presidential Suite",
-      "description": "Panoramic view, living room separate, and butler for guests wey want the best for Calabar."
+      "name": "Penthouse Suite",
+      "description": "Panoramic view, living room separate, and butler — our finest Penthouse for Calabar."
     },
     "executive": {
       "name": "Executive Room",
       "description": "For business people — work desk, fine linen, and lounge access."
     },
-    "wellness": {
-      "name": "Wellness Retreat Suite",
-      "description": "Quiet place with spa credit and private wellness ritual."
+    "executiveSpa": {
+      "name": "Executive Spa Room",
+      "description": "Executive room with work desk, lounge access, spa credit, and calm in-room amenities."
     },
     "amenities": {
       "kingBed": "King bed & fine linen",
@@ -216,7 +281,9 @@
   },
   "experiencesPage": {
     "pageTitle": "Curated Experiences",
-    "pageDescription": "Food, wellness, celebration, and city moment — concierge go arrange am."
+    "pageDescription": "Explore our room categories, tours, and Calabar moments for unforgettable stay.",
+    "roomsSection": "Rooms & Suites",
+    "contactCta": "Plan your stay"
   },
   "city": {
     "carnival": {

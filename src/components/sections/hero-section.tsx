@@ -15,7 +15,7 @@ export function HeroSection() {
   return (
     <section
       id="home"
-      className="relative -mt-20 flex min-h-screen items-end overflow-hidden bg-black text-white"
+      className="relative flex min-h-screen items-end overflow-hidden bg-black text-white"
     >
       <video
         className="absolute inset-0 h-full w-full object-cover"

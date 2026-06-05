@@ -1,3 +1,4 @@
+import { HotelPropertyBar } from "@/components/hotel-property-bar";
 import {
   MeetingsEventsTeaser,
   SignatureExperiencesTeaser,
@@ -5,13 +6,17 @@ import {
 import { AmenitiesSection } from "@/components/sections/amenities-section";
 import { ReviewsSection } from "@/components/sections/reviews-section";
 import { ContactSection } from "@/components/sections/contact-section";
-import { CtaSection } from "@/components/sections/cta-section";
 import { ExperienceGrid } from "@/components/sections/experience-grid";
 import { HeroSection } from "@/components/sections/hero-section";
 import { HighlightsSection } from "@/components/sections/highlights-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { routing } from "@/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
+import { Suspense } from "react";
+
+function PropertyBarFallback() {
+  return <div className="h-16 border-b border-neutral-200 bg-white" aria-hidden />;
+}
 
 export default async function HomePage({
   params,
@@ -23,6 +28,9 @@ export default async function HomePage({
 
   return (
     <>
+      <Suspense fallback={<PropertyBarFallback />}>
+        <HotelPropertyBar />
+      </Suspense>
       <HeroSection />
       <StatsSection />
       <ExperienceGrid />
@@ -30,7 +38,6 @@ export default async function HomePage({
       <HighlightsSection />
       <MeetingsEventsTeaser />
       <SignatureExperiencesTeaser />
-      <CtaSection />
       <ReviewsSection />
       <ContactSection />
     </>

@@ -1,6 +1,6 @@
 "use client";
 
-import { hotelServices } from "@/content/site";
+import { roomHighlights } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -9,9 +9,9 @@ import { useState } from "react";
 
 export function HighlightsSection() {
   const t = useTranslations("highlights");
-  const ts = useTranslations("services");
+  const ts = useTranslations("roomTypes");
   const [active, setActive] = useState(0);
-  const service = hotelServices[active];
+  const service = roomHighlights[active];
 
   return (
     <section className="bg-background">
@@ -28,7 +28,7 @@ export function HighlightsSection() {
               <p className="text-base text-muted sm:text-lg">{t("description")}</p>
             </div>
             <Link
-              href="/#contact"
+              href="/rooms"
               className="group inline-flex h-auto w-fit items-center justify-between gap-2 rounded-full bg-neutral-900 p-1 ps-5 text-sm font-medium text-white transition-colors hover:bg-neutral-800 dark:bg-teal dark:text-gray-950"
             >
               <span className="flex items-center gap-3 px-1 py-2">
@@ -54,7 +54,7 @@ export function HighlightsSection() {
             </div>
             <div className="hidden lg:col-span-1 lg:block" />
             <div className="col-span-12 flex flex-col lg:col-span-7">
-              {hotelServices.map((item, index) => (
+              {roomHighlights.map((item, index) => (
                 <button
                   key={item.id}
                   type="button"

@@ -1,7 +1,7 @@
 {
   "meta": {
     "title": "Relief Hotels & Suites | Luxury Hotel in Calabar",
-    "description": "Discover Relief Hotels & Suites in Calabar, Nigeria for refined stays, signature suites, private dining, spa experiences, and concierge-led hospitality."
+    "description": "Discover Relief Hotels & Suites in Calabar, Nigeria — Guest Rooms, Executive rooms, Suites, and Penthouse accommodations with refined hospitality."
   },
   "nav": {
     "home": "Home",
@@ -21,6 +21,40 @@
     "highlight": "refined hospitality",
     "title": "Relief Hotels & Suites",
     "cta": "Plan your stay"
+  },
+  "propertyBar": {
+    "ariaLabel": "Relief Hotels & Suites property information",
+    "navAria": "Property navigation",
+    "location": "Location",
+    "checkIn": "Check-in date",
+    "checkOut": "Check-out date",
+    "datesModalTitle": "Select dates",
+    "datesModalClose": "Close",
+    "datesMonthNavAria": "Choose month",
+    "shopByPrice": "Shop by price",
+    "cancel": "Cancel",
+    "datesModalHint": "Choose your check-in and check-out dates.",
+    "datesSelectCheckout": "Select your check-out date",
+    "datesSelected": "{checkIn} – {checkOut}",
+    "roomsGuests": "Rooms and guests",
+    "roomsGuestsSummary": "{rooms, plural, one {# room} other {# rooms}}, {guests, plural, one {# guest} other {# guests}}",
+    "roomsGuestsModalTitle": "Rooms and guests",
+    "roomsLabel": "Rooms",
+    "adultsLabel": "Adults",
+    "childrenLabel": "Children",
+    "roomsGuestsHint": "Children are guests under 18 years of age.",
+    "specialRates": "Special rates",
+    "specialRatesModalTitle": "Special rates",
+    "corporateCode": "Corporate account code",
+    "corporateCodePlaceholder": "Enter corporate code",
+    "promoCode": "Promotional code",
+    "promoCodePlaceholder": "Enter promotional code",
+    "rateOptions": "Rate options",
+    "aaaRate": "AAA/CAA rate",
+    "seniorRate": "Senior rate (65+)",
+    "done": "Done",
+    "apply": "Apply",
+    "checkRoomsRates": "Check Rooms & Rates"
   },
   "intro": {
     "title": "An elevated escape defined by gracious service, elegant interiors, and curated experiences for discerning travelers."
@@ -47,45 +81,59 @@
     "barbingSalon": "Barbing Salon"
   },
   "experiences": {
-    "presidential": {
-      "title": "Presidential Suite",
-      "subtitle": "Panoramic skyline views"
+    "guestRoom": {
+      "subtitle": "Premium comfort for leisure and business stays"
     },
-    "dining": {
-      "title": "Rooftop Dining",
-      "subtitle": "Seasonal tasting menus"
+    "executive": {
+      "subtitle": "Work zones, lounge access, and refined finishes"
     },
-    "spa": {
-      "title": "Spa Sanctuary",
-      "subtitle": "Private wellness rituals"
+    "suites": {
+      "subtitle": "Separate living areas and marble baths"
     },
-    "lounge": {
-      "title": "Grand Lounge",
-      "subtitle": "Afternoon tea and live piano"
+    "penthouse": {
+      "subtitle": "Panoramic views and bespoke service"
     }
   },
   "highlights": {
     "badge": "Hotel Highlights",
     "title": "Experience elevated stays",
-    "description": "Explore the signature comforts, culinary moments, and personalized services that define every stay at Relief Hotels & Suites.",
+    "description": "Explore Guest Rooms, Executive rooms, Suites, and our Penthouse — each category crafted for comfort and memorable stays in Calabar.",
     "cta": "Reserve Your Stay"
   },
   "services": {
+    "guestRoom": {
+      "title": "Guest Room",
+      "description": "Comfortable, well-appointed rooms with premium linens and modern amenities — ideal for leisure and business travellers alike."
+    },
+    "executive": {
+      "title": "Executive",
+      "description": "Spacious rooms with a dedicated work zone, executive lounge access, and refined touches for productive stays in Calabar."
+    },
     "suites": {
-      "title": "Signature Suites",
-      "description": "Retreat into generously appointed rooms with plush bedding, marble bathrooms, and thoughtful in-room touches designed for complete comfort."
+      "title": "Suites",
+      "description": "Generously sized suites with separate living areas, marble bathrooms, and elevated comfort for extended or special stays."
     },
-    "dining": {
-      "title": "Private Dining",
-      "description": "Savour chef-led tasting menus, intimate rooftop evenings, and Nigerian-inspired plates crafted for celebration and quiet indulgence."
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Our finest accommodation with panoramic views, private lounge access, and bespoke service for the most discerning guests."
+    }
+  },
+  "roomTypes": {
+    "guestRoom": {
+      "title": "Guest Room",
+      "description": "Comfortable, well-appointed rooms with premium linens and modern amenities — ideal for leisure and business travellers alike."
     },
-    "wellness": {
-      "title": "Wellness & Spa",
-      "description": "Restore with private spa rituals, calming therapies, and restorative treatments designed for travellers who value calm and renewal."
+    "executive": {
+      "title": "Executive",
+      "description": "Spacious rooms with a dedicated work zone, executive lounge access, and refined touches for productive stays in Calabar."
     },
-    "concierge": {
-      "title": "Concierge Services",
-      "description": "From airport transfers to bespoke itineraries across Calabar and Cross River State, our concierge team shapes every detail around you."
+    "suites": {
+      "title": "Suites",
+      "description": "Generously sized suites with separate living areas, marble bathrooms, and elevated comfort for extended or special stays."
+    },
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Our finest accommodation with panoramic views, private lounge access, and bespoke service for the most discerning guests."
     }
   },
   "cta": {
@@ -93,86 +141,103 @@
     "button": "Book Your Escape"
   },
   "marquee": {
-    "transfer": "Private airport transfers and priority arrival service available on request.",
-    "suites": "Reserve signature suites with skyline views, marble baths, and butler service.",
-    "dining": "Enjoy chef-curated dining, restorative spa rituals, and rooftop evenings.",
-    "concierge": "Plan celebrations, executive stays, and romantic escapes with our concierge team."
+    "guestRoom": "Guest Rooms with premium bedding and modern amenities for every traveller.",
+    "executive": "Executive rooms with dedicated work zones and lounge access for business stays.",
+    "suites": "Suites with separate living areas, marble baths, and elevated comfort.",
+    "penthouse": "Penthouse accommodations with panoramic views and bespoke service."
   },
   "contact": {
-    "eyebrow": "Reservations & concierge",
+    "eyebrow": "Contact Us",
     "title": "Allow our team to craft a stay shaped around comfort, celebration, and effortless luxury.",
     "phone": "Phone",
     "email": "Email",
     "location": "Location",
-    "formBadge": "Tailored reservations",
-    "formTitle": "Start planning your stay",
-    "formDescription": "Share your preferred suite style, travel occasion, and special details. Our team will shape a reservation experience that feels seamless from arrival to departure.",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "emailLabel": "Email address",
-    "stayPreference": "Stay preference",
-    "stayPlaceholder": "Select your stay style",
-    "details": "Reservation details",
-    "detailsPlaceholder": "Tell us your preferred dates, suite style, or any special requests",
-    "terms": "I agree to be contacted about my reservation inquiry",
-    "termsNote": "Your details stay private and are used only to coordinate your stay preferences.",
-    "submit": "Request Reservation",
-    "success": "Thank you. Our concierge team will reach out shortly.",
-    "successEmail": "A confirmation has been emailed to our reservations team.",
-    "successDemo": "Demo mode: inquiry saved — view it on the demo dashboard.",
+    "formBadge": "Customer Service",
+    "formTitle": "We appreciate your feedback",
+    "formDescription": "Tell us about your experience or share any suggestions. Our customer service team will review your feedback and respond promptly.",
+    "details": "Feedback",
+    "detailsPlaceholder": "Share your feedback, suggestions, or questions",
+    "terms": "I agree to be contacted about my feedback",
+    "termsNote": "Your feedback helps us improve. Your details stay private.",
+    "submit": "Submit Feedback",
+    "success": "Thank you for your feedback. Our team will review it shortly.",
+    "successEmail": "A copy has been sent to our customer service team.",
+    "successDemo": "Demo mode: feedback saved — view it on the demo dashboard.",
     "error": "Something went wrong. Please try again or call us directly."
   },
   "form": {
     "stay": {
-      "signature": "Signature Suite",
-      "presidential": "Presidential Suite",
-      "executive": "Executive Room",
-      "romantic": "Romantic Escape",
-      "wellness": "Wellness Retreat",
-      "extended": "Extended Stay"
+      "guestRoom": "Guest Room",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
     }
   },
   "footer": {
     "brand": "Relief Hotels & Suites",
     "title": "Luxury hospitality shaped around your comfort.",
-    "description": "From elegant suites to concierge-led experiences, every stay is designed to feel calm, personal, and memorable in the heart of Calabar.",
+    "description": "Guest Rooms, Executive rooms, Suites, and Penthouse stays — calm, personal, and memorable in the heart of Calabar.",
     "book": "Book your stay",
     "explore": "Explore",
-    "experiencesList": "Experiences",
-    "experienceItems": {
-      "suites": "Signature suites",
-      "dining": "Private dining",
-      "wellness": "Wellness & spa",
-      "concierge": "Concierge service"
-    },
+    "roomsList": "Rooms & Suites",
+    "contactLink": "Contact",
     "contact": "Contact",
     "rights": "All rights reserved.",
     "tagline": "Luxury stays, bespoke service, and memorable arrivals in Calabar."
   },
   "rooms": {
-    "pageTitle": "Rooms & Signature Suites",
+    "pageTitle": "Rooms & Suites",
     "pageDescription": "Choose a suite or room crafted for comfort, celebration, and the Calabar experience.",
+    "catalogTitle": "Rooms & Suites",
+    "stayIncludesTitle": "Your stay includes",
+    "tabsAria": "Room categories",
+    "emptyCategory": "No rooms available in this category at the moment.",
+    "selectDatesPrompt": "Select your check-in and check-out dates in the bar above to see rooms and suites available for your stay.",
+    "availabilityLoading": "Checking availability for your dates…",
+    "availabilityError": "We could not load availability right now. Please try again.",
+    "availabilityForDates": "Showing availability for {checkIn} – {checkOut} ({nights, plural, one {# night} other {# nights}}).",
+    "noRoomsAvailable": "No rooms or suites are available for these dates. Try different dates or fewer rooms.",
+    "totalForStay": "Total for {nights, plural, one {# night} other {# nights}}:",
+    "limitedAvailability": "Only {count} left for these dates",
+    "tabs": {
+      "all": "All",
+      "guestRoom": "Guest Rooms",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
+    },
+    "stayIncludes": {
+      "nonSmokingRooms": "Non-smoking rooms",
+      "onSiteRestaurant": "On-site restaurant",
+      "outdoorBar": "Outdoor bar",
+      "fitnessCenter": "Fitness center",
+      "vipBar": "VIP bar"
+    },
     "from": "From",
     "perNight": "per night",
     "viewDetails": "View details",
     "bookRoom": "Request via concierge",
     "payDeposit": "Pay deposit online",
     "amenities": "Amenities",
-    "signature": {
-      "name": "Signature Suite",
-      "description": "Generously appointed with plush bedding, marble bathroom, and city views — our most popular choice for discerning guests."
+    "guest": {
+      "name": "Guest Room",
+      "description": "Comfortable accommodation with premium bedding, modern amenities, and thoughtful touches for a restful stay."
+    },
+    "suites": {
+      "name": "Suite",
+      "description": "Generously sized suite with plush bedding, marble bathroom, and city views — elevated comfort for special stays."
     },
     "presidential": {
-      "name": "Presidential Suite",
-      "description": "Panoramic views, separate living space, and butler service for guests who expect the finest arrival in Calabar."
+      "name": "Penthouse Suite",
+      "description": "Panoramic views, separate living space, and butler service — our finest Penthouse accommodation in Calabar."
     },
     "executive": {
       "name": "Executive Room",
       "description": "Designed for business travellers with a work zone, premium linens, and lounge access for focused, comfortable stays."
     },
-    "wellness": {
-      "name": "Wellness Retreat Suite",
-      "description": "A calming sanctuary with spa credits, restorative in-room amenities, and access to private wellness rituals."
+    "executiveSpa": {
+      "name": "Executive Spa Room",
+      "description": "Executive-floor accommodation with work zone, lounge access, spa credits, and restorative in-room amenities for focused, renewing stays."
     },
     "amenities": {
       "kingBed": "King bed & premium linens",
@@ -220,7 +285,9 @@
   },
   "experiencesPage": {
     "pageTitle": "Curated Experiences",
-    "pageDescription": "Dining, wellness, celebrations, and city moments — all shaped by our concierge for an unforgettable stay."
+    "pageDescription": "Explore our room categories, local tours, and curated Calabar moments for an unforgettable stay.",
+    "roomsSection": "Rooms & Suites",
+    "contactCta": "Plan your stay"
   },
   "city": {
     "carnival": {
@@ -241,7 +308,7 @@
   },
   "gallery": {
     "pageTitle": "Photo Gallery",
-    "pageDescription": "Step inside Relief Hotels & Suites — suites, dining, wellness, and the beauty of Calabar.",
+    "pageDescription": "Step inside Relief Hotels & Suites — Guest Rooms, Executive, Suites, Penthouse, dining, and Calabar.",
     "filterAll": "All",
     "close": "Close",
     "categories": {
@@ -252,9 +319,9 @@
       "calabar": "Calabar & Tours"
     },
     "items": {
-      "suite01": "Signature Suite — evening light",
-      "suite02": "Presidential Suite living area",
-      "suite03": "Executive Room workspace",
+      "suite01": "Guest Room — evening light",
+      "suite02": "Penthouse living area",
+      "suite03": "Executive room workspace",
       "suite04": "Marble bathroom detail",
       "dining01": "Rooftop tasting menu",
       "dining02": "Private dining salon",
@@ -349,7 +416,7 @@
       }
     },
     "experiences": {
-      "eyebrow": "Signature experiences",
+      "eyebrow": "Curated experiences",
       "title": "Calabar moments worth remembering",
       "description": "Curated activities for Nigerian guests, regional travellers, and international visitors — from romantic evenings to heritage excursions.",
       "picnic": {
@@ -364,16 +431,16 @@
         "title": "Heritage walks",
         "description": "Discover Calabar's culture, markets, and historic landmarks with expert guides."
       },
-      "wellness": {
-        "title": "Wellness rituals",
-        "description": "Spa therapies and restorative treatments designed for complete renewal."
+      "suites": {
+        "title": "Suites",
+        "description": "Separate living areas, marble baths, and elevated comfort for memorable stays."
       }
     }
   },
   "phase2": {
     "events": {
       "eyebrow": "Meetings & Events",
-      "pageTitle": "Meetings & Signature Events",
+      "pageTitle": "Meetings & Events",
       "pageDescription": "Premium venues for corporate conferences, weddings, diplomatic functions, and private celebrations in Calabar.",
       "capacity": "Up to {count} guests",
       "formTitle": "Request an event proposal",
@@ -466,7 +533,7 @@
   "phase3": {
     "seo": {
       "luxury": {
-        "body": "Relief Hotels & Suites offers five-star hospitality in the heart of Calabar — signature suites, attentive concierge service, and curated experiences across Cross River State. Whether you are visiting for business, celebration, or leisure, every stay is shaped around comfort, culture, and calm."
+        "body": "Relief Hotels & Suites offers five-star hospitality in the heart of Calabar — Guest Rooms, Executive rooms, Suites, and Penthouse accommodations, plus curated experiences across Cross River State. Whether you are visiting for business, celebration, or leisure, every stay is shaped around comfort, culture, and calm."
       },
       "conference": {
         "body": "Host your next summit, wedding, or diplomatic function at Relief Hotels & Suites. Our flexible event spaces, professional AV support, and dedicated events team deliver the reliability executives expect and the warmth Nigerian hospitality is known for."
