@@ -1,9 +1,9 @@
 "use client";
 
+import { resolveActiveTab } from "@/components/room-category-tabs";
 import {
   roomCategories,
   rooms,
-  roomsCatalogTabs,
   roomsPageStayIncludes,
   type RoomsCatalogTab,
 } from "@/content/site";
@@ -15,7 +15,7 @@ import {
 } from "@/lib/booking-search";
 import type { AvailableRoom } from "@/lib/room-availability";
 import { Link } from "@/i18n/navigation";
-import { cn, formatNaira } from "@/lib/utils";
+import { formatNaira } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -46,28 +46,12 @@ export function RoomsCatalog() {
     [searchParams],
   );
 
-  const categoryParam = searchParams.get("category");
-  const initialTab: RoomsCatalogTab =
-    categoryParam &&
-    (roomsCatalogTabs as readonly string[]).includes(categoryParam)
-      ? (categoryParam as RoomsCatalogTab)
-      : "all";
-
-  const [activeTab, setActiveTab] = useState<RoomsCatalogTab>(initialTab);
+  const activeTab = resolveActiveTab(searchParams.get("category"));
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [availableById, setAvailableById] = useState<Map<string, AvailableRoom>>(
     () => new Map(),
   );
-
-  useEffect(() => {
-    if (
-      categoryParam &&
-      (roomsCatalogTabs as readonly string[]).includes(categoryParam)
-    ) {
-      setActiveTab(categoryParam as RoomsCatalogTab);
-    }
-  }, [categoryParam]);
 
   useEffect(() => {
     if (!bookingQuery) {
@@ -167,31 +151,6 @@ export function RoomsCatalog() {
             </ul>
           </div>
 
-          <div
-            role="tablist"
-            aria-label={t("tabsAria")}
-            className="mx-auto mt-10 flex max-w-4xl flex-wrap items-center justify-center gap-1 border-b border-border"
-          >
-            {roomsCatalogTabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab}
-                aria-controls={panelId}
-                id={`rooms-tab-${tab}`}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "relative px-4 py-3 text-sm font-medium transition-colors sm:px-6 sm:text-base",
-                  activeTab === tab
-                    ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-teal"
-                    : "text-muted hover:text-foreground",
-                )}
-              >
-                {t(`tabs.${tab}`)}
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 

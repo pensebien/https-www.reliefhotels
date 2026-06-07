@@ -44,11 +44,35 @@ export function useBookingSearch() {
   const syncToUrl = useCallback(
     (query: BookingSearchQuery) => {
       if (!pathname.includes("/rooms")) return;
-      const qs = bookingSearchToQueryString(query);
-      router.replace(`${pathname}?${qs}`, { scroll: false });
+      const sp = new URLSearchParams(searchParams.toString());
+      sp.set("checkIn", query.checkIn);
+      sp.set("checkOut", query.checkOut);
+      sp.set("rooms", String(query.rooms));
+      sp.set("guests", String(query.guests));
+      router.replace(`${pathname}?${sp.toString()}`, { scroll: false });
     },
-    [pathname, router],
+    [pathname, router, searchParams],
   );
+
+  // Bar shows default dates before URL has them — seed /rooms so availability loads
+  useEffect(() => {
+    if (!pathname.includes("/rooms") || fromUrl) return;
+    syncToUrl({
+      checkIn,
+      checkOut,
+      rooms: roomCount,
+      guests: adults + children,
+    });
+  }, [
+    pathname,
+    fromUrl,
+    checkIn,
+    checkOut,
+    roomCount,
+    adults,
+    children,
+    syncToUrl,
+  ]);
 
   const applyDates = useCallback(
     (nextCheckIn: string, nextCheckOut: string) => {
