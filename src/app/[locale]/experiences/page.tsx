@@ -1,3 +1,4 @@
+import { CalabarPlacesGrid } from "@/components/calabar-places-grid";
 import { cityExperiences, roomHighlights } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
@@ -28,7 +29,13 @@ export default async function ExperiencesPage({
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-16">
-        <h2 className="mb-8 font-serif text-2xl font-medium">{t("roomsSection")}</h2>
+        <h2 className="mb-3 font-serif text-2xl font-medium sm:text-3xl">
+          {t("placesSection")}
+        </h2>
+        <p className="mb-10 max-w-3xl text-muted">{t("placesDescription")}</p>
+        <CalabarPlacesGrid />
+
+        <h2 className="mb-8 mt-20 font-serif text-2xl font-medium">{t("roomsSection")}</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {roomHighlights.map((room) => (
             <div

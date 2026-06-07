@@ -7,8 +7,44 @@ import {
   roomCategoryLinks,
 } from "@/content/navigation";
 import { Link } from "@/i18n/navigation";
-import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowUpRight, ChevronDown, Mail, MapPin, Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { type ReactNode, useId, useState } from "react";
+
+function FooterCollapsibleSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+
+  return (
+    <div className="border-t border-white/10 pt-3 first:border-t-0 first:pt-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={panelId}
+        className="flex w-full items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-[0.18em] text-white/50 transition-colors hover:text-white/70"
+      >
+        <span>{title}</span>
+        <ChevronDown
+          className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")}
+          aria-hidden
+        />
+      </button>
+      {open && (
+        <div id={panelId} className="mt-2 grid gap-2 pb-1">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function SiteFooter() {
   const t = useTranslations("footer");
@@ -59,36 +95,38 @@ export function SiteFooter() {
                     {tNav(item.key)}
                   </Link>
                 ))}
-                <p className="pt-2 text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
-                  {tNav("experience")}
-                </p>
-                {experienceNavLinks.map((item) => (
-                  <Link
-                    key={item.key}
-                    href={item.href}
-                    className="pl-2 text-white/80 hover:text-teal"
-                  >
-                    {tNav(item.key)}
-                  </Link>
-                ))}
-                <Link href="/#contact" className="text-white/80 hover:text-teal">
+
+                <FooterCollapsibleSection title={tNav("experience")}>
+                  {experienceNavLinks.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      className="text-sm text-white/80 hover:text-teal"
+                    >
+                      {tNav(item.key)}
+                    </Link>
+                  ))}
+                </FooterCollapsibleSection>
+
+                <FooterCollapsibleSection title={t("roomsList")}>
+                  {roomCategoryLinks.map(({ category, href }) => (
+                    <Link
+                      key={category}
+                      href={href}
+                      className="text-sm text-white/80 hover:text-teal"
+                    >
+                      {tRoomTypes(`${category}.title`)}
+                    </Link>
+                  ))}
+                </FooterCollapsibleSection>
+
+                <Link
+                  href="/#contact"
+                  className="border-t border-white/10 pt-3 text-white/80 hover:text-teal"
+                >
                   {t("contactLink")}
                 </Link>
               </div>
-            </div>
-            <div>
-              <p className="mb-3 text-sm uppercase tracking-[0.22em] text-white/60">
-                {t("roomsList")}
-              </p>
-              <ul className="space-y-2">
-                {roomCategoryLinks.map(({ category, href }) => (
-                  <li key={category}>
-                    <Link href={href} className="text-sm text-white/70 hover:text-teal">
-                      {tRoomTypes(`${category}.title`)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
 

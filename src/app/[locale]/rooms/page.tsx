@@ -1,5 +1,4 @@
 import { HotelPropertyBar } from "@/components/hotel-property-bar";
-import { RoomCategoryTabs } from "@/components/room-category-tabs";
 import { RoomsCatalog } from "@/components/rooms-catalog";
 import { routing } from "@/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
@@ -25,9 +24,6 @@ export default async function RoomsPage({
     <div className="bg-background">
       <Suspense fallback={<RoomsPageFallback />}>
         <HotelPropertyBar />
-      </Suspense>
-      <Suspense fallback={<RoomsPageFallback />}>
-        <RoomCategoryTabs />
       </Suspense>
       <Suspense fallback={<RoomsPageFallback />}>
         <RoomsCatalog />

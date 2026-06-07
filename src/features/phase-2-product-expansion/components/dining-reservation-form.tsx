@@ -2,10 +2,16 @@
 
 import { diningVenues } from "@/features/phase-2-product-expansion/content/dining-venues";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 export function DiningReservationForm() {
   const t = useTranslations("phase2.dining.form");
+  const searchParams = useSearchParams();
+  const venueFromUrl = searchParams.get("venue") ?? "";
+  const validVenue = diningVenues.some((v) => v.id === venueFromUrl)
+    ? venueFromUrl
+    : "";
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
@@ -45,7 +51,7 @@ export function DiningReservationForm() {
         <input name="lastName" required placeholder={t("lastName")} className="field" />
       </div>
       <input name="email" type="email" required placeholder={t("email")} className="field" />
-      <select name="venue" required defaultValue="" className="field">
+      <select name="venue" required defaultValue={validVenue} className="field">
         <option value="" disabled>
           {t("venue")}
         </option>

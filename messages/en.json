@@ -216,6 +216,75 @@
     "from": "From",
     "perNight": "per night",
     "viewDetails": "View details",
+    "detail": {
+      "close": "Close room details",
+      "roomHighlights": "Room highlights",
+      "moreDetails": "More room details",
+      "readMore": "Read more",
+      "readLess": "Read less",
+      "previousPhoto": "Previous photo",
+      "nextPhoto": "Next photo",
+      "imageOf": "{current} / {total}",
+      "photoAlt": "{name} — photo {index}",
+      "photoThumb": "View photo {index}",
+      "exploreRatesStay": "Explore rates from {price}",
+      "exploreRatesNightly": "Explore rates from {price} / night",
+      "labels": {
+        "guests": "Guests",
+        "views": "Views",
+        "layout": "Room layout",
+        "bathroom": "Bathroom",
+        "dining": "Kitchen and dining",
+        "location": "Location"
+      },
+      "longDescription": {
+        "guest": "Comfortable accommodation with premium bedding, modern amenities, and thoughtful touches for a restful stay. Floor-to-ceiling windows frame Calabar skyline views, while the rain shower and plush linens create a calm retreat after a day of meetings or sightseeing.",
+        "executive": "Designed for business travellers with a dedicated work zone, ergonomic seating, and premium linens. Executive-floor placement offers quieter corridors, Grand Lounge access, and a layout that balances focus time with relaxed evenings.",
+        "suites": "A generously sized suite with separate living space, marble bathroom, and city views. Plush bedding, curated minibar service, and butler assistance elevate celebrations, extended stays, and special occasions in Calabar.",
+        "presidential": "Our finest Penthouse accommodation pairs panoramic views with a separate living room, bespoke butler service, and refined entertaining space. Ideal for diplomatic visits, milestone celebrations, and guests who expect the highest level of privacy and comfort.",
+        "executiveSpa": "Executive-floor accommodation combining a work zone and lounge access with restorative spa credits and wellness dining. In-room amenities support focused business days followed by spa time and unhurried recovery."
+      },
+      "guest": {
+        "guests": "Sleeps 2",
+        "views": "City view",
+        "layout": "Open-plan bedroom",
+        "bathroom": "Walk-in rain shower",
+        "dining": "Tea & coffee station",
+        "location": "Mid floor"
+      },
+      "executive": {
+        "guests": "Sleeps 2",
+        "views": "City & garden view",
+        "layout": "Bedroom with workspace",
+        "bathroom": "Rain shower & vanity",
+        "dining": "Minibar",
+        "location": "Executive floor"
+      },
+      "suites": {
+        "guests": "Sleeps 3",
+        "views": "Panoramic city view",
+        "layout": "Separate living area",
+        "bathroom": "Marble bath & shower",
+        "dining": "Minibar & room service",
+        "location": "Upper floor"
+      },
+      "presidential": {
+        "guests": "Sleeps 4",
+        "views": "Panoramic skyline",
+        "layout": "Living room & bedroom",
+        "bathroom": "Marble bath & rain shower",
+        "dining": "Private dining setup",
+        "location": "Penthouse level"
+      },
+      "executiveSpa": {
+        "guests": "Sleeps 2",
+        "views": "Garden & city view",
+        "layout": "Bedroom with spa nook",
+        "bathroom": "Spa rain shower",
+        "dining": "Wellness minibar",
+        "location": "Executive spa wing"
+      }
+    },
     "bookRoom": "Request via concierge",
     "payDeposit": "Pay deposit online",
     "amenities": "Amenities",
@@ -260,7 +329,7 @@
     "pageDescription": "Explore Calabar, Cross River, and Nigeria with trusted guides curated by our concierge team.",
     "guideIncluded": "Licensed guide included",
     "from": "From",
-    "bookTour": "Request via concierge",
+    "bookTour": "Talk to our Team",
     "payNow": "Pay online",
     "heritage": {
       "name": "Calabar Heritage Walk",
@@ -285,9 +354,116 @@
   },
   "experiencesPage": {
     "pageTitle": "Curated Experiences",
-    "pageDescription": "Explore our room categories, local tours, and curated Calabar moments for an unforgettable stay.",
+    "pageDescription": "Explore Calabar's finest attractions, our room categories, and curated moments for an unforgettable stay.",
+    "placesSection": "Top 20 places to visit in Calabar",
+    "placesDescription": "Handpicked destinations and day trips for Relief Hotels guests — from heritage walks and rainforest escapes to beaches, markets, and festival culture.",
     "roomsSection": "Rooms & Suites",
     "contactCta": "Plan your stay"
+  },
+  "calabarPlaces": {
+    "explore": "Explore",
+    "places": {
+      "tinapa": {
+        "name": "Tinapa Business & Leisure Resort",
+        "description": "A flagship leisure complex with retail, entertainment, and family attractions on the Calabar riverfront.",
+        "highlights": "Duty-free shopping · Water park · Cinema & family dining"
+      },
+      "marinaResort": {
+        "name": "Calabar Marina Resort",
+        "description": "Waterfront resort area ideal for relaxed afternoons, boat outings, and sunset views over the creek.",
+        "highlights": "Marina walks · Boat rides · Sunset photography"
+      },
+      "nationalMuseum": {
+        "name": "National Museum Calabar",
+        "description": "One of Nigeria's oldest museums, showcasing Cross River artefacts, royal regalia, and regional history.",
+        "highlights": "Guided tours · Cultural artefacts · Heritage storytelling"
+      },
+      "drillRanch": {
+        "name": "Drill Ranch (Pandrillus)",
+        "description": "Conservation centre for endangered drill monkeys and chimpanzees in a rainforest sanctuary setting.",
+        "highlights": "Wildlife viewing · Conservation talks · Nature trails"
+      },
+      "slaveMuseum": {
+        "name": "Slave History Museum",
+        "description": "A moving exhibition on the transatlantic slave trade and Calabar's role in West African history.",
+        "highlights": "Historical exhibits · Heritage education · Marina district visit"
+      },
+      "dukeTownChurch": {
+        "name": "Duke Town Presbyterian Church",
+        "description": "Historic church linked to Calabar's missionary past and one of the city's most recognised landmarks.",
+        "highlights": "Architecture · Local history · Old Calabar quarter"
+      },
+      "marySlessor": {
+        "name": "Mary Slessor House",
+        "description": "Memorial site honouring the Scottish missionary who worked in Calabar and championed women's welfare.",
+        "highlights": "Heritage visit · Cultural context · Guided storytelling"
+      },
+      "oldResidency": {
+        "name": "Old Residency Museum",
+        "description": "Colonial-era government house with elegant architecture and exhibits on Calabar's administrative past.",
+        "highlights": "Colonial architecture · Museum galleries · Garden strolls"
+      },
+      "calabarBeach": {
+        "name": "Calabar Beach",
+        "description": "Classic Atlantic shoreline for swimming, beach games, and easy half-day escapes from the hotel.",
+        "highlights": "Swimming · Beach picnics · Coastal relaxation"
+      },
+      "ekpoBeach": {
+        "name": "Ekpo Beach",
+        "description": "Popular local beach favoured for weekend gatherings, fresh air, and informal seaside dining.",
+        "highlights": "Local atmosphere · Seafood spots · Evening strolls"
+      },
+      "tortugaIsland": {
+        "name": "Tortuga Island",
+        "description": "Small island outing off the Calabar coast — a memorable boat trip for couples and small groups.",
+        "highlights": "Boat excursion · Island picnic · Coastal views"
+      },
+      "crossRiverPark": {
+        "name": "Cross River National Park",
+        "description": "Protected rainforest home to rare primates, hornbills, and some of Nigeria's richest biodiversity.",
+        "highlights": "Rainforest hikes · Birdwatching · Eco-tourism"
+      },
+      "kwaFalls": {
+        "name": "Kwa Falls",
+        "description": "Scenic waterfall surrounded by lush vegetation — a refreshing nature stop on a Cross River day trip.",
+        "highlights": "Waterfall views · Forest walk · Photography"
+      },
+      "agbokimFalls": {
+        "name": "Agbokim Waterfalls",
+        "description": "Seven-tiered falls near the Cameroon border, famous for misty panoramas and adventurous day trips.",
+        "highlights": "Multi-tier falls · Rainforest scenery · Day-trip adventure"
+      },
+      "obudu": {
+        "name": "Obudu Mountain Resort",
+        "description": "Highland resort with cable car rides, cool climate, and sweeping plateau views — a signature Cross River escape.",
+        "highlights": "Cable car · Mountain hiking · Cool-climate retreat"
+      },
+      "carnival": {
+        "name": "Calabar Carnival",
+        "description": "Africa's largest street carnival — colour, music, dance, and cultural parades every December.",
+        "highlights": "Street parades · Live music · Festival costumes"
+      },
+      "wattMarket": {
+        "name": "Watt Market",
+        "description": "Bustling Calabar market for spices, fabrics, crafts, and everyday local life.",
+        "highlights": "Local crafts · Spices & textiles · Authentic shopping"
+      },
+      "bogobiri": {
+        "name": "Bogobiri District",
+        "description": "Creative neighbourhood known for art, live music, and contemporary Calabar dining culture.",
+        "highlights": "Live music · Art & culture · Evening dining"
+      },
+      "cercopan": {
+        "name": "CERCOPAN Primate Sanctuary",
+        "description": "Primate rehabilitation centre where guests learn about rainforest conservation in Cross River State.",
+        "highlights": "Primate viewing · Conservation education · Guided visits"
+      },
+      "ikomMonoliths": {
+        "name": "Ikom Monoliths",
+        "description": "Ancient carved stone monoliths scattered across Ikom — a fascinating UNESCO-recognised heritage day trip.",
+        "highlights": "Ancient carvings · Archaeological sites · Cultural day trip"
+      }
+    }
   },
   "city": {
     "carnival": {
@@ -308,31 +484,43 @@
   },
   "gallery": {
     "pageTitle": "Photo Gallery",
-    "pageDescription": "Step inside Relief Hotels & Suites — Guest Rooms, Executive, Suites, Penthouse, dining, and Calabar.",
+    "pageDescription": "Step inside Relief Hotels & Suites — Executive, Suites, Penthouse, events, dining, bars, and amenities.",
     "filterAll": "All",
+    "tabsAria": "Gallery categories",
     "close": "Close",
     "categories": {
+      "executive": "Executive",
       "suites": "Suites",
+      "penthouse": "Penthouse",
+      "eventsMeetings": "Events & Meetings",
       "dining": "Dining",
-      "wellness": "Wellness",
-      "lobby": "Lobby & Lounge",
-      "calabar": "Calabar & Tours"
+      "outdoorBar": "Outdoor Bar",
+      "vipBar": "VIP bar",
+      "amenities": "Amenities"
     },
     "items": {
-      "suite01": "Guest Room — evening light",
-      "suite02": "Penthouse living area",
-      "suite03": "Executive room workspace",
-      "suite04": "Marble bathroom detail",
+      "executive01": "Executive room — workspace",
+      "executive02": "Executive room — evening light",
+      "executive03": "Executive lounge access",
+      "suites01": "Suite — living space",
+      "suites02": "Suite — panoramic view",
+      "suites03": "Suite — marble bathroom",
+      "penthouse01": "Penthouse — living area",
+      "penthouse02": "Penthouse — skyline view",
+      "events01": "Grand Ballroom",
+      "events02": "Executive boardroom",
+      "events03": "Garden pavilion reception",
       "dining01": "Rooftop tasting menu",
       "dining02": "Private dining salon",
       "dining03": "Chef's table experience",
-      "wellness01": "Spa sanctuary",
-      "wellness02": "Wellness ritual room",
-      "lobby01": "Grand arrival lobby",
-      "lobby02": "Afternoon tea lounge",
-      "calabar01": "Calabar waterfront",
-      "calabar02": "Heritage district",
-      "calabar03": "Obudu Plateau excursion"
+      "outdoor01": "Outdoor bar — sunset terrace",
+      "outdoor02": "Poolside cocktails",
+      "vip01": "VIP bar — evening lounge",
+      "vip02": "Private salon seating",
+      "amenitiesSpa01": "Spa sanctuary",
+      "amenitiesWellness01": "Wellness ritual room",
+      "amenitiesGym01": "Fitness center",
+      "amenitiesPenthouse01": "Penthouse wellness terrace"
     }
   },
   "booking": {
@@ -387,7 +575,7 @@
   },
   "phase1": {
     "meetings": {
-      "eyebrow": "Meetings & Events",
+      "eyebrow": "Events and Meetings",
       "title": "Host with confidence in Calabar",
       "description": "From executive board meetings to landmark celebrations, our venues combine Nigerian warmth with international standards — inspired by leading business hotels across the region.",
       "cta": "Explore event spaces",
@@ -439,9 +627,15 @@
   },
   "phase2": {
     "events": {
-      "eyebrow": "Meetings & Events",
-      "pageTitle": "Meetings & Events",
+      "eyebrow": "Events and Meetings",
+      "pageTitle": "Events and Meetings",
       "pageDescription": "Premium venues for corporate conferences, weddings, diplomatic functions, and private celebrations in Calabar.",
+      "stats": {
+        "meetingSeating": "Meeting seating",
+        "spaces": "Indoor & outdoor spaces",
+        "totalSpace": "Total event space",
+        "bookHall": "Book Hall"
+      },
       "capacity": "Up to {count} guests",
       "formTitle": "Request an event proposal",
       "formDescription": "Tell us about your occasion and our events team will respond with tailored options.",
@@ -485,7 +679,8 @@
     "dining": {
       "eyebrow": "Dine & Wine",
       "pageTitle": "Dine & Wine",
-      "pageDescription": "Rooftop evenings, private salons, and Nigerian-inspired cuisine crafted for celebration and quiet indulgence.",
+      "pageDescription": "Private bar evenings, VIP lounge service, and Nigerian-inspired cuisine in our indoor restaurant.",
+      "book": "Book",
       "menuTitle": "Menu highlights",
       "formTitle": "Reserve a table",
       "formDescription": "Share your preferred date, venue, and party size — our team will confirm availability.",
@@ -496,20 +691,20 @@
         "pastry": "Artisan pastries & desserts"
       },
       "venues": {
-        "rooftop": {
-          "name": "Rooftop Terrace",
-          "description": "Skyline views with seasonal tasting menus and curated wine pairings.",
-          "cuisine": "Contemporary · Seasonal"
+        "privateBar": {
+          "name": "Private Bar",
+          "description": "An intimate bar setting for crafted cocktails, premium spirits, and unhurried conversation.",
+          "cuisine": "Cocktails · Spirits"
         },
-        "lounge": {
-          "name": "Grand Lounge",
-          "description": "Afternoon tea, live piano, and light bites in an elegant setting.",
-          "cuisine": "Lounge · Afternoon tea"
+        "vipBar": {
+          "name": "VIP bar",
+          "description": "Reserved seating, personalised service, and a curated drinks menu for distinguished guests.",
+          "cuisine": "VIP lounge · Premium pours"
         },
-        "salon": {
-          "name": "Private Dining Salon",
-          "description": "Intimate room for anniversaries, proposals, and executive dinners.",
-          "cuisine": "Private dining · Chef's table"
+        "indoorRestaurant": {
+          "name": "Indoor Restaurant",
+          "description": "Nigerian-inspired cuisine and international favourites served in an elegant dining room.",
+          "cuisine": "Contemporary · Nigerian"
         }
       },
       "form": {
@@ -523,9 +718,9 @@
         "success": "Thank you. We will confirm your table shortly.",
         "error": "Could not submit. Please try again.",
         "venues": {
-          "rooftop": "Rooftop Terrace",
-          "grand-lounge": "Grand Lounge",
-          "private-salon": "Private Dining Salon"
+          "private-bar": "Private Bar",
+          "vip-bar": "VIP bar",
+          "indoor-restaurant": "Indoor Restaurant"
         }
       }
     }

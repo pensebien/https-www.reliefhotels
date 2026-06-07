@@ -35,23 +35,30 @@ export function GalleryGrid() {
 
   return (
     <>
-      <div className="flex flex-wrap gap-2 pb-8">
-        <FilterChip
-          active={filter === "all"}
-          onClick={() => setFilter("all")}
-          label={t("filterAll")}
-        />
-        {galleryCategories.map((cat) => (
-          <FilterChip
-            key={cat}
-            active={filter === cat}
-            onClick={() => setFilter(cat)}
-            label={t(`categories.${cat}`)}
+      <nav
+        role="tablist"
+        aria-label={t("tabsAria")}
+        className="border-b border-white/20 pt-4"
+      >
+        <div className="-mb-px flex gap-8 overflow-x-auto pb-px sm:gap-10 lg:gap-12">
+          <GalleryTab
+            active={filter === "all"}
+            onClick={() => setFilter("all")}
+            label={t("filterAll")}
           />
-        ))}
-      </div>
+          {galleryCategories.map((cat) => (
+            <GalleryTab
+              key={cat}
+              active={filter === cat}
+              onClick={() => setFilter(cat)}
+              label={t(`categories.${cat}`)}
+            />
+          ))}
+        </div>
+      </nav>
 
-      <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
+      <div className="relative left-1/2 w-screen -translate-x-1/2 bg-background py-16">
+        <div className="mx-auto max-w-7xl columns-1 gap-4 px-4 sm:columns-2 lg:columns-3 lg:px-16">
         {filtered.map((item) => (
           <button
             key={item.id}
@@ -72,6 +79,7 @@ export function GalleryGrid() {
             </p>
           </button>
         ))}
+        </div>
       </div>
 
       {activeItem && (
@@ -108,7 +116,7 @@ export function GalleryGrid() {
   );
 }
 
-function FilterChip({
+function GalleryTab({
   active,
   onClick,
   label,
@@ -120,12 +128,14 @@ function FilterChip({
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
       className={cn(
-        "rounded-full border px-4 py-2 text-sm transition-colors",
+        "relative shrink-0 whitespace-nowrap pb-4 text-base font-medium transition-colors sm:pb-5 sm:text-lg",
         active
-          ? "border-teal bg-teal text-gray-950"
-          : "border-border text-muted hover:border-teal hover:text-foreground",
+          ? "font-bold text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1 after:rounded-full after:bg-white sm:after:h-1.5"
+          : "text-white/50 hover:text-white/80",
       )}
     >
       {label}

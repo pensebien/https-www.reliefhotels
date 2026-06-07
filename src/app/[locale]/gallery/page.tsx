@@ -25,8 +25,10 @@ export default async function GalleryPage({
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 lg:px-16">
-        <GalleryGrid />
+      <section className="bg-neutral-950">
+        <div className="mx-auto max-w-7xl px-4 lg:px-16">
+          <GalleryGrid />
+        </div>
       </section>
     </div>
   );
