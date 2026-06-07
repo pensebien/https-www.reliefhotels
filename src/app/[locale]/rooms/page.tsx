@@ -1,11 +1,16 @@
 import { HotelPropertyBar } from "@/components/hotel-property-bar";
+import { RoomCategoryTabs } from "@/components/room-category-tabs";
 import { RoomsCatalog } from "@/components/rooms-catalog";
 import { routing } from "@/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 
 function RoomsPageFallback() {
-  return <div className="h-16 border-b border-neutral-200 bg-neutral-50" aria-hidden />;
+  return (
+    <div className="border-b border-border bg-card" aria-hidden>
+      <div className="mx-auto h-12 max-w-7xl" />
+    </div>
+  );
 }
 
 export default async function RoomsPage({
@@ -20,6 +25,9 @@ export default async function RoomsPage({
     <div className="bg-background">
       <Suspense fallback={<RoomsPageFallback />}>
         <HotelPropertyBar />
+      </Suspense>
+      <Suspense fallback={<RoomsPageFallback />}>
+        <RoomCategoryTabs />
       </Suspense>
       <Suspense fallback={<RoomsPageFallback />}>
         <RoomsCatalog />

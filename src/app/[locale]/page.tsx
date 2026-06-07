@@ -1,4 +1,5 @@
 import { HotelPropertyBar } from "@/components/hotel-property-bar";
+import { RoomCategoryTabs } from "@/components/room-category-tabs";
 import {
   MeetingsEventsTeaser,
   SignatureExperiencesTeaser,
@@ -15,7 +16,11 @@ import { setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 
 function PropertyBarFallback() {
-  return <div className="h-16 border-b border-neutral-200 bg-white" aria-hidden />;
+  return (
+    <div className="border-b border-border bg-card" aria-hidden>
+      <div className="mx-auto h-12 max-w-7xl" />
+    </div>
+  );
 }
 
 export default async function HomePage({
@@ -30,6 +35,9 @@ export default async function HomePage({
     <>
       <Suspense fallback={<PropertyBarFallback />}>
         <HotelPropertyBar />
+      </Suspense>
+      <Suspense fallback={<PropertyBarFallback />}>
+        <RoomCategoryTabs />
       </Suspense>
       <HeroSection />
       <StatsSection />
