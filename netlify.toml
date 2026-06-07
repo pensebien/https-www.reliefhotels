@@ -1,0 +1,18 @@
+# Netlify — Relief Hotels (stakeholder demo / custom domain)
+# Guide: docs/deploy/NETLIFY.md
+# Production target remains Render (ADR-004); Netlify is for early domain visibility.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Set NEXT_PUBLIC_APP_URL in Netlify UI (Site configuration → Environment variables)
+
+[context.deploy-preview.environment]
+  NOTIFY_CHANNEL = "console"
