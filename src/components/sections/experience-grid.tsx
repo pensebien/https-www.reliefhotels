@@ -1,43 +1,49 @@
 "use client";
 
 import { experienceCards } from "@/content/site";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 export function ExperienceGrid() {
-  const t = useTranslations("experiences");
-  const [main, dining, spa, lounge] = experienceCards;
+  const tRoom = useTranslations("roomTypes");
+  const tExp = useTranslations("experiences");
+  const [guestRoom, executive, suites, penthouse] = experienceCards;
 
   return (
-    <section id="experiences" className="w-full py-8 sm:py-16 lg:py-20">
+    <section id="rooms" className="w-full py-8 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-4 py-10 lg:px-8 xl:px-16">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <ExperienceCard
-            title={t(`${main.id}.title`)}
-            subtitle={t(`${main.id}.subtitle`)}
-            image={main.image}
+            href={guestRoom.href}
+            title={tRoom(`${guestRoom.id}.title`)}
+            subtitle={tExp(`${guestRoom.id}.subtitle`)}
+            image={guestRoom.image}
             className="min-h-[420px] md:row-span-2"
             large
           />
           <div className="grid grid-rows-2 gap-6">
             <ExperienceCard
-              title={t(`${dining.id}.title`)}
-              subtitle={t(`${dining.id}.subtitle`)}
-              image={dining.image}
+              href={executive.href}
+              title={tRoom(`${executive.id}.title`)}
+              subtitle={tExp(`${executive.id}.subtitle`)}
+              image={executive.image}
               className="min-h-[200px]"
             />
             <div className="grid grid-cols-2 gap-6">
               <ExperienceCard
-                title={t(`${spa.id}.title`)}
-                subtitle={t(`${spa.id}.subtitle`)}
-                image={spa.image}
+                href={suites.href}
+                title={tRoom(`${suites.id}.title`)}
+                subtitle={tExp(`${suites.id}.subtitle`)}
+                image={suites.image}
                 className="min-h-[200px]"
                 small
               />
               <ExperienceCard
-                title={t(`${lounge.id}.title`)}
-                subtitle={t(`${lounge.id}.subtitle`)}
-                image={lounge.image}
+                href={penthouse.href}
+                title={tRoom(`${penthouse.id}.title`)}
+                subtitle={tExp(`${penthouse.id}.subtitle`)}
+                image={penthouse.image}
                 className="min-h-[200px]"
                 small
               />
@@ -50,6 +56,7 @@ export function ExperienceGrid() {
 }
 
 function ExperienceCard({
+  href,
   title,
   subtitle,
   image,
@@ -57,6 +64,7 @@ function ExperienceCard({
   large,
   small,
 }: {
+  href: (typeof experienceCards)[number]["href"];
   title: string;
   subtitle: string;
   image: string;
@@ -65,8 +73,9 @@ function ExperienceCard({
   small?: boolean;
 }) {
   return (
-    <article
-      className={`group relative overflow-hidden rounded-2xl ${className ?? ""}`}
+    <Link
+      href={href}
+      className={`group relative block overflow-hidden rounded-2xl ${className ?? ""}`}
     >
       <Image
         src={image}
@@ -85,10 +94,8 @@ function ExperienceCard({
         >
           {title}
         </h3>
-        <p className={`text-white/80 ${small ? "text-sm" : "text-sm"}`}>
-          {subtitle}
-        </p>
+        <p className="text-sm text-white/80">{subtitle}</p>
       </div>
-    </article>
+    </Link>
   );
 }

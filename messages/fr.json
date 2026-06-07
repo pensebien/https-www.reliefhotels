@@ -1,15 +1,17 @@
 {
   "meta": {
     "title": "Relief Hotels & Suites | Hôtel de luxe à Calabar",
-    "description": "Découvrez Relief Hotels & Suites à Calabar, Nigeria : suites signature, restauration privée, spa et service de conciergerie personnalisé."
+    "description": "Découvrez Relief Hotels & Suites à Calabar : chambres, Executive, suites et penthouse avec hospitalité raffinée."
   },
   "nav": {
     "home": "Accueil",
-    "suites": "Suites",
-    "rooms": "Chambres & Suites",
+    "rooms": "Chambres",
+    "dining": "Restauration",
+    "eventsMeetings": "Événements et réunions",
+    "gallery": "Galerie",
+    "experience": "Expérience",
     "experiences": "Expériences",
     "tours": "Visites & Guides",
-    "contact": "Contact",
     "book": "Réserver",
     "menu": "Menu",
     "theme": "Changer le thème"
@@ -20,54 +22,118 @@
     "title": "Relief Hotels & Suites",
     "cta": "Planifier votre séjour"
   },
+  "propertyBar": {
+    "ariaLabel": "Informations sur Relief Hotels & Suites",
+    "navAria": "Navigation de l'établissement",
+    "location": "Emplacement",
+    "checkIn": "Date d'arrivée",
+    "checkOut": "Date de départ",
+    "datesModalTitle": "Sélectionner les dates",
+    "datesModalClose": "Fermer",
+    "datesMonthNavAria": "Choisir le mois",
+    "shopByPrice": "Comparer les prix",
+    "cancel": "Annuler",
+    "datesModalHint": "Choisissez vos dates d'arrivée et de départ.",
+    "datesSelectCheckout": "Sélectionnez votre date de départ",
+    "datesSelected": "{checkIn} – {checkOut}",
+    "roomsGuests": "Chambres et voyageurs",
+    "roomsGuestsSummary": "{rooms, plural, one {# chambre} other {# chambres}}, {guests, plural, one {# voyageur} other {# voyageurs}}",
+    "roomsGuestsModalTitle": "Chambres et voyageurs",
+    "roomsLabel": "Chambres",
+    "adultsLabel": "Adultes",
+    "childrenLabel": "Enfants",
+    "roomsGuestsHint": "Les enfants sont les voyageurs de moins de 18 ans.",
+    "specialRates": "Tarifs spéciaux",
+    "specialRatesModalTitle": "Tarifs spéciaux",
+    "corporateCode": "Code compte entreprise",
+    "corporateCodePlaceholder": "Saisir le code entreprise",
+    "promoCode": "Code promotionnel",
+    "promoCodePlaceholder": "Saisir le code promotionnel",
+    "rateOptions": "Options tarifaires",
+    "aaaRate": "Tarif AAA/CAA",
+    "seniorRate": "Tarif senior (65+)",
+    "done": "Terminé",
+    "apply": "Appliquer",
+    "checkRoomsRates": "Voir chambres et tarifs"
+  },
   "intro": {
     "title": "Une escapade raffinée définie par un service attentionné, des intérieurs élégants et des expériences choisies pour les voyageurs exigeants."
   },
   "stats": {
-    "suites": "Suites de luxe et chambres signature",
-    "years": "Années d'hospitalité intemporelle",
-    "experiences": "Expériences gastronomiques et bien-être"
+    "suites": "Suites de luxe",
+    "seating": "places assises intérieures et extérieures",
+    "venues": "bar VIP, salon privé et restaurant"
+  },
+  "amenities": {
+    "title": "Nos équipements",
+    "subtitle": "Tout ce qu'il faut pour un séjour confortable et connecté",
+    "outdoorBar": "Bar extérieur",
+    "nonSmokingRooms": "Chambres non-fumeurs",
+    "digitalKey": "Clé numérique",
+    "concierge": "Conciergerie",
+    "privateLounge": "Salon privé",
+    "onSiteRestaurant": "Restaurant sur place",
+    "guestGym": "Salle de sport réservée aux clients",
+    "wifi": "Wifi",
+    "roomService": "Service en chambre",
+    "barbecueGrill": "Barbecue et grill",
+    "meetingRooms": "Salles de réunion",
+    "barbingSalon": "Salon de coiffure"
   },
   "experiences": {
-    "presidential": {
-      "title": "Suite Présidentielle",
-      "subtitle": "Vues panoramiques sur la ville"
+    "guestRoom": {
+      "subtitle": "Confort premium pour loisirs et affaires"
     },
-    "dining": {
-      "title": "Restaurant Rooftop",
-      "subtitle": "Menus dégustation de saison"
+    "executive": {
+      "subtitle": "Espace de travail et accès au salon exécutif"
     },
-    "spa": {
-      "title": "Sanctuaire Spa",
-      "subtitle": "Rituels bien-être privés"
+    "suites": {
+      "subtitle": "Salon séparé et salles de bain en marbre"
     },
-    "lounge": {
-      "title": "Grand Salon",
-      "subtitle": "Thé l'après-midi et piano live"
+    "penthouse": {
+      "subtitle": "Vues panoramiques et service sur mesure"
     }
   },
   "highlights": {
     "badge": "Points forts",
     "title": "Vivez un séjour d'exception",
-    "description": "Explorez les conforts signature, les moments culinaires et les services personnalisés qui définissent chaque séjour chez Relief Hotels & Suites.",
+    "description": "Découvrez nos chambres, Executive, suites et penthouse — chaque catégorie conçue pour un séjour mémorable à Calabar.",
     "cta": "Réserver votre séjour"
   },
   "services": {
+    "guestRoom": {
+      "title": "Chambre Standard",
+      "description": "Chambres confortables et bien équipées avec literie premium — idéales pour les voyages d'affaires ou de loisirs."
+    },
+    "executive": {
+      "title": "Executive",
+      "description": "Chambres spacieuses avec espace de travail, accès au salon exécutif et finitions raffinées pour un séjour productif."
+    },
     "suites": {
-      "title": "Suites Signature",
-      "description": "Retraitez dans des chambres généreusement aménagées avec literie somptueuse, salles de bain en marbre et attentions raffinées."
+      "title": "Suites",
+      "description": "Suites généreuses avec salon séparé, salles de bain en marbre et confort élevé pour les séjours prolongés."
     },
-    "dining": {
-      "title": "Restauration Privée",
-      "description": "Savourez des menus du chef, des soirées rooftop intimes et une cuisine inspirée du Nigeria."
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Notre hébergement le plus prestigieux avec vues panoramiques, salon privé et service sur mesure."
+    }
+  },
+  "roomTypes": {
+    "guestRoom": {
+      "title": "Chambre Standard",
+      "description": "Chambres confortables et bien équipées avec literie premium — idéales pour les voyages d'affaires ou de loisirs."
     },
-    "wellness": {
-      "title": "Bien-être & Spa",
-      "description": "Régénérez-vous avec des rituels spa privés et des soins restaurateurs pour les voyageurs en quête de calme."
+    "executive": {
+      "title": "Executive",
+      "description": "Chambres spacieuses avec espace de travail, accès au salon exécutif et finitions raffinées pour un séjour productif."
     },
-    "concierge": {
-      "title": "Services Concierge",
-      "description": "Transferts aéroport, itinéraires sur mesure à Calabar et dans l'État de Cross River — chaque détail est pensé pour vous."
+    "suites": {
+      "title": "Suites",
+      "description": "Suites généreuses avec salon séparé, salles de bain en marbre et confort élevé pour les séjours prolongés."
+    },
+    "penthouse": {
+      "title": "Penthouse",
+      "description": "Notre hébergement le plus prestigieux avec vues panoramiques, salon privé et service sur mesure."
     }
   },
   "cta": {
@@ -75,83 +141,100 @@
     "button": "Réserver votre escapade"
   },
   "marquee": {
-    "transfer": "Transferts aéroport privés et service d'arrivée prioritaire sur demande.",
-    "suites": "Réservez des suites signature avec vues, salles de bain en marbre et service de majordome.",
-    "dining": "Profitez d'une cuisine du chef, de rituels spa et de soirées rooftop.",
-    "concierge": "Planifiez célébrations, séjours d'affaires et escapades romantiques avec notre équipe."
+    "guestRoom": "Chambres confortables avec literie premium et équipements modernes.",
+    "executive": "Chambres Executive avec espace de travail et accès au salon exécutif.",
+    "suites": "Suites avec salon séparé, salles de bain en marbre et confort élevé.",
+    "penthouse": "Penthouse avec vues panoramiques et service sur mesure."
   },
   "contact": {
-    "eyebrow": "Réservations & conciergerie",
+    "eyebrow": "Contactez-nous",
     "title": "Laissez notre équipe créer un séjour autour du confort, de la célébration et du luxe discret.",
     "phone": "Téléphone",
     "email": "E-mail",
     "location": "Adresse",
-    "formBadge": "Réservations sur mesure",
-    "formTitle": "Commencez à planifier votre séjour",
-    "formDescription": "Partagez votre style de suite, l'occasion du voyage et vos demandes spéciales. Notre équipe orchestrera une expérience fluide de l'arrivée au départ.",
-    "firstName": "Prénom",
-    "lastName": "Nom",
-    "emailLabel": "Adresse e-mail",
-    "stayPreference": "Préférence de séjour",
-    "stayPlaceholder": "Choisissez votre style",
-    "details": "Détails de réservation",
-    "detailsPlaceholder": "Dates souhaitées, type de suite ou demandes particulières",
-    "terms": "J'accepte d'être contacté concernant ma demande de réservation",
-    "termsNote": "Vos informations restent privées et servent uniquement à coordonner votre séjour.",
-    "submit": "Demander une réservation",
-    "success": "Merci. Notre équipe vous contactera sous peu.",
+    "formBadge": "Service client",
+    "formTitle": "Nous apprécions vos commentaires",
+    "formDescription": "Parlez-nous de votre expérience ou partagez vos suggestions. Notre équipe examinera votre message et vous répondra rapidement.",
+    "details": "Commentaires",
+    "detailsPlaceholder": "Partagez vos commentaires, suggestions ou questions",
+    "terms": "J'accepte d'être contacté au sujet de mes commentaires",
+    "termsNote": "Vos commentaires nous aident à nous améliorer. Vos informations restent privées.",
+    "submit": "Envoyer les commentaires",
+    "success": "Merci pour vos commentaires. Notre équipe les examinera sous peu.",
     "error": "Une erreur s'est produite. Réessayez ou appelez-nous."
   },
   "form": {
     "stay": {
-      "signature": "Suite Signature",
-      "presidential": "Suite Présidentielle",
-      "executive": "Chambre Executive",
-      "romantic": "Escapade Romantique",
-      "wellness": "Retraite Bien-être",
-      "extended": "Séjour Prolongé"
+      "guestRoom": "Chambre Standard",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
     }
   },
   "footer": {
     "brand": "Relief Hotels & Suites",
     "title": "Une hospitalité de luxe centrée sur votre confort.",
-    "description": "Des suites élégantes aux expériences concierge, chaque séjour est calme, personnel et mémorable au cœur de Calabar.",
+    "description": "Chambres, Executive, suites et penthouse — des séjours calmes et mémorables au cœur de Calabar.",
     "book": "Réserver",
     "explore": "Explorer",
-    "experiencesList": "Expériences",
-    "experienceItems": {
-      "suites": "Suites signature",
-      "dining": "Restauration privée",
-      "wellness": "Bien-être & spa",
-      "concierge": "Service concierge"
-    },
+    "roomsList": "Chambres & Suites",
+    "contactLink": "Contact",
     "contact": "Contact",
     "rights": "Tous droits réservés.",
     "tagline": "Séjours de luxe, service sur mesure et arrivées mémorables à Calabar."
   },
   "rooms": {
-    "pageTitle": "Chambres & Suites Signature",
+    "pageTitle": "Chambres & Suites",
     "pageDescription": "Choisissez une suite ou chambre conçue pour le confort, la célébration et l'expérience Calabar.",
+    "catalogTitle": "Chambres & Suites",
+    "stayIncludesTitle": "Votre séjour comprend",
+    "tabsAria": "Catégories de chambres",
+    "emptyCategory": "Aucune chambre disponible dans cette catégorie pour le moment.",
+    "selectDatesPrompt": "Choisissez vos dates d'arrivée et de départ dans la barre ci-dessus pour voir les chambres et suites disponibles.",
+    "availabilityLoading": "Vérification des disponibilités pour vos dates…",
+    "availabilityError": "Impossible de charger les disponibilités. Veuillez réessayer.",
+    "availabilityForDates": "Disponibilités du {checkIn} au {checkOut} ({nights, plural, one {# nuit} other {# nuits}}).",
+    "noRoomsAvailable": "Aucune chambre ou suite disponible pour ces dates. Essayez d'autres dates ou moins de chambres.",
+    "totalForStay": "Total pour {nights, plural, one {# nuit} other {# nuits}} :",
+    "limitedAvailability": "Plus que {count} disponible(s) pour ces dates",
+    "tabs": {
+      "all": "Tout",
+      "guestRoom": "Chambres",
+      "executive": "Executive",
+      "suites": "Suites",
+      "penthouse": "Penthouse"
+    },
+    "stayIncludes": {
+      "nonSmokingRooms": "Chambres non-fumeurs",
+      "onSiteRestaurant": "Restaurant sur place",
+      "outdoorBar": "Bar extérieur",
+      "fitnessCenter": "Centre de fitness",
+      "vipBar": "Bar VIP"
+    },
     "from": "À partir de",
     "perNight": "par nuit",
     "viewDetails": "Voir les détails",
     "bookRoom": "Réserver cette chambre",
     "amenities": "Équipements",
-    "signature": {
-      "name": "Suite Signature",
-      "description": "Aménagement généreux, literie somptueuse, salle de bain en marbre et vue sur la ville."
+    "guest": {
+      "name": "Chambre Standard",
+      "description": "Hébergement confortable avec literie premium, équipements modernes et attentions raffinées."
+    },
+    "suites": {
+      "name": "Suite",
+      "description": "Suite généreuse avec literie somptueuse, salle de bain en marbre et vue sur la ville."
     },
     "presidential": {
-      "name": "Suite Présidentielle",
-      "description": "Vues panoramiques, salon séparé et service de majordome pour une arrivée d'exception à Calabar."
+      "name": "Suite Penthouse",
+      "description": "Vues panoramiques, salon séparé et service de majordome — notre Penthouse le plus prestigieux."
     },
     "executive": {
       "name": "Chambre Executive",
       "description": "Espace de travail, literie premium et accès au salon pour les voyageurs d'affaires."
     },
-    "wellness": {
-      "name": "Suite Retraite Bien-être",
-      "description": "Sanctuaire apaisant avec crédits spa et rituels bien-être privés."
+    "executiveSpa": {
+      "name": "Chambre Executive Spa",
+      "description": "Chambre Executive avec espace de travail, accès au salon, crédits spa et équipements restaurateurs en chambre."
     },
     "amenities": {
       "kingBed": "Lit king & literie premium",
@@ -198,7 +281,9 @@
   },
   "experiencesPage": {
     "pageTitle": "Expériences Curatées",
-    "pageDescription": "Gastronomie, bien-être, célébrations et moments urbains — orchestrés par notre conciergerie."
+    "pageDescription": "Découvrez nos catégories de chambres, excursions et moments à Calabar.",
+    "roomsSection": "Chambres & Suites",
+    "contactCta": "Planifier votre séjour"
   },
   "city": {
     "carnival": {

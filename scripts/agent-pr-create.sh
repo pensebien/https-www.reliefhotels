@@ -5,6 +5,10 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
+commits_ahead_of_main() {
+  git rev-list --count "main..$1" 2>/dev/null || echo 0
+}
+
 create_pr() {
   local head="$1"
   local title="$2"
@@ -12,6 +16,14 @@ create_pr() {
 
   if ! git show-ref --verify --quiet "refs/heads/$head"; then
     echo "Skip $head (branch not found locally)"
+    return
+  fi
+
+  local ahead
+  ahead="$(commits_ahead_of_main "$head")"
+  if [[ "$ahead" == "0" ]]; then
+    echo "Skip $head — no commits ahead of main (same tip as main)."
+    echo "  Work in agent-workspaces/$head/ then commit + push before opening a PR."
     return
   fi
 

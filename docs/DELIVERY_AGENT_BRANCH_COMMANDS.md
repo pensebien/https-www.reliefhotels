@@ -96,7 +96,22 @@ git push origin main
 
 ## 5. Pull requests (GitHub CLI)
 
+**If you see:** `No commits between main and features/agent-*` — the agent branch has the **same commit** as `main`. GitHub cannot open an empty PR.
+
+**Why it happens:** Baseline was committed on `main` first, then `./scripts/agent-sync-worktrees.sh` merged `main` into every agent branch so all tips match.
+
+**What to do:**
+
+| Situation | Action |
+|-----------|--------|
+| This wave already on `main` | Push `main` only; skip agent PRs for now |
+| You want PRs per agent | Commit **new** work only inside `agent-workspaces/<agent>/`, push that branch, then run `./scripts/agent-pr-create.sh` |
+| Future waves | Never merge `main` into agent branches until after their PRs merge; agents commit in worktrees first |
+
 ```bash
+# Check diff before PR
+git log main..features/agent-a-platform-env --oneline   # must show ≥1 commit
+
 ./scripts/agent-pr-create.sh
 ```
 

@@ -1,30 +1,19 @@
 "use client";
 
 import { site } from "@/content/site";
+import { experienceNavLinks, mainNavLinks } from "@/content/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-provider";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { Equal, X } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-const navKeys = [
-  { href: "/#home" as const, key: "home" },
-  { href: "/#suites" as const, key: "suites" },
-  { href: "/rooms" as const, key: "rooms" },
-  { href: "/#experiences" as const, key: "experiences" },
-  { href: "/tours" as const, key: "tours" },
-  { href: "/events" as const, key: "events" },
-  { href: "/dine-wine" as const, key: "dineWine" },
-  { href: "/gallery" as const, key: "gallery" },
-  { href: "/#contact" as const, key: "contact" },
-] as const;
-
 export function SiteHeader() {
   const t = useTranslations("nav");
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [experienceOpen, setExperienceOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -39,20 +28,19 @@ export function SiteHeader() {
         "sticky top-0 z-50 w-full border-t-4 border-teal transition-all duration-500",
         scrolled
           ? "bg-neutral-950/95 shadow-lg backdrop-blur-md"
-          : "bg-transparent",
-        "h-20 flex items-center",
+          : "bg-neutral-950/90 backdrop-blur-sm",
       )}
     >
-      <nav className="relative mx-auto flex w-full max-w-7xl items-center justify-between px-4 xl:px-16">
+      <nav className="relative mx-auto flex w-full max-w-7xl items-center gap-4 px-4 py-4 xl:px-16">
         <Link
           href="/"
           aria-label={`${site.name} home`}
-          className="flex items-center gap-3 text-white"
+          className="flex shrink-0 items-center gap-3 text-white"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-sm font-semibold backdrop-blur-sm sm:h-11 sm:w-11">
             RH
           </div>
-          <div className="flex flex-col leading-none">
+          <div className="hidden flex-col leading-none sm:flex">
             <span className="font-serif text-lg font-semibold tracking-[0.24em] sm:text-xl">
               {site.shortName}
             </span>
@@ -62,49 +50,69 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:block">
+        <div className="flex min-w-0 flex-1 items-center justify-center overflow-x-auto">
+          <ul className="flex items-center gap-1 whitespace-nowrap sm:gap-2 lg:gap-4">
+            {mainNavLinks.map((item) => (
+              <li key={item.key}>
+                <Link
+                  href={item.href}
+                  className="px-2 py-2 text-xs text-white/85 transition-colors hover:text-teal sm:px-3 sm:text-sm"
+                >
+                  {t(item.key)}
+                </Link>
+              </li>
+            ))}
+            <li
+              className="relative"
+              onMouseEnter={() => setExperienceOpen(true)}
+              onMouseLeave={() => setExperienceOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setExperienceOpen(!experienceOpen)}
+                aria-expanded={experienceOpen}
+                className="inline-flex items-center gap-1 px-2 py-2 text-xs text-white/85 transition-colors hover:text-teal sm:px-3 sm:text-sm"
+              >
+                {t("experience")}
+                <ChevronDown
+                  className={cn(
+                    "h-3.5 w-3.5 transition-transform",
+                    experienceOpen && "rotate-180",
+                  )}
+                  aria-hidden
+                />
+              </button>
+              {experienceOpen && (
+                <div className="absolute left-0 top-full z-50 min-w-44 rounded-xl border border-white/10 bg-neutral-950/98 py-2 shadow-xl backdrop-blur-md">
+                  {experienceNavLinks.map((item) => (
+                    <Link
+                      key={item.key}
+                      href={item.href}
+                      onClick={() => setExperienceOpen(false)}
+                      className="block px-4 py-2 text-sm text-white/85 transition-colors hover:bg-white/5 hover:text-teal"
+                    >
+                      {t(item.key)}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </li>
+          </ul>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="hidden md:block">
             <LanguageSwitcher />
           </div>
           <ThemeToggle />
-          <button
-            type="button"
-            onClick={() => setOpen(!open)}
-            aria-label={t("menu")}
-            aria-expanded={open}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white p-2.5 text-black outline-none sm:h-12 sm:w-12 sm:p-4"
+          <Link
+            href="/#contact"
+            className="hidden rounded-full bg-teal px-4 py-2 text-xs font-medium text-gray-950 transition-colors hover:bg-teal-dark sm:inline-flex sm:text-sm"
           >
-            {open ? <X className="h-4 w-4" /> : <Equal className="h-4 w-4" />}
-          </button>
+            {t("book")}
+          </Link>
         </div>
       </nav>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-full border-t border-white/10 bg-neutral-950/98 px-4 py-6 shadow-xl backdrop-blur-md">
-          <div className="mx-auto flex max-w-7xl flex-col gap-4">
-            <div className="sm:hidden">
-              <LanguageSwitcher />
-            </div>
-            {navKeys.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="text-lg text-white/90 transition-colors hover:text-teal"
-              >
-                {t(item.key)}
-              </Link>
-            ))}
-            <Link
-              href="/#contact"
-              onClick={() => setOpen(false)}
-              className="mt-2 inline-flex w-fit rounded-full bg-teal px-6 py-3 text-sm font-medium text-gray-950"
-            >
-              {t("book")}
-            </Link>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

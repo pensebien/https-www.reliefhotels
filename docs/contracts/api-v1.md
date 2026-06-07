@@ -3,6 +3,18 @@
 **Consumers:** Agent E (UI), Agent F (notifications)  
 **Business context:** `docs/contracts/business-context-summary.md`
 
+## Room availability
+
+`GET /api/rooms/availability`
+
+Query: `checkIn`, `checkOut` (YYYY-MM-DD), optional `rooms` (1–4), `guests` (1–12).
+
+**Response:** `{ ok: true, checkIn, checkOut, nights, roomsRequested, guests, available: [{ id, slug, category, priceFrom, currency, availableUnits, nights, totalFrom }] }`
+
+Drives the Rooms catalog when dates are set via the property bar (mock inventory today; swap `getRoomAvailability` for PMS/Supabase).
+
+---
+
 ## Reservations
 
 `POST /api/reservations`

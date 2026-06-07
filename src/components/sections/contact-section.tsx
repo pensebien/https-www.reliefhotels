@@ -1,12 +1,11 @@
 "use client";
 
-import { site, stayPreferences } from "@/content/site";
+import { site } from "@/content/site";
 import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
 
 export function ContactSection() {
   const t = useTranslations("contact");
-  const tf = useTranslations("form.stay");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
     "idle",
   );
@@ -74,7 +73,7 @@ export function ContactSection() {
               <div className="flex flex-col gap-1">
                 <p className="text-sm text-muted">{t("location")}</p>
                 <p className="text-base font-medium text-foreground">
-                  {site.location}
+                  {site.address.line1} {site.address.line2}
                 </p>
               </div>
             </div>
@@ -115,48 +114,6 @@ export function ContactSection() {
                       {t("error")}
                     </p>
                   )}
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    <Field label={t("firstName")} name="firstName" required />
-                    <Field label={t("lastName")} name="lastName" required />
-                  </div>
-                  <Field
-                    label={t("emailLabel")}
-                    name="email"
-                    type="email"
-                    required
-                  />
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
-                      {t("stayPreference")}
-                    </label>
-                    <select
-                      name="stayPreference"
-                      required
-                      defaultValue=""
-                      className="h-12 w-full rounded-xl border border-border/70 bg-background/80 px-4 text-sm outline-none focus:border-teal focus:ring-2 focus:ring-teal/20"
-                    >
-                      <option value="" disabled>
-                        {t("stayPlaceholder")}
-                      </option>
-                      {stayPreferences.map((pref) => {
-                        const key = pref.labelKey.replace(
-                          "form.stay.",
-                          "",
-                        ) as
-                          | "signature"
-                          | "presidential"
-                          | "executive"
-                          | "romantic"
-                          | "wellness"
-                          | "extended";
-                        return (
-                          <option key={pref.value} value={pref.value}>
-                            {tf(key)}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
                   <div className="space-y-2.5">
                     <label
                       htmlFor="message"
@@ -201,35 +158,5 @@ export function ContactSection() {
         </div>
       </div>
     </section>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  required,
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  required?: boolean;
-}) {
-  return (
-    <div className="space-y-2.5">
-      <label
-        htmlFor={name}
-        className="text-xs font-medium uppercase tracking-[0.18em] text-muted"
-      >
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        required={required}
-        className="h-12 w-full rounded-xl border border-border/70 bg-background/80 px-4 text-base outline-none focus:border-teal focus:ring-2 focus:ring-teal/20"
-      />
-    </div>
   );
 }

@@ -5,6 +5,14 @@ export const site = {
   shortName: "RELIEF",
   tagline: "Hotels & Suites",
   location: "Calabar, Cross River, Nigeria",
+  address: {
+    line1: "2 CICC Road, Ikot Mbo,",
+    line2: "Calabar, Cross River, Nigeria",
+    full: "2 CICC Road, Ikot Mbo, Calabar, Cross River, Nigeria",
+  },
+  mapsUrl:
+    "https://www.google.com/maps/search/?api=1&query=2+CICC+Road+Ikot+Mbo+Calabar+Cross+River+Nigeria",
+  logoSrc: "/relief-logo.png",
   phone: "+234 803 326 2719",
   phoneHref: "tel:+2348033262719",
   email: "reservations@reliefhotelsandsuites.com",
@@ -25,7 +33,7 @@ export const media = {
     spa: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=800&q=80",
     grandLounge:
       "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80",
-    signatureService:
+    suitesShowcase:
       "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80",
     calabar:
       "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
@@ -39,88 +47,163 @@ export const media = {
 } as const;
 
 export const stats = [
-  { value: 48, labelKey: "stats.suites" },
-  { value: 12, labelKey: "stats.years" },
-  { value: 24, labelKey: "stats.experiences" },
+  { value: 24, labelKey: "stats.suites" },
+  { value: 150, labelKey: "stats.seating" },
+  { value: 3, labelKey: "stats.venues" },
 ] as const;
 
+export const hotelAmenities = [
+  "outdoorBar",
+  "nonSmokingRooms",
+  "digitalKey",
+  "concierge",
+  "privateLounge",
+  "onSiteRestaurant",
+  "guestGym",
+  "wifi",
+  "roomService",
+  "barbecueGrill",
+  "meetingRooms",
+  "barbingSalon",
+] as const;
+
+/** Homepage room-category showcase — links to rooms catalog tabs. */
 export const experienceCards = [
   {
-    id: "presidential",
-    titleKey: "experiences.presidential.title",
-    subtitleKey: "experiences.presidential.subtitle",
-    image: media.images.presidentialSuite,
+    id: "guestRoom",
+    titleKey: "roomTypes.guestRoom.title",
+    subtitleKey: "experiences.guestRoom.subtitle",
+    image: media.images.roomDeluxe,
+    href: "/rooms?category=guestRoom",
     large: true,
   },
   {
-    id: "dining",
-    titleKey: "experiences.dining.title",
-    subtitleKey: "experiences.dining.subtitle",
-    image: media.images.rooftopDining,
+    id: "executive",
+    titleKey: "roomTypes.executive.title",
+    subtitleKey: "experiences.executive.subtitle",
+    image: media.images.roomExecutive,
+    href: "/rooms?category=executive",
   },
   {
-    id: "spa",
-    titleKey: "experiences.spa.title",
-    subtitleKey: "experiences.spa.subtitle",
-    image: media.images.spa,
+    id: "suites",
+    titleKey: "roomTypes.suites.title",
+    subtitleKey: "experiences.suites.subtitle",
+    image: media.images.suitesShowcase,
+    href: "/rooms?category=suites",
   },
   {
-    id: "lounge",
-    titleKey: "experiences.lounge.title",
-    subtitleKey: "experiences.lounge.subtitle",
-    image: media.images.grandLounge,
+    id: "penthouse",
+    titleKey: "roomTypes.penthouse.title",
+    subtitleKey: "experiences.penthouse.subtitle",
+    image: media.images.presidentialSuite,
+    href: "/rooms?category=penthouse",
   },
 ] as const;
 
 export const marqueeItems = [
-  "marquee.transfer",
+  "marquee.guestRoom",
+  "marquee.executive",
   "marquee.suites",
-  "marquee.dining",
-  "marquee.concierge",
+  "marquee.penthouse",
 ] as const;
 
-export const hotelServices = [
+export const roomHighlights = [
+  {
+    id: "guestRoom",
+    titleKey: "roomTypes.guestRoom.title",
+    descriptionKey: "roomTypes.guestRoom.description",
+    image: media.images.roomDeluxe,
+  },
+  {
+    id: "executive",
+    titleKey: "roomTypes.executive.title",
+    descriptionKey: "roomTypes.executive.description",
+    image: media.images.roomExecutive,
+  },
   {
     id: "suites",
-    titleKey: "services.suites.title",
-    descriptionKey: "services.suites.description",
-    image: media.images.signatureService,
+    titleKey: "roomTypes.suites.title",
+    descriptionKey: "roomTypes.suites.description",
+    image: media.images.suitesShowcase,
   },
   {
-    id: "dining",
-    titleKey: "services.dining.title",
-    descriptionKey: "services.dining.description",
-    image: media.images.rooftopDining,
-  },
-  {
-    id: "wellness",
-    titleKey: "services.wellness.title",
-    descriptionKey: "services.wellness.description",
-    image: media.images.spa,
-  },
-  {
-    id: "concierge",
-    titleKey: "services.concierge.title",
-    descriptionKey: "services.concierge.description",
-    image: media.images.grandLounge,
+    id: "penthouse",
+    titleKey: "roomTypes.penthouse.title",
+    descriptionKey: "roomTypes.penthouse.description",
+    image: media.images.presidentialSuite,
   },
 ] as const;
 
+/** In-hotel room categories (same data as homepage highlights). */
+export const hotelServices = roomHighlights;
+
 export const stayPreferences = [
-  { value: "signature-suite", labelKey: "form.stay.signature" },
-  { value: "presidential-suite", labelKey: "form.stay.presidential" },
+  { value: "guest-room", labelKey: "form.stay.guestRoom" },
   { value: "executive-room", labelKey: "form.stay.executive" },
-  { value: "romantic-escape", labelKey: "form.stay.romantic" },
-  { value: "wellness-retreat", labelKey: "form.stay.wellness" },
-  { value: "extended-stay", labelKey: "form.stay.extended" },
+  { value: "signature-suite", labelKey: "form.stay.suites" },
+  { value: "presidential-suite", labelKey: "form.stay.penthouse" },
+] as const;
+
+export const roomCategories = [
+  "guestRoom",
+  "executive",
+  "suites",
+  "penthouse",
+] as const;
+
+export type RoomCategory = (typeof roomCategories)[number];
+
+export const roomsCatalogTabs = ["all", ...roomCategories] as const;
+
+export type RoomsCatalogTab = (typeof roomsCatalogTabs)[number];
+
+export const roomsPageStayIncludes = [
+  "nonSmokingRooms",
+  "onSiteRestaurant",
+  "outdoorBar",
+  "fitnessCenter",
+  "vipBar",
 ] as const;
 
 export const rooms = [
   {
+    id: "guest-room",
+    slug: "guest-room",
+    category: "guestRoom" as const,
+    nameKey: "rooms.guest.name",
+    descriptionKey: "rooms.guest.description",
+    priceFrom: 95000,
+    currency: "NGN",
+    image: media.images.roomDeluxe,
+    amenitiesKeys: [
+      "rooms.amenities.kingBed",
+      "rooms.amenities.rainShower",
+      "rooms.amenities.cityView",
+    ],
+    featured: false,
+  },
+  {
+    id: "executive-room",
+    slug: "executive-room",
+    category: "executive" as const,
+    nameKey: "rooms.executive.name",
+    descriptionKey: "rooms.executive.description",
+    priceFrom: 125000,
+    currency: "NGN",
+    image: media.images.roomExecutive,
+    amenitiesKeys: [
+      "rooms.amenities.workDesk",
+      "rooms.amenities.rainShower",
+      "rooms.amenities.loungeAccess",
+    ],
+    featured: false,
+  },
+  {
     id: "signature-suite",
     slug: "signature-suite",
-    nameKey: "rooms.signature.name",
-    descriptionKey: "rooms.signature.description",
+    category: "suites" as const,
+    nameKey: "rooms.suites.name",
+    descriptionKey: "rooms.suites.description",
     priceFrom: 185000,
     currency: "NGN",
     image: media.images.roomDeluxe,
@@ -135,6 +218,7 @@ export const rooms = [
   {
     id: "presidential-suite",
     slug: "presidential-suite",
+    category: "penthouse" as const,
     nameKey: "rooms.presidential.name",
     descriptionKey: "rooms.presidential.description",
     priceFrom: 420000,
@@ -149,32 +233,19 @@ export const rooms = [
     featured: true,
   },
   {
-    id: "executive-room",
-    slug: "executive-room",
-    nameKey: "rooms.executive.name",
-    descriptionKey: "rooms.executive.description",
-    priceFrom: 125000,
+    id: "executive-spa",
+    slug: "executive-spa",
+    category: "executive" as const,
+    nameKey: "rooms.executiveSpa.name",
+    descriptionKey: "rooms.executiveSpa.description",
+    priceFrom: 210000,
     currency: "NGN",
     image: media.images.roomExecutive,
     amenitiesKeys: [
       "rooms.amenities.workDesk",
-      "rooms.amenities.rainShower",
       "rooms.amenities.loungeAccess",
-    ],
-    featured: false,
-  },
-  {
-    id: "wellness-retreat",
-    slug: "wellness-retreat",
-    nameKey: "rooms.wellness.name",
-    descriptionKey: "rooms.wellness.description",
-    priceFrom: 210000,
-    currency: "NGN",
-    image: media.images.spa,
-    amenitiesKeys: [
       "rooms.amenities.spaCredit",
       "rooms.amenities.healthyMenu",
-      "rooms.amenities.yoga",
     ],
     featured: false,
   },
@@ -246,9 +317,10 @@ export const structuredData = {
   "@type": "Hotel",
   name: site.name,
   description:
-    "Luxury hotel in Calabar offering signature suites, private dining, wellness experiences, and personalized concierge hospitality.",
+    "Luxury hotel in Calabar offering Guest Rooms, Executive rooms, Suites, and Penthouse accommodations.",
   address: {
     "@type": "PostalAddress",
+    streetAddress: "2 CICC Road, Ikot Mbo",
     addressLocality: "Calabar",
     addressRegion: "Cross River",
     addressCountry: "NG",

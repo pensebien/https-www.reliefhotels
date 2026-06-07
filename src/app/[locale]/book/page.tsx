@@ -17,7 +17,8 @@ export default async function BookPage({
   const t = await getTranslations("booking");
 
   const itemType = (sp.type === "tour" ? "tour" : "room") as "room" | "tour";
-  const itemId = sp.id ?? sp.room ?? sp.tour ?? "signature-suite";
+  const rawId = sp.id ?? sp.room ?? sp.tour ?? "signature-suite";
+  const itemId = rawId === "wellness-retreat" ? "executive-spa" : rawId;
 
   const room = rooms.find((r) => r.id === itemId || r.slug === itemId);
   const tour = tours.find((tr) => tr.id === itemId || tr.slug === itemId);

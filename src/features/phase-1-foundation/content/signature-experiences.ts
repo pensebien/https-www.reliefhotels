@@ -23,10 +23,10 @@ export const signatureExperienceTeasers = [
     href: "/tours",
   },
   {
-    id: "resort-wellness",
-    image: media.images.spa,
-    titleKey: "wellness.title",
-    descriptionKey: "wellness.description",
-    href: "/experiences",
+    id: "suites-stay",
+    image: media.images.suitesShowcase,
+    titleKey: "suites.title",
+    descriptionKey: "suites.description",
+    href: "/rooms?category=suites",
   },
 ] as const;

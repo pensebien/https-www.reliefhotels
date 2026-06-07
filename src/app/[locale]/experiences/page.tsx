@@ -1,4 +1,4 @@
-import { cityExperiences, hotelServices } from "@/content/site";
+import { cityExperiences, roomHighlights } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -11,7 +11,7 @@ export default async function ExperiencesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("experiencesPage");
-  const ts = await getTranslations("services");
+  const tr = await getTranslations("roomTypes");
   const tc = await getTranslations("city");
 
   const cityKeys = ["carnival", "river", "executive"] as const;
@@ -28,17 +28,17 @@ export default async function ExperiencesPage({
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-16">
-        <h2 className="mb-8 font-serif text-2xl font-medium">In-Hotel</h2>
+        <h2 className="mb-8 font-serif text-2xl font-medium">{t("roomsSection")}</h2>
         <div className="grid gap-6 md:grid-cols-2">
-          {hotelServices.map((service) => (
+          {roomHighlights.map((room) => (
             <div
-              key={service.id}
+              key={room.id}
               className="rounded-2xl border border-border bg-card p-8"
             >
               <h3 className="text-xl font-semibold text-teal-dark">
-                {ts(`${service.id}.title`)}
+                {tr(`${room.id}.title`)}
               </h3>
-              <p className="mt-3 text-muted">{ts(`${service.id}.description`)}</p>
+              <p className="mt-3 text-muted">{tr(`${room.id}.description`)}</p>
             </div>
           ))}
         </div>
@@ -65,7 +65,7 @@ export default async function ExperiencesPage({
             href="/#contact"
             className="inline-flex rounded-full bg-teal px-8 py-3.5 text-sm font-medium text-gray-950 hover:bg-teal-dark"
           >
-            Plan with Concierge
+            {t("contactCta")}
           </Link>
         </div>
       </section>

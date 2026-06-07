@@ -1,12 +1,18 @@
 {
   "meta": {
     "title": "Relief Hotels & Suites | Ọtélù ìtẹ́wọ́gbọ́ ní Calabar",
-    "description": "Ṣàwárí Relief Hotels & Suites ní Calabar fún ààyè ìsun àtọ̀wọ́, àwọn yàrá àmì, ìdájọ aladani, spa, àti ìṣẹ́ concierge."
+    "description": "Ṣàwárí Relief Hotels & Suites ní Calabar — Guest Room, Executive, Suites, àti Penthouse."
   },
   "nav": {
     "home": "Ilé",
-    "book": "Ṣe Àgbékalẹ̀",
-    "contact": "Kan sí Wa"
+    "rooms": "Yàrá",
+    "dining": "Jíjẹun",
+    "eventsMeetings": "Àwọn ìṣẹ̀lẹ̀ àti àpéjọ",
+    "gallery": "Àká ìwò",
+    "experience": "Ìrírí",
+    "experiences": "Àwọn ìrírí",
+    "tours": "Ìrìn àjò & àwọn olùtọ́sọ́nà",
+    "book": "Ṣe Àgbékalẹ̀"
   },
   "hero": {
     "eyebrow": "Ṣàwárí {highlight} — ààyè ìsun tí a ṣe déédé, iṣẹ́ tó dára, àti àkókò tí kò ní parẹ́ láàrin ìlú.",
