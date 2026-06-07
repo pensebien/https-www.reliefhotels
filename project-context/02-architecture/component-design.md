@@ -39,7 +39,7 @@
 
 | Module path | Scope | Key surfaces |
 |-------------|-------|--------------|
-| `features/phase-1-foundation` | Meetings/events teasers, signature experiences | Home sections |
+| `features/phase-1-foundation` | Events and meetings teasers, signature experiences | Home sections |
 | `features/phase-2-product-expansion` | Events, dine & wine, forms | `/events`, `/dine-wine` |
 | `features/phase-3-production-polish` | SEO landings, schema, mock CMS types | `/luxury-hotel-calabar`, etc. |
 

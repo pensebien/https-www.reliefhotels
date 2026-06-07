@@ -5,6 +5,7 @@ import {
 } from "@/features/phase-2-product-expansion/content/dining-venues";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
+import { Suspense } from "react";
 
 export async function DineWinePageContent() {
   const t = await getTranslations("phase2.dining");
@@ -22,16 +23,27 @@ export async function DineWinePageContent() {
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-16">
         <div className="grid gap-8 md:grid-cols-3">
           {diningVenues.map((venue) => (
-            <article key={venue.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="relative h-52">
+            <article
+              key={venue.id}
+              className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
+            >
+              <div className="relative h-52 shrink-0">
                 <Image src={venue.image} alt={t(venue.nameKey)} fill className="object-cover" sizes="400px" />
               </div>
-              <div className="p-6">
+              <div className="flex flex-1 flex-col p-6">
                 <p className="text-xs uppercase tracking-wider text-teal-dark">
                   {t(venue.cuisineKey)}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">{t(venue.nameKey)}</h2>
-                <p className="mt-2 text-sm text-muted">{t(venue.descriptionKey)}</p>
+                <p className="mt-2 flex-1 text-sm text-muted">{t(venue.descriptionKey)}</p>
+                <div className="mt-6 flex justify-end">
+                  <a
+                    href={`?venue=${venue.id}#dining-reservation`}
+                    className="btn-primary"
+                  >
+                    {t("book")}
+                  </a>
+                </div>
               </div>
             </article>
           ))}
@@ -49,12 +61,14 @@ export async function DineWinePageContent() {
         </div>
       </section>
 
-      <section className="border-t border-border py-16">
+      <section id="dining-reservation" className="scroll-mt-24 border-t border-border py-16">
         <div className="mx-auto max-w-3xl px-4 lg:px-8">
           <h2 className="font-serif text-2xl font-medium">{t("formTitle")}</h2>
           <p className="mt-2 text-muted">{t("formDescription")}</p>
           <div className="mt-8">
-            <DiningReservationForm />
+            <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted/20" />}>
+              <DiningReservationForm />
+            </Suspense>
           </div>
         </div>
       </section>

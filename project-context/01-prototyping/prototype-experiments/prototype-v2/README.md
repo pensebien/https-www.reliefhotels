@@ -12,7 +12,7 @@ Validate demand and usability for event inquiries and curated experiences (Ibom/
 
 ## Scope
 
-- Meetings & Events teaser on homepage
+- Events and Meetings teaser on homepage
 - Signature Experiences teaser on homepage
 - `/events` page with inquiry form
 - `/dine-wine` page with reservation form

@@ -50,7 +50,8 @@ function mockBookedUnits(roomId: string, checkIn: Date, checkOut: Date): number 
   for (const ch of roomId) hash = (hash + ch.charCodeAt(0)) % 97;
   const load = (daySeed + hash + nightSpan * 3) % (inventory + 2);
 
-  if (roomId === "presidential-suite" && nightSpan >= 2) {
+  // Penthouse is a single unit — occasionally full, but usually shown for demo
+  if (roomId === "presidential-suite" && nightSpan >= 2 && load % 5 === 0) {
     return inventory;
   }
   if (roomId === "executive-spa" && load % 5 === 0) {

@@ -1,11 +1,16 @@
 /** Photo gallery — demo imagery (replace with hotel photography before launch) */
 
+import { media } from "@/content/site";
+
 export type GalleryCategory =
+  | "executive"
   | "suites"
+  | "penthouse"
+  | "eventsMeetings"
   | "dining"
-  | "wellness"
-  | "lobby"
-  | "calabar";
+  | "outdoorBar"
+  | "vipBar"
+  | "amenities";
 
 export type GalleryItem = {
   id: string;
@@ -13,103 +18,173 @@ export type GalleryItem = {
   category: GalleryCategory;
   titleKey: string;
   featured?: boolean;
+  /** Secondary labels for amenities grouping (spa, gym, penthouse terrace, etc.) */
+  tags?: readonly string[];
 };
 
+/** Tab order on /gallery (excludes "all"). */
 export const galleryCategories: GalleryCategory[] = [
+  "executive",
   "suites",
+  "penthouse",
+  "eventsMeetings",
   "dining",
-  "wellness",
-  "lobby",
-  "calabar",
+  "outdoorBar",
+  "vipBar",
+  "amenities",
 ];
 
 export const galleryItems: GalleryItem[] = [
+  // Executive
   {
-    id: "suite-01",
-    src: "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1400&q=80",
-    category: "suites",
-    titleKey: "gallery.items.suite01",
+    id: "executive-01",
+    src: media.images.roomExecutive,
+    category: "executive",
+    titleKey: "items.executive01",
     featured: true,
   },
   {
-    id: "suite-02",
-    src: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80",
+    id: "executive-02",
+    src: media.images.roomBedAlt,
+    category: "executive",
+    titleKey: "items.executive02",
+  },
+  {
+    id: "executive-03",
+    src: media.images.grandLounge,
+    category: "executive",
+    titleKey: "items.executive03",
+  },
+  // Suites
+  {
+    id: "suites-01",
+    src: media.images.roomDeluxe,
     category: "suites",
-    titleKey: "gallery.items.suite02",
+    titleKey: "items.suites01",
     featured: true,
   },
   {
-    id: "suite-03",
-    src: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1400&q=80",
+    id: "suites-02",
+    src: media.images.suitesShowcase,
     category: "suites",
-    titleKey: "gallery.items.suite03",
+    titleKey: "items.suites02",
   },
   {
-    id: "suite-04",
-    src: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1400&q=80",
+    id: "suites-03",
+    src: media.images.roomBathroom,
     category: "suites",
-    titleKey: "gallery.items.suite04",
+    titleKey: "items.suites03",
   },
+  // Penthouse
+  {
+    id: "penthouse-01",
+    src: media.images.presidentialSuite,
+    category: "penthouse",
+    titleKey: "items.penthouse01",
+    featured: true,
+  },
+  {
+    id: "penthouse-02",
+    src: media.images.suitesShowcase,
+    category: "penthouse",
+    titleKey: "items.penthouse02",
+  },
+  // Events & Meetings
+  {
+    id: "events-01",
+    src: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1400&q=80",
+    category: "eventsMeetings",
+    titleKey: "items.events01",
+    featured: true,
+  },
+  {
+    id: "events-02",
+    src: media.images.grandLounge,
+    category: "eventsMeetings",
+    titleKey: "items.events02",
+  },
+  {
+    id: "events-03",
+    src: "https://images.unsplash.com/photo-1519167758481-83f550bb49b0?auto=format&fit=crop&w=1400&q=80",
+    category: "eventsMeetings",
+    titleKey: "items.events03",
+  },
+  // Dining
   {
     id: "dining-01",
-    src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1400&q=80",
+    src: media.images.rooftopDining,
     category: "dining",
-    titleKey: "gallery.items.dining01",
+    titleKey: "items.dining01",
     featured: true,
   },
   {
     id: "dining-02",
     src: "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1400&q=80",
     category: "dining",
-    titleKey: "gallery.items.dining02",
+    titleKey: "items.dining02",
   },
   {
     id: "dining-03",
     src: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
     category: "dining",
-    titleKey: "gallery.items.dining03",
+    titleKey: "items.dining03",
   },
+  // Outdoor bar
   {
-    id: "wellness-01",
-    src: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=1400&q=80",
-    category: "wellness",
-    titleKey: "gallery.items.wellness01",
+    id: "outdoor-01",
+    src: "https://images.unsplash.com/photo-1470337458703-46ad2256b196?auto=format&fit=crop&w=1400&q=80",
+    category: "outdoorBar",
+    titleKey: "items.outdoor01",
     featured: true,
   },
   {
-    id: "wellness-02",
-    src: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1400&q=80",
-    category: "wellness",
-    titleKey: "gallery.items.wellness02",
+    id: "outdoor-02",
+    src: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1400&q=80",
+    category: "outdoorBar",
+    titleKey: "items.outdoor02",
+  },
+  // VIP bar
+  {
+    id: "vip-01",
+    src: media.images.grandLounge,
+    category: "vipBar",
+    titleKey: "items.vip01",
+    featured: true,
   },
   {
-    id: "lobby-01",
-    src: "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1400&q=80",
-    category: "lobby",
-    titleKey: "gallery.items.lobby01",
-  },
-  {
-    id: "lobby-02",
+    id: "vip-02",
     src: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80",
-    category: "lobby",
-    titleKey: "gallery.items.lobby02",
+    category: "vipBar",
+    titleKey: "items.vip02",
+  },
+  // Amenities — wellness, spa, gym, penthouse terrace
+  {
+    id: "amenities-spa-01",
+    src: media.images.spa,
+    category: "amenities",
+    titleKey: "items.amenitiesSpa01",
+    tags: ["spa", "wellness"],
+    featured: true,
   },
   {
-    id: "calabar-01",
-    src: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1400&q=80",
-    category: "calabar",
-    titleKey: "gallery.items.calabar01",
+    id: "amenities-wellness-01",
+    src: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?auto=format&fit=crop&w=1400&q=80",
+    category: "amenities",
+    titleKey: "items.amenitiesWellness01",
+    tags: ["wellness", "spa"],
   },
   {
-    id: "calabar-02",
-    src: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1400&q=80",
-    category: "calabar",
-    titleKey: "gallery.items.calabar02",
+    id: "amenities-gym-01",
+    src: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=80",
+    category: "amenities",
+    titleKey: "items.amenitiesGym01",
+    tags: ["gym"],
   },
   {
-    id: "calabar-03",
-    src: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1400&q=80",
-    category: "calabar",
-    titleKey: "gallery.items.calabar03",
+    id: "amenities-penthouse-01",
+    src: media.images.presidentialSuite,
+    category: "amenities",
+    titleKey: "items.amenitiesPenthouse01",
+    tags: ["penthouse", "wellness"],
   },
 ];

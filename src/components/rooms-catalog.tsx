@@ -1,6 +1,10 @@
 "use client";
 
-import { resolveActiveTab } from "@/components/room-category-tabs";
+import {
+  resolveActiveTab,
+  RoomCategoryTabs,
+} from "@/components/room-category-tabs";
+import { RoomDetailModal } from "@/components/room-detail-modal";
 import {
   roomCategories,
   rooms,
@@ -150,8 +154,9 @@ export function RoomsCatalog() {
               ))}
             </ul>
           </div>
-
         </div>
+
+        <RoomCategoryTabs embedded />
       </section>
 
       <section
@@ -214,19 +219,39 @@ function RoomGrid({
   availableById: Map<string, AvailableRoom>;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
 }) {
+  const [detailRoom, setDetailRoom] = useState<Room | null>(null);
+  const detailAvailability = detailRoom
+    ? availableById.get(detailRoom.id)
+    : undefined;
+  const detailBookHref =
+    detailRoom &&
+    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}`;
+
   return (
-    <div className="grid gap-10 md:grid-cols-2">
-      {roomList.map((room) => (
-        <RoomCard
-          key={room.id}
-          room={room}
-          t={t}
-          currencyLocale={currencyLocale}
-          availability={availableById.get(room.id)}
-          bookingQuery={bookingQuery}
-        />
-      ))}
-    </div>
+    <>
+      <div className="grid gap-10 md:grid-cols-2">
+        {roomList.map((room) => (
+          <RoomCard
+            key={room.id}
+            room={room}
+            t={t}
+            currencyLocale={currencyLocale}
+            availability={availableById.get(room.id)}
+            bookingQuery={bookingQuery}
+            onViewDetails={() => setDetailRoom(room)}
+          />
+        ))}
+      </div>
+
+      <RoomDetailModal
+        room={detailRoom}
+        open={detailRoom !== null}
+        onClose={() => setDetailRoom(null)}
+        bookHref={detailBookHref ?? "/rooms"}
+        availability={detailAvailability}
+        currencyLocale={currencyLocale}
+      />
+    </>
   );
 }
 
@@ -236,12 +261,14 @@ function RoomCard({
   currencyLocale,
   availability,
   bookingQuery,
+  onViewDetails,
 }: {
   room: Room;
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availability?: AvailableRoom;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
+  onViewDetails: () => void;
 }) {
   const key = room.nameKey.split(".")[1];
   const stayQs = bookingSearchToQueryString(bookingQuery);
@@ -249,12 +276,17 @@ function RoomCard({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg">
-      <div className="relative h-64 w-full">
+      <button
+        type="button"
+        onClick={onViewDetails}
+        className="group relative block h-64 w-full cursor-pointer text-left"
+        aria-label={t("viewDetails")}
+      >
         <Image
           src={room.image}
           alt={t(`${key}.name`)}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           sizes="(max-width: 768px) 100vw, 50vw"
         />
         {room.featured && (
@@ -262,7 +294,10 @@ function RoomCard({
             {t(`tabs.${room.category}`)}
           </span>
         )}
-      </div>
+        <span className="absolute bottom-4 right-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-neutral-900 shadow-sm">
+          {t("viewDetails")}
+        </span>
+      </button>
       <div className="p-6 sm:p-8">
         <h3 className="font-serif text-2xl font-semibold">{t(`${key}.name`)}</h3>
         <p className="mt-2 text-muted">{t(`${key}.description`)}</p>
@@ -302,6 +337,13 @@ function RoomCard({
           ))}
         </ul>
         <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={onViewDetails}
+            className="inline-flex rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:border-teal"
+          >
+            {t("viewDetails")}
+          </button>
           <Link
             href={bookHref}
             className="inline-flex rounded-full bg-teal px-6 py-3 text-sm font-medium text-gray-950 hover:bg-teal-dark"

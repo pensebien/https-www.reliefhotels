@@ -54,7 +54,14 @@ export function buildRoomCategoryHref(
   return `/rooms?${sp.toString()}`;
 }
 
-export function RoomCategoryTabs({ className }: { className?: string }) {
+export function RoomCategoryTabs({
+  className,
+  embedded = false,
+}: {
+  className?: string;
+  /** When true, sits below .rooms-page-container (no extra card chrome). */
+  embedded?: boolean;
+}) {
   const t = useTranslations("rooms");
   const searchParams = useSearchParams();
   const activeTab = resolveActiveTab(searchParams.get("category"));
@@ -64,7 +71,9 @@ export function RoomCategoryTabs({ className }: { className?: string }) {
       role="tablist"
       aria-label={t("tabsAria")}
       className={cn(
-        "border-b border-border bg-card shadow-sm",
+        embedded
+          ? "border-t border-border"
+          : "border-b border-border bg-card shadow-sm",
         className,
       )}
     >

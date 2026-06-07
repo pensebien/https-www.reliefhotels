@@ -214,6 +214,75 @@
     "from": "À partir de",
     "perNight": "par nuit",
     "viewDetails": "Voir les détails",
+    "detail": {
+      "close": "Fermer les détails",
+      "roomHighlights": "Points forts",
+      "moreDetails": "Plus de détails",
+      "readMore": "Lire la suite",
+      "readLess": "Réduire",
+      "previousPhoto": "Photo précédente",
+      "nextPhoto": "Photo suivante",
+      "imageOf": "{current} / {total}",
+      "photoAlt": "{name} — photo {index}",
+      "photoThumb": "Voir la photo {index}",
+      "exploreRatesStay": "Voir les tarifs à partir de {price}",
+      "exploreRatesNightly": "Voir les tarifs à partir de {price} / nuit",
+      "labels": {
+        "guests": "Voyageurs",
+        "views": "Vues",
+        "layout": "Agencement",
+        "bathroom": "Salle de bain",
+        "dining": "Cuisine et repas",
+        "location": "Emplacement"
+      },
+      "longDescription": {
+        "guest": "Chambre confortable avec literie premium, équipements modernes et vue sur Calabar. Douche pluie et linge moelleux pour un séjour reposant.",
+        "executive": "Espace de travail dédié, literie premium et accès au salon Executive pour les voyageurs d'affaires.",
+        "suites": "Suite spacieuse avec salon séparé, salle de bain en marbre et service de majordome.",
+        "presidential": "Penthouse avec vues panoramiques, salon séparé et service de majordome sur mesure.",
+        "executiveSpa": "Chambre Executive avec crédits spa, accès au salon et équipements bien-être en chambre."
+      },
+      "guest": {
+        "guests": "2 personnes",
+        "views": "Vue ville",
+        "layout": "Chambre ouverte",
+        "bathroom": "Douche pluie",
+        "dining": "Thé et café",
+        "location": "Étage intermédiaire"
+      },
+      "executive": {
+        "guests": "2 personnes",
+        "views": "Ville et jardin",
+        "layout": "Chambre avec bureau",
+        "bathroom": "Douche pluie",
+        "dining": "Minibar",
+        "location": "Étage Executive"
+      },
+      "suites": {
+        "guests": "3 personnes",
+        "views": "Vue panoramique",
+        "layout": "Salon séparé",
+        "bathroom": "Bain marbre",
+        "dining": "Minibar",
+        "location": "Étage supérieur"
+      },
+      "presidential": {
+        "guests": "4 personnes",
+        "views": "Skyline panoramique",
+        "layout": "Salon et chambre",
+        "bathroom": "Bain marbre",
+        "dining": "Repas privé",
+        "location": "Niveau Penthouse"
+      },
+      "executiveSpa": {
+        "guests": "2 personnes",
+        "views": "Jardin et ville",
+        "layout": "Chambre avec coin spa",
+        "bathroom": "Douche spa",
+        "dining": "Minibar bien-être",
+        "location": "Aile spa Executive"
+      }
+    },
     "bookRoom": "Réserver cette chambre",
     "amenities": "Équipements",
     "guest": {

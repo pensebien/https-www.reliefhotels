@@ -1,4 +1,5 @@
 import { EventInquiryForm } from "@/features/phase-2-product-expansion/components/event-inquiry-form";
+import { EventStatsBar } from "@/features/phase-2-product-expansion/components/event-stats-bar";
 import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
@@ -15,6 +16,8 @@ export async function EventsPageContent() {
           <p className="mt-4 max-w-2xl text-white/70">{t("pageDescription")}</p>
         </div>
       </section>
+
+      <EventStatsBar />
 
       <section className="mx-auto max-w-7xl px-4 py-16 lg:px-16">
         <div className="grid gap-8 lg:grid-cols-3">
@@ -35,7 +38,7 @@ export async function EventsPageContent() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-card/30 py-16">
+      <section id="event-inquiry" className="scroll-mt-24 border-t border-border bg-card/30 py-16">
         <div className="mx-auto max-w-3xl px-4 lg:px-8">
           <h2 className="font-serif text-2xl font-medium">{t("formTitle")}</h2>
           <p className="mt-2 text-muted">{t("formDescription")}</p>

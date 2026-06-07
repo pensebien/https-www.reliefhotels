@@ -6,7 +6,7 @@
 
 ## Scope delivered
 
-- Homepage: Meetings & Events teaser, Signature Experiences teaser
+- Homepage: Events and Meetings teaser, Signature Experiences teaser
 - `/events` — venues + event inquiry form
 - `/dine-wine` — venues + dining reservation form
 - Nav links: Events, Dine & Wine
@@ -31,7 +31,7 @@ npm run build
 
 ### Steps
 
-1. Homepage — scroll to **Meetings & Events** — click CTA → `/events`.
+1. Homepage — scroll to **Events and Meetings** — click CTA → `/events`.
 2. On `/events`, submit event inquiry (corporate, 50 guests, future date).
 3. Go to `/dine-wine` — submit dining reservation (Rooftop, 4 guests).
 4. Homepage — click **Signature Experiences** cards (picnic, romantic, heritage, wellness) — each navigates.

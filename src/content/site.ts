@@ -15,7 +15,7 @@ export const site = {
   logoSrc: "/relief-logo.png",
   phone: "+234 803 326 2719",
   phoneHref: "tel:+2348033262719",
-  email: "reservations@reliefhotelsandsuites.com",
+  email: "reservations@reliefhotelsandsuites.com.ng",
   themeStorageKey: "relief-theme",
 } as const;
 
@@ -41,6 +41,10 @@ export const media = {
       "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80",
     roomExecutive:
       "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+    roomBathroom:
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+    roomBedAlt:
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
     tourCulture:
       "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
   },
@@ -165,6 +169,18 @@ export const roomsPageStayIncludes = [
   "vipBar",
 ] as const;
 
+/** Fields shown in the room detail modal (Hilton-style highlights). */
+export const roomDetailHighlightFields = [
+  "guests",
+  "views",
+  "layout",
+  "bathroom",
+  "dining",
+  "location",
+] as const;
+
+export type RoomDetailHighlightField = (typeof roomDetailHighlightFields)[number];
+
 export const rooms = [
   {
     id: "guest-room",
@@ -175,6 +191,12 @@ export const rooms = [
     priceFrom: 95000,
     currency: "NGN",
     image: media.images.roomDeluxe,
+    gallery: [
+      media.images.roomDeluxe,
+      media.images.roomBedAlt,
+      media.images.roomBathroom,
+      media.images.grandLounge,
+    ],
     amenitiesKeys: [
       "rooms.amenities.kingBed",
       "rooms.amenities.rainShower",
@@ -191,6 +213,12 @@ export const rooms = [
     priceFrom: 125000,
     currency: "NGN",
     image: media.images.roomExecutive,
+    gallery: [
+      media.images.roomExecutive,
+      media.images.roomBedAlt,
+      media.images.grandLounge,
+      media.images.roomBathroom,
+    ],
     amenitiesKeys: [
       "rooms.amenities.workDesk",
       "rooms.amenities.rainShower",
@@ -207,6 +235,12 @@ export const rooms = [
     priceFrom: 185000,
     currency: "NGN",
     image: media.images.roomDeluxe,
+    gallery: [
+      media.images.roomDeluxe,
+      media.images.suitesShowcase,
+      media.images.roomBathroom,
+      media.images.spa,
+    ],
     amenitiesKeys: [
       "rooms.amenities.kingBed",
       "rooms.amenities.marbleBath",
@@ -224,6 +258,12 @@ export const rooms = [
     priceFrom: 420000,
     currency: "NGN",
     image: media.images.presidentialSuite,
+    gallery: [
+      media.images.presidentialSuite,
+      media.images.suitesShowcase,
+      media.images.grandLounge,
+      media.images.spa,
+    ],
     amenitiesKeys: [
       "rooms.amenities.panoramic",
       "rooms.amenities.livingRoom",
@@ -241,6 +281,12 @@ export const rooms = [
     priceFrom: 210000,
     currency: "NGN",
     image: media.images.roomExecutive,
+    gallery: [
+      media.images.roomExecutive,
+      media.images.spa,
+      media.images.roomBathroom,
+      media.images.grandLounge,
+    ],
     amenitiesKeys: [
       "rooms.amenities.workDesk",
       "rooms.amenities.loungeAccess",

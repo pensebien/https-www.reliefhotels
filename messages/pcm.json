@@ -214,6 +214,75 @@
     "from": "From",
     "perNight": "per night",
     "viewDetails": "See details",
+    "detail": {
+      "close": "Close room details",
+      "roomHighlights": "Room highlights",
+      "moreDetails": "More room details",
+      "readMore": "Read more",
+      "readLess": "Read less",
+      "previousPhoto": "Previous photo",
+      "nextPhoto": "Next photo",
+      "imageOf": "{current} / {total}",
+      "photoAlt": "{name} — photo {index}",
+      "photoThumb": "View photo {index}",
+      "exploreRatesStay": "Explore rates from {price}",
+      "exploreRatesNightly": "Explore rates from {price} / night",
+      "labels": {
+        "guests": "Guests",
+        "views": "Views",
+        "layout": "Room layout",
+        "bathroom": "Bathroom",
+        "dining": "Kitchen and dining",
+        "location": "Location"
+      },
+      "longDescription": {
+        "guest": "Comfortable room with fine bed, modern amenities, and Calabar view. Rain shower and soft linen for restful stay.",
+        "executive": "Work desk, fine linen, and Executive lounge access for business travellers.",
+        "suites": "Big suite with living area separate, marble bathroom, and butler service.",
+        "presidential": "Penthouse with panoramic view, living room, and butler service.",
+        "executiveSpa": "Executive room with spa credit, lounge access, and wellness amenities."
+      },
+      "guest": {
+        "guests": "Sleeps 2",
+        "views": "City view",
+        "layout": "Open bedroom",
+        "bathroom": "Rain shower",
+        "dining": "Tea & coffee",
+        "location": "Mid floor"
+      },
+      "executive": {
+        "guests": "Sleeps 2",
+        "views": "City & garden",
+        "layout": "Bedroom + workspace",
+        "bathroom": "Rain shower",
+        "dining": "Minibar",
+        "location": "Executive floor"
+      },
+      "suites": {
+        "guests": "Sleeps 3",
+        "views": "Panoramic view",
+        "layout": "Separate living area",
+        "bathroom": "Marble bath",
+        "dining": "Minibar",
+        "location": "Upper floor"
+      },
+      "presidential": {
+        "guests": "Sleeps 4",
+        "views": "Panoramic skyline",
+        "layout": "Living room & bedroom",
+        "bathroom": "Marble bath",
+        "dining": "Private dining",
+        "location": "Penthouse level"
+      },
+      "executiveSpa": {
+        "guests": "Sleeps 2",
+        "views": "Garden & city",
+        "layout": "Bedroom with spa nook",
+        "bathroom": "Spa rain shower",
+        "dining": "Wellness minibar",
+        "location": "Executive spa wing"
+      }
+    },
     "bookRoom": "Reserve this room",
     "amenities": "Amenities",
     "guest": {
