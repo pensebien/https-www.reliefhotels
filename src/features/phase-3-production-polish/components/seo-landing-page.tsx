@@ -1,3 +1,4 @@
+import { StructuredDataScript } from "@/components/structured-data-script";
 import { site } from "@/content/site";
 import type { CmsSeoPage } from "@/features/phase-3-production-polish/content/cms-types";
 import { buildHotelSchema, buildWebPageSchema } from "@/features/phase-3-production-polish/seo/schema";
@@ -26,10 +27,7 @@ export async function SeoLandingPage({
 
   return (
     <div className="bg-background">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemas) }}
-      />
+      <StructuredDataScript data={schemas} />
       <section className="border-b border-border bg-neutral-950 px-4 py-20 text-white">
         <div className="mx-auto max-w-3xl">
           <p className="text-sm uppercase tracking-[0.22em] text-teal">

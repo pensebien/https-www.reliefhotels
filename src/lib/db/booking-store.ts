@@ -6,6 +6,14 @@ type ReservationRow = {
   first_name: string;
   last_name: string;
   email: string;
+  phone: string | null;
+  check_in: string | null;
+  check_out: string | null;
+  room_id: string | null;
+  guests: number;
+  nights: number | null;
+  item_type: ReservationRecord["itemType"];
+  payment_reference: string | null;
   stay_preference: string;
   message: string;
   status: ReservationRecord["status"];
@@ -17,6 +25,7 @@ type ReservationRow = {
 type PaymentRow = {
   id: string;
   reference: string;
+  reservation_id: string | null;
   email: string;
   amount_kobo: number;
   currency: string;
@@ -34,9 +43,17 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     firstName: row.first_name,
     lastName: row.last_name,
     email: row.email,
+    phone: row.phone ?? undefined,
+    itemType: row.item_type,
+    roomId: row.room_id ?? undefined,
+    checkIn: row.check_in ?? undefined,
+    checkOut: row.check_out ?? undefined,
+    nights: row.nights ?? undefined,
+    guests: row.guests,
     stayPreference: row.stay_preference,
     message: row.message,
     status: row.status,
+    paymentReference: row.payment_reference ?? undefined,
     source: row.source,
     emailSent: row.email_sent,
     createdAt: row.created_at,
@@ -47,6 +64,7 @@ function mapPayment(row: PaymentRow): PaymentRecord {
   return {
     id: row.id,
     reference: row.reference,
+    reservationId: row.reservation_id ?? undefined,
     email: row.email,
     amountKobo: row.amount_kobo,
     currency: row.currency,
@@ -57,6 +75,32 @@ function mapPayment(row: PaymentRow): PaymentRecord {
     source: row.source,
     createdAt: row.created_at,
   };
+}
+
+function reservationPatchToRow(
+  patch: Partial<ReservationRecord>,
+): Record<string, unknown> {
+  const update: Record<string, unknown> = {};
+  if (patch.firstName !== undefined) update.first_name = patch.firstName;
+  if (patch.lastName !== undefined) update.last_name = patch.lastName;
+  if (patch.email !== undefined) update.email = patch.email;
+  if (patch.phone !== undefined) update.phone = patch.phone;
+  if (patch.itemType !== undefined) update.item_type = patch.itemType;
+  if (patch.roomId !== undefined) update.room_id = patch.roomId;
+  if (patch.checkIn !== undefined) update.check_in = patch.checkIn;
+  if (patch.checkOut !== undefined) update.check_out = patch.checkOut;
+  if (patch.nights !== undefined) update.nights = patch.nights;
+  if (patch.guests !== undefined) update.guests = patch.guests;
+  if (patch.stayPreference !== undefined) {
+    update.stay_preference = patch.stayPreference;
+  }
+  if (patch.message !== undefined) update.message = patch.message;
+  if (patch.status !== undefined) update.status = patch.status;
+  if (patch.paymentReference !== undefined) {
+    update.payment_reference = patch.paymentReference;
+  }
+  if (patch.emailSent !== undefined) update.email_sent = patch.emailSent;
+  return update;
 }
 
 export async function dbAddReservation(
@@ -73,6 +117,14 @@ export async function dbAddReservation(
       first_name: data.firstName,
       last_name: data.lastName,
       email: data.email,
+      phone: data.phone ?? null,
+      check_in: data.checkIn ?? null,
+      check_out: data.checkOut ?? null,
+      room_id: data.roomId ?? null,
+      guests: data.guests,
+      nights: data.nights ?? null,
+      item_type: data.itemType,
+      payment_reference: data.paymentReference ?? null,
       stay_preference: data.stayPreference,
       message: data.message,
       status: data.status ?? "pending",
@@ -83,6 +135,69 @@ export async function dbAddReservation(
     .single();
 
   if (error || !row) throw new Error(error?.message ?? "Insert reservation failed");
+  return mapReservation(row as ReservationRow);
+}
+
+export async function dbUpdateReservationById(
+  id: string,
+  patch: Partial<ReservationRecord>,
+): Promise<ReservationRecord | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const update = reservationPatchToRow(patch);
+  if (Object.keys(update).length === 0) {
+    return (await dbFindReservationById(id)) ?? null;
+  }
+
+  const { data: row, error } = await supabase
+    .from("reservations")
+    .update(update)
+    .eq("id", id)
+    .select()
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!row) return null;
+  return mapReservation(row as ReservationRow);
+}
+
+export async function dbFindReservationById(
+  id: string,
+): Promise<ReservationRecord | undefined> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data: row, error } = await supabase
+    .from("reservations")
+    .select()
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!row) return undefined;
+  return mapReservation(row as ReservationRow);
+}
+
+export async function dbUpdateReservationByPaymentReference(
+  paymentReference: string,
+  patch: Pick<Partial<ReservationRecord>, "status" | "paymentReference">,
+): Promise<ReservationRecord | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const update = reservationPatchToRow(patch);
+  if (Object.keys(update).length === 0) return null;
+
+  const { data: row, error } = await supabase
+    .from("reservations")
+    .update(update)
+    .eq("payment_reference", paymentReference)
+    .select()
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!row) return null;
   return mapReservation(row as ReservationRow);
 }
 
@@ -99,6 +214,7 @@ export async function dbAddPayment(
     .from("payments")
     .insert({
       reference: data.reference,
+      reservation_id: data.reservationId ?? null,
       email: data.email,
       amount_kobo: data.amountKobo,
       currency: data.currency,
@@ -126,6 +242,9 @@ export async function dbUpdatePaymentByReference(
   if (patch.status) update.status = patch.status;
   if (patch.email) update.email = patch.email;
   if (patch.amountKobo !== undefined) update.amount_kobo = patch.amountKobo;
+  if (patch.reservationId !== undefined) {
+    update.reservation_id = patch.reservationId;
+  }
 
   const { data: row, error } = await supabase
     .from("payments")

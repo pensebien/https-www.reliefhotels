@@ -7,6 +7,7 @@ const schema = z.object({
   email: z.string().email(),
   itemType: z.enum(["room", "tour"]),
   itemId: z.string().min(1),
+  reservationId: z.string().uuid().optional(),
   nights: z.number().int().min(1).max(30).optional(),
   guests: z.number().int().min(1).max(20).optional(),
   /** Demo-friendly fixed amount in NGN (overrides calculated amount) */
@@ -32,8 +33,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, itemType, itemId, nights = 1, guests = 1, demoAmountNgn } =
-      parsed.data;
+    const {
+      email,
+      itemType,
+      itemId,
+      reservationId,
+      nights = 1,
+      guests = 1,
+      demoAmountNgn,
+    } = parsed.data;
     const item = resolveItem(itemType, itemId);
 
     if (!item) {
@@ -64,6 +72,7 @@ export async function POST(request: Request) {
       itemType,
       itemId,
       itemLabel,
+      reservationId,
       metadata: { nights: String(nights), guests: String(guests) },
     });
 
