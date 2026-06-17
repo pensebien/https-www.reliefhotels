@@ -15,6 +15,7 @@ export function PaymentCallback() {
 
   const [state, setState] = useState<"loading" | "success" | "failed">("loading");
   const [amountKobo, setAmountKobo] = useState(0);
+  const [reservationId, setReservationId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!reference) {
@@ -30,6 +31,9 @@ export function PaymentCallback() {
         if (data.status === "success") {
           setState("success");
           setAmountKobo(data.amountKobo ?? 0);
+          if (data.reservationId) {
+            setReservationId(data.reservationId);
+          }
         } else {
           setState("failed");
         }
@@ -69,6 +73,12 @@ export function PaymentCallback() {
         <p className="mt-2 text-sm text-muted">
           {t("reference")}: <code className="rounded bg-border px-2 py-0.5">{reference}</code>
         </p>
+        {reservationId && (
+          <p className="mt-2 text-sm text-muted">
+            {t("reservationId")}:{" "}
+            <code className="rounded bg-border px-2 py-0.5">{reservationId}</code>
+          </p>
+        )}
         {demo && (
           <p className="mt-4 rounded-lg bg-amber-500/10 px-4 py-2 text-sm text-amber-900 dark:text-amber-100">
             {t("demoNote")}

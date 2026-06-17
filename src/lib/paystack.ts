@@ -8,6 +8,7 @@ export type InitializePaymentInput = {
   itemType: "room" | "tour";
   itemId: string;
   itemLabel: string;
+  reservationId?: string;
   metadata?: Record<string, string>;
 };
 
@@ -32,6 +33,7 @@ export async function initializePayment(
 
   await addPayment({
     reference,
+    reservationId: input.reservationId,
     email: input.email,
     amountKobo: input.amountKobo,
     currency: "NGN",
@@ -68,6 +70,9 @@ export async function initializePayment(
         item_type: input.itemType,
         item_id: input.itemId,
         item_label: input.itemLabel,
+        ...(input.reservationId
+          ? { reservation_id: input.reservationId }
+          : {}),
         ...input.metadata,
       },
     }),

@@ -1,5 +1,9 @@
 import { getServerConfig } from "@/lib/config";
-import { updatePaymentByReference } from "@/lib/demo-store";
+import {
+  findPaymentByReference,
+  updatePaymentByReference,
+  updateReservationById,
+} from "@/lib/demo-store";
 import { sendPaymentConfirmationEmail } from "@/lib/email";
 import { notifyManager } from "@/lib/notifications";
 import { verifyPayment } from "@/lib/paystack";
@@ -21,10 +25,19 @@ export async function GET(request: Request) {
 
     const result = await verifyPayment(reference, isDemoFlow);
 
+    const payment = await findPaymentByReference(reference);
+
     if (result.status === "success") {
       const updated = await updatePaymentByReference(reference, {
         status: "success",
       });
+
+      if (updated?.reservationId) {
+        await updateReservationById(updated.reservationId, {
+          status: "confirmed",
+          paymentReference: reference,
+        });
+      }
 
       const email = result.email || updated?.email;
       const amountKobo = result.amountKobo || updated?.amountKobo || 0;
@@ -48,11 +61,14 @@ export async function GET(request: Request) {
       await updatePaymentByReference(reference, { status: "failed" });
     }
 
+    const reservationId = payment?.reservationId ?? undefined;
+
     return NextResponse.json({
       ok: true,
       status: result.status,
       reference: result.reference,
       amountKobo: result.amountKobo,
+      reservationId,
       demo: result.demo || config.demoMode,
     });
   } catch (error) {

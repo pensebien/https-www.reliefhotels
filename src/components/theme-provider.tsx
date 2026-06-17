@@ -4,33 +4,6 @@ import { site } from "@/content/site";
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function ThemeScript() {
-  return (
-    <script
-      id="theme-init"
-      dangerouslySetInnerHTML={{
-        __html: `
-(function () {
-  try {
-    var storageKey = "${site.themeStorageKey}";
-    var storedTheme = window.localStorage.getItem(storageKey);
-    var theme =
-      storedTheme === "light" || storedTheme === "dark"
-        ? storedTheme
-        : window.matchMedia("(prefers-color-scheme: dark)").matches
-          ? "dark"
-          : "light";
-    var root = document.documentElement;
-    root.classList.toggle("dark", theme === "dark");
-    root.style.colorScheme = theme;
-  } catch (e) {}
-})();
-`,
-      }}
-    />
-  );
-}
-
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);
 
