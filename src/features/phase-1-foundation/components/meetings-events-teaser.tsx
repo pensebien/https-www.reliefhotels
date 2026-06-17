@@ -16,7 +16,7 @@ export function MeetingsEventsTeaser() {
       <div className="mx-auto max-w-7xl px-4 lg:px-16">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-[0.22em] text-teal-dark">
+            <p className="text-sm font-bold uppercase tracking-[0.22em] text-teal-dark">
               {t("eyebrow")}
             </p>
             <h2 className="mt-2 font-serif text-3xl font-medium sm:text-4xl">

@@ -4,13 +4,9 @@ import { media } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
 
 export function HeroSection() {
   const t = useTranslations("hero");
-  const highlight = t("highlight");
-  const eyebrowText = t("eyebrow", { highlight: "__HIGHLIGHT__" });
-  const [beforeHighlight, afterHighlight] = eyebrowText.split("__HIGHLIGHT__");
 
   return (
     <section
@@ -31,23 +27,6 @@ export function HeroSection() {
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-10 pt-32 xl:px-16 sm:pb-16 sm:pt-40">
         <div className="flex flex-col gap-4 sm:gap-6">
-          <div className="flex items-start gap-2.5 md:gap-4">
-            <div className="h-10 w-10 shrink-0 sm:h-11 sm:w-11">
-              <Image
-                src={media.emblem}
-                alt=""
-                width={44}
-                height={44}
-                className="opacity-90"
-              />
-            </div>
-            <p className="max-w-sm text-sm leading-5 text-white sm:text-base sm:leading-6">
-              {beforeHighlight}
-              <span className="text-teal">{highlight}</span>
-              {afterHighlight}
-            </p>
-          </div>
-
           <div className="flex flex-col items-start gap-4 sm:flex-row lg:items-baseline">
             <h1 className="font-serif text-4xl font-bold leading-tight sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl">
               {t("title")}

@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/theme-provider";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
@@ -71,8 +72,15 @@ export function SiteHeader() {
           aria-label={`${site.name} home`}
           className="flex shrink-0 items-center gap-3 text-white"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10 text-sm font-semibold backdrop-blur-sm sm:h-11 sm:w-11">
-            RH
+          <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/10 p-1 backdrop-blur-sm sm:h-11 sm:w-11">
+            <Image
+              src={site.logoSrc}
+              alt=""
+              width={44}
+              height={44}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <div className="hidden flex-col leading-none sm:flex">
             <span className="font-serif text-lg font-semibold tracking-[0.24em] sm:text-xl">

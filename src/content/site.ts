@@ -11,8 +11,11 @@ export const site = {
     full: "2 CICC Road, Ikot Mbo, Calabar, Cross River, Nigeria",
   },
   mapsUrl:
-    "https://www.google.com/maps/search/?api=1&query=2+CICC+Road+Ikot+Mbo+Calabar+Cross+River+Nigeria",
+    "https://www.google.com/maps/place/Orion+Terence+Hotel+%26+Suite/@5.0304148,8.3144,15z/data=!3m1!4b1!4m6!3m5!1s0x105d7d15a5878d7b:0xe167472c61e3359c!8m2!3d5.0304151!4d8.3328541!16s%2Fg%2F11fct342vc?entry=ttu",
   logoSrc: "/relief-logo.png",
+  faviconSrc: "/favicon.ico",
+  iconSrc: "/icon-32.png",
+  appleIconSrc: "/apple-touch-icon.png",
   phone: "+234 803 326 2719",
   phoneHref: "tel:+2348033262719",
   email: "reservations@reliefhotelsandsuites.com.ng",
