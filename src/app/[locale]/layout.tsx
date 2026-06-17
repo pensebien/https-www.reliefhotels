@@ -60,6 +60,16 @@ export async function generateMetadata({
       title: t("title"),
       description: t("description"),
     },
+    icons: {
+      icon: [
+        { url: site.faviconSrc, sizes: "48x48", type: "image/x-icon" },
+        { url: site.iconSrc, sizes: "32x32", type: "image/png" },
+        { url: site.logoSrc, sizes: "336x336", type: "image/png" },
+      ],
+      shortcut: site.faviconSrc,
+      apple: [{ url: site.appleIconSrc, sizes: "180x180", type: "image/png" }],
+    },
+    manifest: "/site.webmanifest",
   };
 }
 

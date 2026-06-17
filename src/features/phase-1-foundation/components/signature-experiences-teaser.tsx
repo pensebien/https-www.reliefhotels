@@ -12,7 +12,7 @@ export function SignatureExperiencesTeaser() {
     <section className="py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-16">
         <div className="mb-10 max-w-2xl">
-          <p className="text-sm uppercase tracking-[0.22em] text-teal-dark">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-teal-dark">
             {t("eyebrow")}
           </p>
           <h2 className="mt-2 font-serif text-3xl font-medium sm:text-4xl">

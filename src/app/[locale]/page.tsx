@@ -9,7 +9,6 @@ import { ReviewsSection } from "@/components/sections/reviews-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { ExperienceGrid } from "@/components/sections/experience-grid";
 import { HeroSection } from "@/components/sections/hero-section";
-import { HighlightsSection } from "@/components/sections/highlights-section";
 import { StatsSection } from "@/components/sections/stats-section";
 import { routing } from "@/i18n/routing";
 import { setRequestLocale } from "next-intl/server";
@@ -43,7 +42,6 @@ export default async function HomePage({
       <StatsSection />
       <ExperienceGrid />
       <AmenitiesSection />
-      <HighlightsSection />
       <MeetingsEventsTeaser />
       <SignatureExperiencesTeaser />
       <ReviewsSection />
