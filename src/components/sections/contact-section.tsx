@@ -18,7 +18,7 @@ export function ContactSection() {
     const payload = Object.fromEntries(form.entries());
 
     try {
-      const res = await fetch("/api/reservations", {
+      const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

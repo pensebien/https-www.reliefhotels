@@ -2,7 +2,8 @@
 
 **ADR:** [ADR-004](../../project-context/02-architecture/architecture-decision-records/ADR-004-hosting-render.md)  
 **Checklist:** [deployment-checklist.md](../../project-context/04-build-test-deploy/deployment-logs/deployment-checklist.md)  
-**Env:** [ENV_MATRIX.md](../ENV_MATRIX.md)
+**Env:** [ENV_MATRIX.md](../ENV_MATRIX.md)  
+**Stakeholder domain demo (Netlify):** [NETLIFY.md](./NETLIFY.md)
 
 ---
 
@@ -15,7 +16,7 @@
 | Build | `npm install && npm run build` |
 | Start | `npm start` |
 | Database | **Supabase** (external; not Render Postgres) |
-| Domain | Custom via Notigori DNS → Render |
+| Domain | Custom domain via DNS → Render |
 
 ---
 
@@ -24,7 +25,7 @@
 - [ ] GitHub repo connected to Render
 - [ ] Supabase project + `docs/supabase/schema.sql` applied
 - [ ] Paystack live or test keys (per environment)
-- [ ] Termii SMS (+ WhatsApp device if `NOTIFY_CHANNEL=both`)
+- [ ] Resend verified domain (ops alerts via email; SMS/WhatsApp deferred)
 - [ ] Resend verified domain (production email)
 
 ---
@@ -58,7 +59,7 @@ Copy from `docs/ENV_MATRIX.md` **Production** row into Render → **Environment*
 | Key | Required | Notes |
 |-----|----------|-------|
 | `NODE_VERSION` | Recommended | `20` |
-| `NEXT_PUBLIC_APP_URL` | Yes | `https://www.reliefhotelsandsuites.com` (no trailing slash) |
+| `NEXT_PUBLIC_APP_URL` | Yes | `https://www.reliefhotelsandsuites.com.ng` (no trailing slash) |
 | `SUPABASE_URL` | Yes | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | **Secret** — server only |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Yes | Live or test |
@@ -66,12 +67,7 @@ Copy from `docs/ENV_MATRIX.md` **Production** row into Render → **Environment*
 | `RESEND_API_KEY` | Yes | **Secret** |
 | `EMAIL_FROM` | Yes | Verified sender |
 | `RESERVATION_EMAIL` | Yes | Hotel inbox |
-| `MANAGER_PHONE` | Yes | E.164 `+234...` |
-| `NOTIFY_CHANNEL` | Yes | `both` for launch (ADR-003) |
-| `TERMII_API_KEY` | Yes | **Secret** |
-| `TERMII_SENDER_ID` | Yes | |
-| `TERMII_WHATSAPP_DEVICE_ID` | If `both` | Termii dashboard |
-| `WHATSAPP_PROVIDER` | If `both` | `termii` or `meta` |
+| `NOTIFY_CHANNEL` | No | `console` or `none` (SMS/WhatsApp deferred) |
 | `DEMO_DASHBOARD_KEY` | Yes | Rotate from default; keep for stakeholder demo |
 | `DEMO_MODE` | No | **Do not set** `true` in production |
 
@@ -90,11 +86,11 @@ For staging Render URL, use preview URL until custom domain is live.
 
 ---
 
-## 6. Custom domain (Notigori)
+## 6. Custom domain
 
 1. Render → Service → **Settings** → **Custom Domains**
 2. Add `www.reliefhotelsandsuites.com` (and apex if needed)
-3. At DNS provider (Notigori), add records Render shows (CNAME / A)
+3. At your DNS provider (registrar or Cloudflare), add records Render shows (CNAME / A)
 4. Wait for SSL **Active**
 5. Update `NEXT_PUBLIC_APP_URL` to canonical HTTPS URL → **Manual Deploy**
 
@@ -145,8 +141,7 @@ Render → **Deploys** → previous deploy → **Rollback**.
 | 502 on start | Ensure `npm start` binds `$PORT` (Next.js does by default) |
 | Bookings not in DB | `SUPABASE_*` missing or RLS blocking service role |
 | Paystack redirect wrong | `NEXT_PUBLIC_APP_URL` mismatch |
-| No SMS | `TERMII_API_KEY`, `MANAGER_PHONE`, `NOTIFY_CHANNEL` |
-| WhatsApp only logs | Set `TERMII_WHATSAPP_DEVICE_ID`; check Termii approval |
+| Ops not seeing bookings | Check Resend + `/demo?key=`; Supabase rows |
 
 ---
 

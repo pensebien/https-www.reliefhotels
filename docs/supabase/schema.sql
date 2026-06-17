@@ -9,6 +9,15 @@ create table if not exists reservations (
   first_name text not null,
   last_name text not null,
   email text not null,
+  phone text,
+  check_in date,
+  check_out date,
+  room_id text,
+  guests integer not null default 1,
+  nights integer,
+  item_type text not null default 'room'
+    check (item_type in ('room', 'tour', 'inquiry')),
+  payment_reference text,
   stay_preference text not null,
   message text not null,
   status text not null default 'pending'
@@ -26,6 +35,7 @@ create index if not exists reservations_created_at_idx
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
   reference text not null unique,
+  reservation_id uuid references reservations(id),
   email text not null,
   amount_kobo integer not null,
   currency text not null default 'NGN',

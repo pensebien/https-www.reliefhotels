@@ -3,8 +3,10 @@ import {
   dbAddPayment,
   dbAddReservation,
   dbFindPaymentByReference,
+  dbFindReservationById,
   dbGetBookingActivity,
   dbUpdatePaymentByReference,
+  dbUpdateReservationById,
 } from "@/lib/db/booking-store";
 import { isSupabaseEnabled } from "@/lib/db/client";
 import { randomUUID } from "crypto";
@@ -16,9 +18,17 @@ export type ReservationRecord = {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  itemType: "room" | "tour" | "inquiry";
+  roomId?: string;
+  checkIn?: string;
+  checkOut?: string;
+  nights?: number;
+  guests: number;
   stayPreference: string;
   message: string;
   status: "pending" | "confirmed" | "cancelled";
+  paymentReference?: string;
   source: "live" | "demo";
   createdAt: string;
   emailSent: boolean;
@@ -27,6 +37,7 @@ export type ReservationRecord = {
 export type PaymentRecord = {
   id: string;
   reference: string;
+  reservationId?: string;
   email: string;
   amountKobo: number;
   currency: string;
@@ -80,6 +91,27 @@ async function fileAddReservation(
   return record;
 }
 
+async function fileUpdateReservationById(
+  id: string,
+  patch: Partial<ReservationRecord>,
+): Promise<ReservationRecord | null> {
+  const store = await readStore();
+  const index = store.reservations.findIndex((r) => r.id === id);
+  if (index === -1) return null;
+  store.reservations[index] = { ...store.reservations[index], ...patch };
+  await writeStore(store);
+  return store.reservations[index];
+}
+
+async function fileFindReservationById(
+  id: string,
+): Promise<ReservationRecord | undefined> {
+  const store = await readStore();
+  const live = store.reservations.find((r) => r.id === id);
+  if (live) return live;
+  return demoReservations.find((r) => r.id === id);
+}
+
 async function fileAddPayment(
   data: Omit<PaymentRecord, "id" | "source" | "createdAt">,
 ): Promise<PaymentRecord> {
@@ -105,6 +137,25 @@ export async function addReservation(
 ): Promise<ReservationRecord> {
   if (isSupabaseEnabled()) return dbAddReservation(data);
   return fileAddReservation(data);
+}
+
+export async function updateReservationById(
+  id: string,
+  patch: Partial<ReservationRecord>,
+): Promise<ReservationRecord | null> {
+  if (isSupabaseEnabled()) return dbUpdateReservationById(id, patch);
+  return fileUpdateReservationById(id, patch);
+}
+
+export async function findReservationById(
+  id: string,
+): Promise<ReservationRecord | undefined> {
+  if (isSupabaseEnabled()) {
+    const live = await dbFindReservationById(id);
+    if (live) return live;
+    return demoReservations.find((r) => r.id === id);
+  }
+  return fileFindReservationById(id);
 }
 
 export async function addPayment(

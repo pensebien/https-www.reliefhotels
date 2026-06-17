@@ -1,15 +1,30 @@
-import { BookingForm } from "@/components/booking-form";
+import { ReservationForm } from "@/features/reservations";
 import { rooms, tours } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import {
+  nightsBetween,
+  parseBookingSearchParams,
+} from "@/lib/booking-search";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+
+type BookSearchParams = {
+  type?: string;
+  id?: string;
+  room?: string;
+  tour?: string;
+  checkIn?: string;
+  checkOut?: string;
+  guests?: string;
+  rooms?: string;
+};
 
 export default async function BookPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ type?: string; id?: string; room?: string; tour?: string }>;
+  searchParams: Promise<BookSearchParams>;
 }) {
   const { locale } = await params;
   const sp = await searchParams;
@@ -34,6 +49,21 @@ export default async function BookPage({
       </div>
     );
   }
+
+  const urlParams = new URLSearchParams();
+  if (sp.checkIn) urlParams.set("checkIn", sp.checkIn);
+  if (sp.checkOut) urlParams.set("checkOut", sp.checkOut);
+  if (sp.guests) urlParams.set("guests", sp.guests);
+  if (sp.rooms) urlParams.set("rooms", sp.rooms);
+
+  const bookingQuery = parseBookingSearchParams(urlParams);
+  const checkIn = bookingQuery?.checkIn;
+  const checkOut = bookingQuery?.checkOut;
+  const nights =
+    checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 2;
+  const guests =
+    bookingQuery?.guests ??
+    Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
 
   const tr = await getTranslations(itemType === "room" ? "rooms" : "tours");
   const tourKeys = ["heritage", "marina", "obudu", "culinary"] as const;
@@ -61,10 +91,15 @@ export default async function BookPage({
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
-        <BookingForm
+        <ReservationForm
           itemType={itemType}
           itemId={item.id}
           itemLabel={itemLabel}
+          checkIn={checkIn}
+          checkOut={checkOut}
+          nights={nights}
+          guests={guests}
+          priceFrom={item.priceFrom}
         />
         <p className="mt-8 text-center text-sm text-muted">
           <Link href="/#contact" className="text-teal-dark hover:underline">

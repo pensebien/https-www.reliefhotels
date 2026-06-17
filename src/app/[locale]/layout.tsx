@@ -1,7 +1,8 @@
 import { DemoBanner } from "@/components/demo-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { ThemeScript } from "@/components/theme-provider";
+import { StructuredDataScript } from "@/components/structured-data-script";
+import { ThemeScript } from "@/components/theme-script";
 import { site, structuredData } from "@/content/site";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
@@ -59,6 +60,16 @@ export async function generateMetadata({
       title: t("title"),
       description: t("description"),
     },
+    icons: {
+      icon: [
+        { url: site.faviconSrc, sizes: "48x48", type: "image/x-icon" },
+        { url: site.iconSrc, sizes: "32x32", type: "image/png" },
+        { url: site.logoSrc, sizes: "336x336", type: "image/png" },
+      ],
+      shortcut: site.faviconSrc,
+      apple: [{ url: site.appleIconSrc, sizes: "180x180", type: "image/png" }],
+    },
+    manifest: "/site.webmanifest",
   };
 }
 
@@ -84,16 +95,9 @@ export default async function LocaleLayout({
       className={`${ebGaramond.variable} ${dmSans.variable} scroll-smooth antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        <ThemeScript />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData),
-          }}
-        />
-      </head>
       <body className="flex min-h-screen flex-col bg-background text-foreground">
+        <ThemeScript />
+        <StructuredDataScript data={structuredData} />
         <NextIntlClientProvider messages={messages}>
           <DemoBanner />
           <SiteHeader />

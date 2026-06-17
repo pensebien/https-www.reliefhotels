@@ -14,7 +14,7 @@ export function HighlightsSection() {
   const service = roomHighlights[active];
 
   return (
-    <section className="bg-background">
+    <section>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:py-16 md:px-6 lg:px-8 lg:py-20">
         <div className="flex flex-col gap-8 sm:gap-16">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
