@@ -535,6 +535,11 @@
     "nights": "Nights",
     "guests": "Guests",
     "totalEstimate": "Estimated total",
+    "step1Title": "Your details",
+    "step2Title": "Pay deposit",
+    "depositDueNow": "20% deposit due now",
+    "totalStayEstimate": "Total stay estimate",
+    "managerNotifyAfterPayment": "Our manager will be notified after your payment and will confirm your reservation.",
     "depositNote": "Amount due now (20% room deposit or tour total):",
     "terms": "I agree to the booking terms",
     "termsNote": "Your deposit secures the reservation. Our team will confirm availability and send final details by email.",
@@ -546,7 +551,8 @@
     "secureCheckout": "Paystack · Test or Live",
     "notFound": "We could not find that room or tour.",
     "browseRooms": "Browse rooms",
-    "preferConcierge": "Prefer to speak with concierge? Request a callback →"
+    "preferConcierge": "Prefer to speak with concierge? Request a callback →",
+    "managerNotified": "Our team has been notified of your deposit payment."
   },
   "payment": {
     "verifying": "Verifying your payment…",

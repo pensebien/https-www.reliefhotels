@@ -1,5 +1,4 @@
 import { addEventInquiry } from "@/lib/inquiry-store";
-import { notifyManager } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -23,16 +22,8 @@ export async function POST(request: Request) {
     }
 
     const record = await addEventInquiry(parsed.data);
-    const notify = await notifyManager({
-      event: "event.inquiry.created",
-      referenceId: record.id,
-      guestName: `${record.firstName} ${record.lastName}`,
-      email: record.email,
-      phone: record.phone,
-      summary: `${record.eventType}, ${record.guestCount} guests, ${record.eventDate}`,
-    });
 
-    return NextResponse.json({ ok: true, id: record.id, notified: notify.sent });
+    return NextResponse.json({ ok: true, id: record.id, notified: false });
   } catch {
     return NextResponse.json({ error: "Unable to save inquiry" }, { status: 500 });
   }

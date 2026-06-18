@@ -25,13 +25,21 @@ export type NotifyResult = {
   error?: string;
 };
 
+/** Manager SMS/WhatsApp only after a verified payment (e.g. 20% room deposit). */
+function isManagerAlertAllowed(event: NotificationEvent): boolean {
+  return event === "payment.verified";
+}
+
 function buildMessageBody(payload: NotifyPayload): string {
   const prefix = "Relief Hotels:";
   switch (payload.event) {
     case "reservation.created":
       return `${prefix} New reservation from ${payload.guestName ?? "guest"}. ${payload.summary} Ref:${payload.referenceId}`;
-    case "payment.verified":
-      return `${prefix} Payment received. ${payload.summary} Ref:${payload.referenceId}`;
+    case "payment.verified": {
+      const guest = payload.guestName ? ` from ${payload.guestName}` : "";
+      const phone = payload.phone ? ` (${payload.phone})` : "";
+      return `${prefix} Deposit payment received${guest}${phone}. ${payload.summary} Ref:${payload.referenceId}`;
+    }
     case "event.inquiry.created":
       return `${prefix} Event inquiry. ${payload.summary} Ref:${payload.referenceId}`;
     case "dining.reservation.created":
@@ -130,6 +138,19 @@ export async function notifyManager(
     | "none";
 
   const body = buildMessageBody(payload);
+
+  if (!isManagerAlertAllowed(payload.event)) {
+    console.info("[notify:skipped-unpaid]", {
+      event: payload.event,
+      referenceId: payload.referenceId,
+      reason: "Manager SMS/WhatsApp requires verified payment",
+    });
+    return {
+      sent: false,
+      channel: "none",
+      provider: "payment-required",
+    };
+  }
 
   if (channel === "none") {
     return { sent: false, channel: "none" };

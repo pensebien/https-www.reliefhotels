@@ -29,7 +29,7 @@ Drives the Rooms catalog when dates are set via the property bar (mock inventory
 
 **Response:** `{ ok: true, id: string, emailSent?: boolean, demo?: boolean }`
 
-**Notification trigger (Agent F):** `reservation.created`
+**Notification trigger (Agent F):** none — manager SMS/WhatsApp only after verified payment (`payment.verified`)
 
 ---
 
@@ -37,13 +37,15 @@ Drives the Rooms catalog when dates are set via the property bar (mock inventory
 
 `POST /api/paystack/initialize`
 
-Body: `{ email, itemType: "room"|"tour", itemId, nights?, guests?, demoAmountNgn? }`
+Body: `{ email, itemType: "room"|"tour", itemId, reservationId, nights?, guests?, demoAmountNgn? }`
+
+`reservationId` is **required** — guest must complete Part 1 (`POST /api/reservations`) before payment.
 
 **Response:** `{ ok, reference, authorizationUrl, amountNgn, demo }`
 
 `GET /api/paystack/verify?reference=&demo=`
 
-**Notification trigger:** `payment.verified` on success
+**Notification trigger:** `payment.verified` on success (manager SMS/WhatsApp only after verified deposit)
 
 ---
 
@@ -53,7 +55,7 @@ Body: `{ email, itemType: "room"|"tour", itemId, nights?, guests?, demoAmountNgn
 
 Fields: firstName, lastName, email, phone, eventType, eventDate, guestCount, message
 
-**Notification trigger:** `event.inquiry.created`
+**Notification trigger:** none — manager SMS/WhatsApp only after verified payment
 
 ---
 
@@ -63,7 +65,7 @@ Fields: firstName, lastName, email, phone, eventType, eventDate, guestCount, mes
 
 Fields: firstName, lastName, email, venue, reservationDate, reservationTime, partySize, notes?
 
-**Notification trigger:** `dining.reservation.created`
+**Notification trigger:** none — manager SMS/WhatsApp only after verified payment
 
 ---
 

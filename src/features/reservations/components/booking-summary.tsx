@@ -13,6 +13,7 @@ type BookingSummaryProps = {
   guests: number;
   depositNgn: number;
   priceFrom: number;
+  emphasizeDeposit?: boolean;
 };
 
 function formatStayDate(value: string): string {
@@ -34,6 +35,7 @@ export function BookingSummary({
   guests,
   depositNgn,
   priceFrom,
+  emphasizeDeposit = false,
 }: BookingSummaryProps) {
   const t = useTranslations("booking");
   const totalEstimate = calculateTotalEstimateNgn(
@@ -43,8 +45,17 @@ export function BookingSummary({
     guests,
   );
 
+  const totalLabel =
+    itemType === "room" ? t("totalStayEstimate") : t("totalEstimate");
+
   return (
-    <div className="rounded-xl border border-border/70 bg-muted/10 p-4 sm:p-5">
+    <div
+      className={
+        emphasizeDeposit
+          ? "rounded-xl border-2 border-teal/30 bg-teal/5 p-4 sm:p-5"
+          : "rounded-xl border border-border/70 bg-muted/10 p-4 sm:p-5"
+      }
+    >
       <p className="font-serif text-lg font-semibold text-foreground">{itemLabel}</p>
 
       {itemType === "room" && checkIn && checkOut ? (
@@ -55,12 +66,20 @@ export function BookingSummary({
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
         {itemType === "room" ? (
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-              {t("nights")}
-            </dt>
-            <dd className="mt-1 font-medium text-foreground">{nights}</dd>
-          </div>
+          <>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+                {t("nights")}
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">{nights}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+                {t("guests")}
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">{guests}</dd>
+            </div>
+          </>
         ) : (
           <div>
             <dt className="text-xs font-medium uppercase tracking-wider text-muted">
@@ -70,9 +89,9 @@ export function BookingSummary({
           </div>
         )}
 
-        <div>
+        <div className={itemType === "tour" ? "" : "sm:col-span-2"}>
           <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-            {t("totalEstimate")}
+            {totalLabel}
           </dt>
           <dd className="mt-1 font-medium text-foreground">
             {formatNaira(totalEstimate)}
@@ -80,11 +99,22 @@ export function BookingSummary({
         </div>
       </dl>
 
-      <div className="mt-4 border-t border-border/60 pt-4">
-        <p className="text-sm text-muted">{t("depositNote")}</p>
-        <p className="mt-1 text-xl font-semibold text-teal-dark">
+      <div
+        className={
+          emphasizeDeposit
+            ? "mt-4 rounded-lg border border-teal/20 bg-background/80 px-4 py-3"
+            : "mt-4 border-t border-border/60 pt-4"
+        }
+      >
+        <p className="text-xs font-medium uppercase tracking-wider text-muted">
+          {t("depositDueNow")}
+        </p>
+        <p className="mt-1 text-2xl font-semibold text-teal-dark">
           {formatNaira(depositNgn)}
         </p>
+        {itemType === "room" ? (
+          <p className="mt-1 text-xs text-muted">{t("depositNote")}</p>
+        ) : null}
       </div>
     </div>
   );

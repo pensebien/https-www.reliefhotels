@@ -1,18 +1,9 @@
+import { calculateDepositNgn } from "@/lib/booking-deposit";
+import { findReservationById, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
+import { paystackInitializeSchema } from "@/lib/schemas/payment";
 import { rooms, tours } from "@/content/site";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const schema = z.object({
-  email: z.string().email(),
-  itemType: z.enum(["room", "tour"]),
-  itemId: z.string().min(1),
-  reservationId: z.string().uuid().optional(),
-  nights: z.number().int().min(1).max(30).optional(),
-  guests: z.number().int().min(1).max(20).optional(),
-  /** Demo-friendly fixed amount in NGN (overrides calculated amount) */
-  demoAmountNgn: z.number().int().positive().optional(),
-});
 
 function resolveItem(itemType: "room" | "tour", itemId: string) {
   if (itemType === "room") {
@@ -24,7 +15,7 @@ function resolveItem(itemType: "room" | "tour", itemId: string) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const parsed = schema.safeParse(body);
+    const parsed = paystackInitializeSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -42,23 +33,31 @@ export async function POST(request: Request) {
       guests = 1,
       demoAmountNgn,
     } = parsed.data;
+
+    const reservation = await findReservationById(reservationId);
+    if (!reservation) {
+      return NextResponse.json(
+        { error: "Reservation not found" },
+        { status: 404 },
+      );
+    }
+
+    if (reservation.status !== "pending") {
+      return NextResponse.json(
+        { error: "Reservation is not eligible for payment" },
+        { status: 409 },
+      );
+    }
+
     const item = resolveItem(itemType, itemId);
 
     if (!item) {
       return NextResponse.json({ error: "Item not found" }, { status: 404 });
     }
 
-    const basePrice = item.priceFrom;
-    let amountNgn: number;
-
-    if (demoAmountNgn) {
-      amountNgn = demoAmountNgn;
-    } else if (itemType === "room") {
-      // 20% deposit for demo — industry-standard hold
-      amountNgn = Math.round(basePrice * nights * 0.2);
-    } else {
-      amountNgn = basePrice * guests;
-    }
+    const amountNgn =
+      demoAmountNgn ??
+      calculateDepositNgn(itemType, item.priceFrom, nights, guests);
 
     const amountKobo = amountNgn * 100;
     const itemLabel =
@@ -74,6 +73,10 @@ export async function POST(request: Request) {
       itemLabel,
       reservationId,
       metadata: { nights: String(nights), guests: String(guests) },
+    });
+
+    await updateReservationById(reservationId, {
+      paymentReference: result.reference,
     });
 
     return NextResponse.json({

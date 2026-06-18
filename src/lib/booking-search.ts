@@ -65,3 +65,7 @@ export function nightsBetween(checkIn: string, checkOut: string): number {
   const to = parseDateString(checkOut);
   return Math.max(1, Math.round((to.getTime() - from.getTime()) / 86400000));
 }
+
+export function isValidBookingDate(value: string | undefined): boolean {
+  return Boolean(value && DATE_RE.test(value));
+}
