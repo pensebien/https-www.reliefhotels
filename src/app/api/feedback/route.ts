@@ -1,6 +1,5 @@
 import { addReservation } from "@/lib/demo-store";
 import { sendReservationEmail } from "@/lib/email";
-import { notifyManager } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -37,19 +36,11 @@ export async function POST(request: Request) {
       record.emailSent = true;
     }
 
-    const notify = await notifyManager({
-      event: "reservation.created",
-      referenceId: record.id,
-      guestName: `${record.firstName} ${record.lastName}`,
-      email: record.email,
-      summary: `Feedback: ${record.message.slice(0, 120)}`,
-    });
-
     return NextResponse.json({
       ok: true,
       id: record.id,
       emailSent: sent,
-      notified: notify.sent,
+      notified: false,
       demo: !process.env.RESEND_API_KEY,
     });
   } catch (error) {

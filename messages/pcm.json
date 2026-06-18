@@ -368,7 +368,17 @@
       "description": "Quiet arrival and special service for business and government guest."
     }
   },
+  "booking": {
+    "managerNotified": "Our team don hear say you pay deposit."
+  },
   "language": {
     "label": "Language"
+  },
+  "booking": {
+    "step1Title": "Your details",
+    "step2Title": "Pay deposit",
+    "depositDueNow": "20% deposit wey you go pay now",
+    "totalStayEstimate": "Total stay estimate",
+    "managerNotifyAfterPayment": "Manager go get notify after you pay, dem go confirm your booking."
   }
 }

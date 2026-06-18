@@ -8,6 +8,8 @@ type PaystackCheckoutProps = {
   email: string;
   itemType: "room" | "tour";
   itemId: string;
+  /** Required — create reservation via POST /api/reservations first (Part 1). */
+  reservationId: string;
   nights?: number;
   guests?: number;
   label: string;
@@ -20,6 +22,7 @@ export function PaystackCheckout({
   email,
   itemType,
   itemId,
+  reservationId,
   nights = 1,
   guests = 1,
   label,
@@ -46,6 +49,7 @@ export function PaystackCheckout({
           email,
           itemType,
           itemId,
+          reservationId,
           nights,
           guests,
           ...(useDemoTestAmount ? { demoAmountNgn: 5000 } : {}),

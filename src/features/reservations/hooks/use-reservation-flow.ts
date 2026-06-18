@@ -176,6 +176,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     formData,
     updateField,
     validationErrors,
+    setValidationErrors,
     status,
     errorMessage,
     depositNgn,

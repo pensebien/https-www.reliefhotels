@@ -1,6 +1,7 @@
 import { getServerConfig } from "@/lib/config";
 import {
   findPaymentByReference,
+  findReservationById,
   updatePaymentByReference,
   updateReservationById,
 } from "@/lib/demo-store";
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
     const result = await verifyPayment(reference, isDemoFlow);
 
     const payment = await findPaymentByReference(reference);
+    let notified = false;
 
     if (result.status === "success") {
       const updated = await updatePaymentByReference(reference, {
@@ -50,12 +52,22 @@ export async function GET(request: Request) {
           itemLabel: updated?.itemLabel ?? "Relief Hotels booking",
         });
         const amountNgn = Math.round(amountKobo / 100);
-        await notifyManager({
+        const reservation = updated?.reservationId
+          ? await findReservationById(updated.reservationId)
+          : null;
+        const guestName = reservation
+          ? `${reservation.firstName} ${reservation.lastName}`
+          : undefined;
+
+        const notifyResult = await notifyManager({
           event: "payment.verified",
           referenceId: reference,
           email,
-          summary: `₦${amountNgn.toLocaleString("en-NG")} — ${updated?.itemLabel ?? "booking"}`,
+          guestName,
+          phone: reservation?.phone,
+          summary: `₦${amountNgn.toLocaleString("en-NG")} deposit — ${updated?.itemLabel ?? "booking"}`,
         });
+        notified = notifyResult.sent;
       }
     } else if (result.status === "failed") {
       await updatePaymentByReference(reference, { status: "failed" });
@@ -69,6 +81,7 @@ export async function GET(request: Request) {
       reference: result.reference,
       amountKobo: result.amountKobo,
       reservationId,
+      notified,
       demo: result.demo || config.demoMode,
     });
   } catch (error) {

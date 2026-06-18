@@ -8,7 +8,8 @@
 ## Scope delivered
 
 - `src/lib/notifications.ts` — `notifyManager()`
-- Wired to: `/api/reservations`, `/api/event-inquiries`, `/api/dining-reservations`, `/api/paystack/verify`
+- **Manager SMS/WhatsApp:** only `/api/paystack/verify` (`payment.verified`) after successful deposit payment
+- Unpaid form submissions (`reservation.created`, event, dining) do **not** trigger SMS/WhatsApp — `isManagerAlertAllowed()` gates to `payment.verified` only
 - Env: `MANAGER_PHONE`, `NOTIFY_CHANNEL`, `TERMII_*`, `WHATSAPP_PROVIDER`, `TERMII_WHATSAPP_DEVICE_ID`
 - Dual channel: `NOTIFY_CHANNEL=both` (ADR-003)
 - Optional audit: `notification_log` table when Supabase enabled
@@ -38,12 +39,12 @@ MANAGER_PHONE=+2348033262719
 ```
 
 1. Restart `npm run dev`.
-2. Submit contact reservation — check terminal for `[notify:demo]` with reservation body.
-3. Submit event inquiry — `[notify:demo]` with event summary.
-4. Submit dining reservation — `[notify:demo]` with venue summary.
-5. Complete payment verify — `[notify:demo]` with payment summary.
+2. Submit contact reservation — **no** manager SMS/WhatsApp; API returns `notified: false`.
+3. Submit event inquiry — **no** manager SMS/WhatsApp; `notified: false`.
+4. Submit dining reservation — **no** manager SMS/WhatsApp; `notified: false`.
+5. Complete payment verify — `[notify:demo]` or live send with deposit summary; API returns `notified: true` when Termii/Meta delivers.
 
-**Expected:** All four events log; API returns `notified: false` but does not fail guest flow.
+**Expected:** Only `payment.verified` (post-payment) logs `[notify:demo]` / sends SMS or WhatsApp. Unpaid forms must not alert the manager. Guest payment callback shows manager confirmation when `notified: true`.
 
 ## Manual QA — Live SMS (Termii)
 
@@ -60,13 +61,13 @@ Run **10 tests** per `notification-poc-plan.md` — record delivery count.
 
 | Test # | Trigger | SMS received? |
 |--------|---------|---------------|
-| 1 | Reservation form | |
-| 2 | Event inquiry | |
-| 3 | Dining form | |
-| 4 | Payment success | |
+| 1 | Payment success (deposit) | |
+| 2 | Payment success (repeat) | |
 | … | (repeat to 10) | |
 
-**Pass:** ≥ 9/10 received (95%).
+**Note:** Reservation, event, and dining form submits must **not** send SMS/WhatsApp — only `payment.verified`.
+
+**Pass:** ≥ 9/10 payment verifications received (95%).
 
 ## Sign-off
 
@@ -83,8 +84,8 @@ WHATSAPP_PROVIDER=termii
 TERMII_WHATSAPP_DEVICE_ID=your_device_id
 ```
 
-1. Trigger reservation — expect SMS and/or WhatsApp per Termii dashboard.
-2. **Pass (launch):** ≥95% on at least one channel per event (9/10 tests).
+1. Complete payment verify — expect SMS and/or WhatsApp per Termii dashboard.
+2. **Pass (launch):** ≥95% on at least one channel for `payment.verified` only (9/10 tests).
 
 ## Blockers / follow-ups
 

@@ -3,6 +3,7 @@ import { rooms, tours } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
+  isValidBookingDate,
   nightsBetween,
   parseBookingSearchParams,
 } from "@/lib/booking-search";
@@ -57,8 +58,12 @@ export default async function BookPage({
   if (sp.rooms) urlParams.set("rooms", sp.rooms);
 
   const bookingQuery = parseBookingSearchParams(urlParams);
-  const checkIn = bookingQuery?.checkIn;
-  const checkOut = bookingQuery?.checkOut;
+  const checkIn =
+    bookingQuery?.checkIn ??
+    (isValidBookingDate(sp.checkIn) ? sp.checkIn : undefined);
+  const checkOut =
+    bookingQuery?.checkOut ??
+    (isValidBookingDate(sp.checkOut) ? sp.checkOut : undefined);
   const nights =
     checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 2;
   const guests =

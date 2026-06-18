@@ -1,5 +1,4 @@
 import { addDiningReservation } from "@/lib/inquiry-store";
-import { notifyManager } from "@/lib/notifications";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -23,15 +22,8 @@ export async function POST(request: Request) {
     }
 
     const record = await addDiningReservation(parsed.data);
-    const notify = await notifyManager({
-      event: "dining.reservation.created",
-      referenceId: record.id,
-      guestName: `${record.firstName} ${record.lastName}`,
-      email: record.email,
-      summary: `${record.venue}, ${record.partySize} guests, ${record.reservationDate}`,
-    });
 
-    return NextResponse.json({ ok: true, id: record.id, notified: notify.sent });
+    return NextResponse.json({ ok: true, id: record.id, notified: false });
   } catch {
     return NextResponse.json({ error: "Unable to save reservation" }, { status: 500 });
   }

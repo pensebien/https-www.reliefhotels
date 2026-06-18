@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 export function PaymentCallback() {
   const t = useTranslations("payment");
+  const tBooking = useTranslations("booking");
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
   const demo = searchParams.get("demo") === "1";
@@ -16,6 +17,7 @@ export function PaymentCallback() {
   const [state, setState] = useState<"loading" | "success" | "failed">("loading");
   const [amountKobo, setAmountKobo] = useState(0);
   const [reservationId, setReservationId] = useState<string | null>(null);
+  const [managerNotified, setManagerNotified] = useState(false);
 
   useEffect(() => {
     if (!reference) {
@@ -33,6 +35,9 @@ export function PaymentCallback() {
           setAmountKobo(data.amountKobo ?? 0);
           if (data.reservationId) {
             setReservationId(data.reservationId);
+          }
+          if (data.notified === true) {
+            setManagerNotified(true);
           }
         } else {
           setState("failed");
@@ -65,6 +70,12 @@ export function PaymentCallback() {
         <CheckCircle2 className="h-16 w-16 text-teal" />
         <h1 className="mt-6 font-serif text-3xl font-medium">{t("successTitle")}</h1>
         <p className="mt-2 max-w-md text-muted">{t("successDescription")}</p>
+        <p className="mt-3 max-w-md text-sm text-muted">
+          {tBooking("managerNotifyAfterPayment")}
+        </p>
+        {managerNotified && (
+          <p className="mt-3 text-sm text-teal/90">{tBooking("managerNotified")}</p>
+        )}
         {amountKobo > 0 && (
           <p className="mt-4 text-xl font-semibold">
             {formatNaira(amountKobo / 100)}

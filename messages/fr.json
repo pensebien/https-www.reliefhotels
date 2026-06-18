@@ -368,7 +368,17 @@
       "description": "Arrivées discrètes et hospitalité sur mesure pour délégations."
     }
   },
+  "booking": {
+    "managerNotified": "Notre équipe a été informée de votre paiement d'acompte."
+  },
   "language": {
     "label": "Langue"
+  },
+  "booking": {
+    "step1Title": "Vos informations",
+    "step2Title": "Payer l'acompte",
+    "depositDueNow": "Acompte de 20 % à payer maintenant",
+    "totalStayEstimate": "Estimation totale du séjour",
+    "managerNotifyAfterPayment": "Notre responsable sera informé après votre paiement et confirmera votre réservation."
   }
 }
