@@ -13,10 +13,27 @@ describe("reservationSchema", () => {
       message: "Automated test",
       itemType: "room",
       roomId: "signature-suite",
+      checkIn: "2026-08-01",
+      checkOut: "2026-08-03",
       nights: 2,
       guests: 2,
     });
     assert.equal(parsed.success, true);
+  });
+
+  it("requires stay dates for room reservations", () => {
+    const parsed = reservationSchema.safeParse({
+      firstName: "QA",
+      lastName: "Tester",
+      email: "qa@example.com",
+      stayPreference: "signature-suite",
+      message: "Automated test",
+      itemType: "room",
+      roomId: "signature-suite",
+      nights: 2,
+      guests: 2,
+    });
+    assert.equal(parsed.success, false);
   });
 
   it("rejects missing email", () => {

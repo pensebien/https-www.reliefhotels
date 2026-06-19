@@ -52,6 +52,12 @@ export function resolveBookingCategoryKey(input: {
     if (token.includes("event") || token.includes("meeting")) {
       return "eventsMeetings";
     }
+    if (token.includes("amenity") || token.includes("spa") || token.includes("fitness") || token.includes("pool")) {
+      return "inquiry";
+    }
+    if (token.includes("experience")) {
+      return "tour";
+    }
     if (token.includes("executive")) return "executive";
     if (token.includes("presidential") || token.includes("penthouse")) {
       return "penthouse";

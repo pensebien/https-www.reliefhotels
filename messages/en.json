@@ -602,6 +602,19 @@
       "confirmed": "Confirmed",
       "cancelled": "Cancelled"
     },
+    "dateFilters": {
+      "upcoming": "Upcoming stays",
+      "today": "Today",
+      "week": "This week",
+      "month": "This month",
+      "all": "All dates",
+      "custom": "Custom range"
+    },
+    "dateFrom": "From",
+    "dateTo": "To",
+    "dateRangeShowing": "Showing stays from {from} to {to}",
+    "stayDates": "Stay",
+    "missingStayDates": "No stay dates on file",
     "status": {
       "storage": "Database",
       "paystack": "Paystack",

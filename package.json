@@ -10,7 +10,9 @@
     "test": "tsx --test tests/unit/*.test.ts tests/api/*.test.ts",
     "test:qa": "node scripts/run-qa.mjs",
     "test:qa:live": "node scripts/run-qa.mjs --live",
-    "verify:supabase": "node scripts/verify-supabase.mjs"
+    "verify:supabase": "node scripts/verify-supabase.mjs",
+    "seed:supabase:demo": "tsx scripts/seed-supabase-demo.ts",
+    "clean:supabase:demo": "tsx scripts/clean-supabase-demo.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",

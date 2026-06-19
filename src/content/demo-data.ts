@@ -1,109 +1,13 @@
 /** Pre-seeded records shown in the demo dashboard before live submissions */
 
+import { generateDemoSeeds } from "@/content/demo-seed-generator";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
 
-export const demoReservations: ReservationRecord[] = [
-  {
-    id: "demo-res-001",
-    firstName: "Adaeze",
-    lastName: "Okonkwo",
-    email: "adaeze.okonkwo@example.com",
-    phone: "+2348012345678",
-    itemType: "room",
-    roomId: "presidential-suite",
-    checkIn: "2026-06-14",
-    checkOut: "2026-06-16",
-    nights: 2,
-    guests: 2,
-    stayPreference: "presidential-suite",
-    message:
-      "Anniversary weekend, 14–16 June. Late check-in ~9pm. Champagne on arrival if possible.",
-    status: "confirmed",
-    paymentReference: "RH-DEMO-20260528-001",
-    source: "demo",
-    createdAt: "2026-05-28T09:15:00.000Z",
-    emailSent: true,
-  },
-  {
-    id: "demo-res-002",
-    firstName: "James",
-    lastName: "Mbeki",
-    email: "j.mbeki@example.com",
-    itemType: "room",
-    roomId: "executive-room",
-    checkIn: "2026-06-02",
-    checkOut: "2026-06-05",
-    nights: 3,
-    guests: 1,
-    stayPreference: "executive-room",
-    message: "Business stay Mon–Thu. Need quiet room + early breakfast 6:30am.",
-    status: "pending",
-    source: "demo",
-    createdAt: "2026-05-29T14:22:00.000Z",
-    emailSent: true,
-  },
-  {
-    id: "demo-res-003",
-    firstName: "Fatima",
-    lastName: "Bello",
-    email: "fatima.bello@example.com",
-    itemType: "room",
-    roomId: "signature-suite",
-    checkIn: "2026-06-10",
-    checkOut: "2026-06-12",
-    nights: 2,
-    guests: 3,
-    stayPreference: "signature-suite",
-    message: "Family of 3 — connecting preference. Calabar heritage tour on day 2.",
-    status: "pending",
-    source: "demo",
-    createdAt: "2026-05-29T18:40:00.000Z",
-    emailSent: false,
-  },
-];
+const generated = generateDemoSeeds();
 
-export const demoPayments: PaymentRecord[] = [
-  {
-    id: "demo-pay-001",
-    reference: "RH-DEMO-20260528-001",
-    reservationId: "demo-res-001",
-    email: "adaeze.okonkwo@example.com",
-    amountKobo: 8400000,
-    currency: "NGN",
-    status: "success",
-    itemType: "room",
-    itemId: "presidential-suite",
-    itemLabel: "Presidential Suite — 2 nights deposit (20%)",
-    source: "demo",
-    createdAt: "2026-05-28T09:20:00.000Z",
-  },
-  {
-    id: "demo-pay-002",
-    reference: "RH-DEMO-20260529-002",
-    email: "j.mbeki@example.com",
-    amountKobo: 2500000,
-    currency: "NGN",
-    status: "success",
-    itemType: "tour",
-    itemId: "calabar-heritage",
-    itemLabel: "Calabar Heritage Walk × 2 guests",
-    source: "demo",
-    createdAt: "2026-05-29T14:30:00.000Z",
-  },
-  {
-    id: "demo-pay-003",
-    reference: "RH-DEMO-20260529-003",
-    email: "visitor@example.com",
-    amountKobo: 500000,
-    currency: "NGN",
-    status: "abandoned",
-    itemType: "room",
-    itemId: "signature-suite",
-    itemLabel: "Suite — test deposit",
-    source: "demo",
-    createdAt: "2026-05-29T11:05:00.000Z",
-  },
-];
+export const demoReservations: ReservationRecord[] = generated.reservations;
+
+export const demoPayments: PaymentRecord[] = generated.payments;
 
 export const demoReviews = [
   {

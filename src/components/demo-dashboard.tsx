@@ -4,6 +4,12 @@ import {
   resolveBookingCategoryKey,
   type BookingCategoryKey,
 } from "@/lib/booking-category";
+import {
+  parseYmd,
+  reservationInDateRange,
+  resolveDateRange,
+  type DateRangePreset,
+} from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -68,7 +74,24 @@ type Activity = {
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
 
+const DATE_PRESETS: DateRangePreset[] = [
+  "upcoming",
+  "today",
+  "week",
+  "month",
+  "all",
+  "custom",
+];
+
 const DEFAULT_KEY = "relief-demo-2026";
+
+function formatStayDate(ymd: string) {
+  try {
+    return parseYmd(ymd).toLocaleDateString(undefined, { dateStyle: "medium" });
+  } catch {
+    return ymd;
+  }
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -132,6 +155,22 @@ export function DemoDashboard({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [datePreset, setDatePreset] = useState<DateRangePreset>(
+    variant === "portal" ? "upcoming" : "all",
+  );
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
+  useEffect(() => {
+    const rangeParam = searchParams.get("range") as DateRangePreset | null;
+    if (rangeParam && DATE_PRESETS.includes(rangeParam)) {
+      setDatePreset(rangeParam);
+    }
+    const fromParam = searchParams.get("from");
+    const toParam = searchParams.get("to");
+    if (fromParam) setCustomFrom(fromParam);
+    if (toParam) setCustomTo(toParam);
+  }, [searchParams]);
 
   const load = useCallback(async (dashboardKey: string) => {
     setLoading(true);
@@ -195,15 +234,60 @@ export function DemoDashboard({
     return map;
   }, [data]);
 
+  const activeDateRange = useMemo(
+    () =>
+      resolveDateRange(datePreset, {
+        from: customFrom || undefined,
+        to: customTo || undefined,
+      }),
+    [customFrom, customTo, datePreset],
+  );
+
   const filteredReservations = useMemo(() => {
     if (!data) return [];
-    const sorted = [...data.reservations].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    let list = data.reservations.filter((r) =>
+      reservationInDateRange(r, activeDateRange),
     );
-    if (statusFilter === "all") return sorted;
-    return sorted.filter((r) => r.status === statusFilter);
-  }, [data, statusFilter]);
+    if (statusFilter !== "all") {
+      list = list.filter((r) => r.status === statusFilter);
+    }
+    return list.sort((a, b) => {
+      if (a.checkIn && b.checkIn) {
+        return a.checkIn.localeCompare(b.checkIn);
+      }
+      return (
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
+  }, [activeDateRange, data, statusFilter]);
+
+  const visibleReservationIds = useMemo(
+    () => new Set(filteredReservations.map((r) => r.id)),
+    [filteredReservations],
+  );
+
+  const filteredPayments = useMemo(() => {
+    if (!data) return [];
+    return [...data.payments]
+      .filter((p) => {
+        if (p.reservationId && visibleReservationIds.has(p.reservationId)) {
+          return true;
+        }
+        if (!activeDateRange) return true;
+        return reservationInDateRange(
+          {
+            createdAt: p.createdAt,
+            itemType: p.itemType,
+          },
+          activeDateRange,
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 20);
+  }, [activeDateRange, data, visibleReservationIds]);
 
   const storageWarning =
     data?.config.storageHealth.mode === "file" ||
@@ -299,6 +383,56 @@ export function DemoDashboard({
             />
           </div>
 
+          <div className="mb-4 flex flex-wrap gap-2">
+            {DATE_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setDatePreset(preset)}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors",
+                  datePreset === preset
+                    ? "bg-teal text-gray-950"
+                    : "border border-border bg-card text-muted hover:border-teal",
+                )}
+              >
+                {t(`dateFilters.${preset}`)}
+              </button>
+            ))}
+          </div>
+
+          {datePreset === "custom" && (
+            <div className="mb-6 flex flex-wrap items-end gap-3">
+              <label className="text-xs text-muted">
+                {t("dateFrom")}
+                <input
+                  type="date"
+                  value={customFrom}
+                  onChange={(e) => setCustomFrom(e.target.value)}
+                  className="mt-1 block h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
+                />
+              </label>
+              <label className="text-xs text-muted">
+                {t("dateTo")}
+                <input
+                  type="date"
+                  value={customTo}
+                  onChange={(e) => setCustomTo(e.target.value)}
+                  className="mt-1 block h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
+                />
+              </label>
+            </div>
+          )}
+
+          {activeDateRange && (
+            <p className="mb-6 text-xs text-muted">
+              {t("dateRangeShowing", {
+                from: formatStayDate(activeDateRange.from),
+                to: formatStayDate(activeDateRange.to),
+              })}
+            </p>
+          )}
+
           <div className="mb-6 flex flex-wrap gap-2">
             {(["all", "pending", "confirmed", "cancelled"] as const).map((filter) => (
               <button
@@ -360,10 +494,17 @@ export function DemoDashboard({
                           <p className="text-xs text-muted">{r.phone}</p>
                         ) : null}
                         {(r.checkIn || r.checkOut) && (
-                          <p className="mt-1 text-xs text-muted">
-                            {r.checkIn ?? "—"} → {r.checkOut ?? "—"}
+                          <p className="mt-2 rounded-lg border border-teal/20 bg-teal/5 px-3 py-2 text-xs font-medium text-foreground">
+                            {t("stayDates")}:{" "}
+                            {r.checkIn ? formatStayDate(r.checkIn) : "—"} →{" "}
+                            {r.checkOut ? formatStayDate(r.checkOut) : "—"}
                             {r.nights ? ` · ${r.nights} night(s)` : ""}
                             {r.guests ? ` · ${r.guests} guest(s)` : ""}
+                          </p>
+                        )}
+                        {!r.checkIn && !r.checkOut && r.itemType === "room" && (
+                          <p className="mt-2 text-xs font-medium text-amber-600">
+                            {t("missingStayDates")}
                           </p>
                         )}
                         <p className="mt-1 text-xs text-muted">{r.stayPreference}</p>
@@ -399,21 +540,14 @@ export function DemoDashboard({
               <h2 className="mb-4 text-lg font-semibold">
                 {t("payments")}{" "}
                 <span className="text-sm font-normal text-muted">
-                  ({data.payments.length})
+                  ({filteredPayments.length})
                 </span>
               </h2>
               <div className="space-y-3">
-                {data.payments.length === 0 ? (
+                {filteredPayments.length === 0 ? (
                   <p className="text-sm text-muted">{t("emptyPayments")}</p>
                 ) : (
-                  [...data.payments]
-                    .sort(
-                      (a, b) =>
-                        new Date(b.createdAt).getTime() -
-                        new Date(a.createdAt).getTime(),
-                    )
-                    .slice(0, 20)
-                    .map((p) => {
+                  filteredPayments.map((p) => {
                       const linkedReservation = p.reservationId
                         ? reservationsById.get(p.reservationId)
                         : undefined;
@@ -454,6 +588,13 @@ export function DemoDashboard({
                         <p className="mt-1 font-mono text-xs text-muted">
                           {p.reference}
                         </p>
+                        {p.reservationId && linkedReservation?.checkIn && (
+                          <p className="mt-1 text-xs text-muted">
+                            {t("stayDates")}:{" "}
+                            {formatStayDate(linkedReservation.checkIn)} →{" "}
+                            {formatStayDate(linkedReservation.checkOut ?? "—")}
+                          </p>
+                        )}
                         {p.reservationId && (
                           <p className="mt-1 font-mono text-[10px] text-muted">
                             {t("reservationId")}: {p.reservationId}

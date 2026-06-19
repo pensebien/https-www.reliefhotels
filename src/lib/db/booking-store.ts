@@ -287,12 +287,12 @@ export async function dbGetBookingActivity(): Promise<{
       .from("reservations")
       .select()
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(250),
     supabase
       .from("payments")
       .select()
       .order("created_at", { ascending: false })
-      .limit(100),
+      .limit(250),
   ]);
 
   if (resResult.error) throw new Error(resResult.error.message);

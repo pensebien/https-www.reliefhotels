@@ -201,16 +201,7 @@ export async function getActivity(): Promise<{
   payments: PaymentRecord[];
 }> {
   if (isSupabaseEnabled()) {
-    const { reservations, payments } = await dbGetBookingActivity();
-    const mergedReservations = [...reservations, ...demoReservations].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    const mergedPayments = [...payments, ...demoPayments].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-    return { reservations: mergedReservations, payments: mergedPayments };
+    return dbGetBookingActivity();
   }
 
   const store = await readStore();
