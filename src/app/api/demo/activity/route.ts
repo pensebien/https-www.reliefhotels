@@ -1,4 +1,5 @@
 import { getServerConfig } from "@/lib/config";
+import { checkStorageHealth } from "@/lib/db/health";
 import { getActivity } from "@/lib/demo-store";
 import { NextResponse } from "next/server";
 
@@ -11,19 +12,28 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const activity = await getActivity();
+  try {
+    const activity = await getActivity();
+    const storageHealth = await checkStorageHealth();
 
-  return NextResponse.json({
-    ok: true,
-    config: {
-      demoMode: config.demoMode,
-      paystackConfigured: config.paystack.configured,
-      emailConfigured: config.email.configured,
-      appUrl: config.appUrl,
-      storageMode: config.storage.mode,
-      supabaseConfigured: config.storage.supabaseConfigured,
-      notifyChannel: config.notifications.channel,
-    },
-    ...activity,
-  });
+    return NextResponse.json({
+      ok: true,
+      config: {
+        demoMode: config.demoMode,
+        paystackConfigured: config.paystack.configured,
+        emailConfigured: config.email.configured,
+        appUrl: config.appUrl,
+        storageMode: config.storage.mode,
+        supabaseConfigured: config.storage.supabaseConfigured,
+        storageHealth,
+        notifyChannel: config.notifications.channel,
+      },
+      ...activity,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to load dashboard data";
+    console.error("[demo/activity]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

@@ -53,6 +53,11 @@ export function getServerConfig() {
       managerPhoneSet: Boolean(process.env.MANAGER_PHONE),
     },
     demoDashboardKey: process.env.DEMO_DASHBOARD_KEY ?? "relief-demo-2026",
+    staffPortal: {
+      host:
+        process.env.STAFF_PORTAL_HOST ??
+        "reservation.reliefhotelsandsuites.com.ng",
+    },
   };
 }
 

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "tsx --test tests/unit/*.test.ts tests/api/*.test.ts",
     "test:qa": "node scripts/run-qa.mjs",
-    "test:qa:live": "node scripts/run-qa.mjs --live"
+    "test:qa:live": "node scripts/run-qa.mjs --live",
+    "verify:supabase": "node scripts/verify-supabase.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
