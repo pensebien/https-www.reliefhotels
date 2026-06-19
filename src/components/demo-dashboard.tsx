@@ -5,6 +5,7 @@ import {
   DashboardDateFilter,
   DashboardPagination,
   fieldsForPreset,
+  getPaginationMeta,
 } from "@/components/dashboard-date-pagination";
 import {
   filterPaymentsBySearch,
@@ -27,7 +28,7 @@ import { cn, formatNaira } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type StorageHealth = {
   mode: "supabase" | "file";
@@ -173,6 +174,8 @@ export function DemoDashboard({
   const [payPage, setPayPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
+  const reservationsSectionRef = useRef<HTMLElement>(null);
+  const paymentsSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const rangeParam = searchParams.get("range") as DateRangePreset | null;
@@ -407,24 +410,49 @@ export function DemoDashboard({
   ]);
 
   const paginatedReservations = useMemo(() => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(filteredReservations.length / PAGE_SIZE),
+    const { safePage } = getPaginationMeta(
+      resPage,
+      filteredReservations.length,
+      PAGE_SIZE,
     );
-    const safePage = Math.min(resPage, totalPages);
     const start = (safePage - 1) * PAGE_SIZE;
     return filteredReservations.slice(start, start + PAGE_SIZE);
   }, [filteredReservations, resPage]);
 
   const paginatedPayments = useMemo(() => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(filteredPayments.length / PAGE_SIZE),
+    const { safePage } = getPaginationMeta(
+      payPage,
+      filteredPayments.length,
+      PAGE_SIZE,
     );
-    const safePage = Math.min(payPage, totalPages);
     const start = (safePage - 1) * PAGE_SIZE;
     return filteredPayments.slice(start, start + PAGE_SIZE);
   }, [filteredPayments, payPage]);
+
+  const reservationPagination = getPaginationMeta(
+    resPage,
+    filteredReservations.length,
+    PAGE_SIZE,
+  );
+  const paymentPagination = getPaginationMeta(
+    payPage,
+    filteredPayments.length,
+    PAGE_SIZE,
+  );
+
+  const scrollToSection = useCallback((section: HTMLElement | null) => {
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  function handleReservationPageChange(page: number) {
+    setResPage(page);
+    scrollToSection(reservationsSectionRef.current);
+  }
+
+  function handlePaymentPageChange(page: number) {
+    setPayPage(page);
+    scrollToSection(paymentsSectionRef.current);
+  }
 
   const storageWarning =
     data?.config.storageHealth.mode === "file" ||
@@ -571,14 +599,39 @@ export function DemoDashboard({
             ))}
           </div>
 
-          <div className="grid gap-10 lg:grid-cols-2">
-            <section>
-              <h2 className="mb-4 text-lg font-semibold">
-                {t("reservations")}{" "}
-                <span className="text-sm font-normal text-muted">
-                  ({filteredReservations.length})
-                </span>
-              </h2>
+          <div
+            className={cn(
+              "grid gap-10",
+              variant === "portal" ? "grid-cols-1" : "lg:grid-cols-2",
+            )}
+          >
+            <section
+              ref={reservationsSectionRef}
+              className="scroll-mt-24"
+            >
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-lg font-semibold">
+                  {t("reservations")}{" "}
+                  <span className="text-sm font-normal text-muted">
+                    ({filteredReservations.length})
+                  </span>
+                  {reservationPagination.needsPagination ? (
+                    <span className="ml-2 text-xs font-normal text-teal-dark">
+                      · {t("paginationPage", {
+                        page: reservationPagination.safePage,
+                        totalPages: reservationPagination.totalPages,
+                      })}
+                    </span>
+                  ) : null}
+                </h2>
+              </div>
+              <DashboardPagination
+                placement="header"
+                page={resPage}
+                totalItems={filteredReservations.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={handleReservationPageChange}
+              />
               <div className="space-y-3">
                 {filteredReservations.length === 0 ? (
                   <p className="text-sm text-muted">{t("emptyReservations")}</p>
@@ -658,17 +711,37 @@ export function DemoDashboard({
                 page={resPage}
                 totalItems={filteredReservations.length}
                 pageSize={PAGE_SIZE}
-                onPageChange={setResPage}
+                onPageChange={handleReservationPageChange}
               />
             </section>
 
-            <section>
-              <h2 className="mb-4 text-lg font-semibold">
-                {t("payments")}{" "}
-                <span className="text-sm font-normal text-muted">
-                  ({filteredPayments.length})
-                </span>
-              </h2>
+            <section
+              ref={paymentsSectionRef}
+              className="scroll-mt-24"
+            >
+              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-lg font-semibold">
+                  {t("payments")}{" "}
+                  <span className="text-sm font-normal text-muted">
+                    ({filteredPayments.length})
+                  </span>
+                  {paymentPagination.needsPagination ? (
+                    <span className="ml-2 text-xs font-normal text-teal-dark">
+                      · {t("paginationPage", {
+                        page: paymentPagination.safePage,
+                        totalPages: paymentPagination.totalPages,
+                      })}
+                    </span>
+                  ) : null}
+                </h2>
+              </div>
+              <DashboardPagination
+                placement="header"
+                page={payPage}
+                totalItems={filteredPayments.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={handlePaymentPageChange}
+              />
               <div className="space-y-3">
                 {filteredPayments.length === 0 ? (
                   <p className="text-sm text-muted">{t("emptyPayments")}</p>
@@ -738,7 +811,7 @@ export function DemoDashboard({
                 page={payPage}
                 totalItems={filteredPayments.length}
                 pageSize={PAGE_SIZE}
-                onPageChange={setPayPage}
+                onPageChange={handlePaymentPageChange}
               />
             </section>
           </div>

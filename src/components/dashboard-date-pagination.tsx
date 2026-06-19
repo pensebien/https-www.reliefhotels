@@ -133,27 +133,52 @@ function DateField({
   );
 }
 
+export function getPaginationMeta(
+  page: number,
+  totalItems: number,
+  pageSize: number,
+) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const start = totalItems === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const end = Math.min(safePage * pageSize, totalItems);
+
+  return { totalPages, safePage, start, end, needsPagination: totalItems > pageSize };
+}
+
 export function DashboardPagination({
   page,
   totalItems,
   pageSize,
   onPageChange,
+  placement = "footer",
 }: {
   page: number;
   totalItems: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  placement?: "header" | "footer";
 }) {
   const t = useTranslations("demo");
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const start = totalItems === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const end = Math.min(safePage * pageSize, totalItems);
+  const { totalPages, safePage, start, end, needsPagination } = getPaginationMeta(
+    page,
+    totalItems,
+    pageSize,
+  );
 
-  if (totalItems <= pageSize) return null;
+  if (!needsPagination) return null;
+
+  const isHeader = placement === "header";
 
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+    <div
+      className={cn(
+        "flex flex-wrap items-center justify-between gap-3",
+        isHeader
+          ? "mb-4 rounded-lg border border-border bg-card/80 px-3 py-2"
+          : "mt-4 border-t border-border pt-4",
+      )}
+    >
       <p className="text-xs text-muted">
         {t("paginationShowing", { start, end, total: totalItems })}
       </p>
@@ -162,23 +187,23 @@ export function DashboardPagination({
           type="button"
           disabled={safePage <= 1}
           onClick={() => onPageChange(safePage - 1)}
-          className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs disabled:opacity-40"
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium disabled:opacity-40"
           aria-label={t("paginationPrev")}
         >
           <ChevronLeft className="h-3.5 w-3.5" />
-          {t("paginationPrev")}
+          {isHeader ? t("paginationPrevShort") : t("paginationPrev")}
         </button>
-        <span className="min-w-[5rem] text-center text-xs text-muted">
+        <span className="min-w-[5rem] text-center text-xs font-medium text-foreground">
           {t("paginationPage", { page: safePage, totalPages })}
         </span>
         <button
           type="button"
           disabled={safePage >= totalPages}
           onClick={() => onPageChange(safePage + 1)}
-          className="inline-flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs disabled:opacity-40"
+          className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium disabled:opacity-40"
           aria-label={t("paginationNext")}
         >
-          {t("paginationNext")}
+          {isHeader ? t("paginationNextShort") : t("paginationNext")}
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </div>

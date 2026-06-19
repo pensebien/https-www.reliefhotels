@@ -622,6 +622,8 @@
     "paginationPage": "Page {page} of {totalPages}",
     "paginationPrev": "Previous",
     "paginationNext": "Next",
+    "paginationPrevShort": "Prev",
+    "paginationNextShort": "Next",
     "searchTitle": "Search",
     "searchPlaceholder": "Guest name, email, phone, reservation ID, payment ref…",
     "searchClear": "Clear search",
