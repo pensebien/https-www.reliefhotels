@@ -1,6 +1,6 @@
 # Reservation QA Checklist
 
-**Automated:** `npm run test:qa` (build + unit + API) · `npm run test:qa:live` (adds HTTP smoke; server required)
+**Automated:** `npm run test:qa` (build + 15 unit/API tests) · `npm run test:qa:live` (adds HTTP smoke; server required)
 
 ---
 
@@ -18,6 +18,7 @@
 | A8 | Cannot pay twice on confirmed reservation | `tests/api/reservation-flow.test.ts` |
 | A9 | Event/dining inquiries → `notified: false` | `tests/api/inquiry-no-notify.test.ts` |
 | A10 | HTTP pages load (optional) | `npm run test:qa:live` |
+| A11 | Health endpoint storage mode | `tests/api/health.test.ts` |
 
 ---
 
@@ -51,10 +52,10 @@
 
 | ID | Test | Why manual |
 |----|------|------------|
-| M15 | Supabase row persists after Netlify redeploy | Infra + dashboard |
+| M15 | Supabase row persists after Netlify redeploy | `GET /api/health` → `productionReady: true`; `npm run verify:supabase` |
 | M16 | `NEXT_PUBLIC_APP_URL` matches live domain | Env config |
 | M17 | Paystack live callback URL in dashboard | Paystack admin |
-| M18 | Demo dashboard `/demo?key=…` shows booking | Stakeholder review |
+| M18 | Demo dashboard `/demo?key=…` — filters, status badges, payment link, storage warning | Stakeholder review |
 | M19 | Resend confirmation email received | Inbox check |
 | M20 | Double-click pay button (no duplicate charge) | Browser behaviour |
 

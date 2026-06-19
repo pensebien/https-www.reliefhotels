@@ -60,14 +60,26 @@ Add at minimum:
 
 | Key | Value |
 |-----|--------|
-| `NEXT_PUBLIC_APP_URL` | `https://<your-site>.netlify.app` *(use the real Netlify URL first; change to custom domain later)* |
+| `NEXT_PUBLIC_APP_URL` | `https://reliefhotelsandsuites.com.ng` *(must match live domain)* |
 | `DEMO_DASHBOARD_KEY` | `relief-demo-2026` |
-| `DEMO_MODE` | `true` |
+| `DEMO_MODE` | `true` *(or `false` when Paystack test keys are set)* |
 | `NOTIFY_CHANNEL` | `console` |
+
+**Required for production bookings (Phase A — ADR-001):**
+
+| Key | Value |
+|-----|--------|
+| `SUPABASE_URL` | From Supabase → Project Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role key (server only — never expose to client) |
+
+1. Run `docs/supabase/schema.sql` in Supabase SQL Editor  
+2. Locally: `npm run verify:supabase`  
+3. After deploy: `GET /api/health` → `"productionReady": true`  
+4. Demo dashboard shows **Database ✓ Ready** (not amber warning)
 
 After saving → **Deploys → Trigger deploy → Deploy project** (env vars only apply on the next build).
 
-Optional for full booking demo: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, Paystack test keys, Resend keys (see `docs/ENV_MATRIX.md`).
+Optional: Paystack test keys, Resend keys (see `docs/ENV_MATRIX.md`).
 
 ---
 

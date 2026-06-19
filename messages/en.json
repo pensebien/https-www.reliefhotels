@@ -577,9 +577,23 @@
     "unauthorized": "Invalid dashboard key.",
     "reservations": "Reservations",
     "payments": "Payments",
+    "reservationId": "Reservation",
+    "paymentRef": "Payment ref",
+    "linkedPayment": "Deposit paid",
+    "emptyReservations": "No reservations match this filter.",
+    "emptyPayments": "No payments recorded yet.",
+    "storageWarningTitle": "Bookings may not persist on this host",
+    "filters": {
+      "all": "All",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled"
+    },
     "status": {
+      "storage": "Database",
       "paystack": "Paystack",
       "email": "Email (Resend)",
+      "notify": "Manager alerts",
       "app": "App URL",
       "demoPayments": "Simulated checkout",
       "live": "Test/Live keys",

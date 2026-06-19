@@ -1,4 +1,5 @@
 import { getServerConfig } from "@/lib/config";
+import { checkStorageHealth } from "@/lib/db/health";
 import { getActivity } from "@/lib/demo-store";
 import { NextResponse } from "next/server";
 
@@ -12,6 +13,7 @@ export async function GET(request: Request) {
   }
 
   const activity = await getActivity();
+  const storageHealth = await checkStorageHealth();
 
   return NextResponse.json({
     ok: true,
@@ -22,6 +24,7 @@ export async function GET(request: Request) {
       appUrl: config.appUrl,
       storageMode: config.storage.mode,
       supabaseConfigured: config.storage.supabaseConfigured,
+      storageHealth,
       notifyChannel: config.notifications.channel,
     },
     ...activity,

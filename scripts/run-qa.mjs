@@ -76,6 +76,7 @@ async function main() {
     "tests/unit/notification-policy.test.ts",
     "tests/api/reservation-flow.test.ts",
     "tests/api/inquiry-no-notify.test.ts",
+    "tests/api/health.test.ts",
   ].filter((f) => existsSync(path.join(root, f)));
 
   await run(

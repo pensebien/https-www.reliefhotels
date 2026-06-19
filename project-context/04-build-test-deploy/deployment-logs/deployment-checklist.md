@@ -1,39 +1,33 @@
-# Deployment Checklist — Render + Supabase
+# Deployment Checklist — Netlify + Supabase
 
-**Target:** Production per ADR-004, ADR-001  
+**Target:** Production persistence (ADR-001) + demo dashboard ops  
 **Env reference:** `docs/ENV_MATRIX.md`  
-**Full guide:** `docs/deploy/RENDER.md` · optional `render.yaml` blueprint
+**Guides:** `docs/deploy/NETLIFY.md` · `docs/supabase/schema.sql`
 
 ## Pre-deploy
 
-- [ ] `npm run lint` PASS
-- [ ] `npm run build` PASS on `main`
-- [ ] Supabase schema applied (`docs/supabase/schema.sql`)
-- [ ] All secrets in Render dashboard (not in Git)
-- [ ] Paystack **live** keys (when going live)
-- [ ] `NEXT_PUBLIC_APP_URL` = production HTTPS URL
+- [ ] `npm run build` PASS
+- [ ] `npm run test:qa` PASS (14 automated reservation tests)
+- [ ] Supabase schema applied (`docs/supabase/schema.sql` + `migration-002-reservation-fields.sql`)
+- [ ] `npm run verify:supabase` PASS locally with production credentials
+- [ ] All secrets in Netlify dashboard (not in Git)
+- [ ] `NEXT_PUBLIC_APP_URL` = `https://reliefhotelsandsuites.com.ng`
 
-## Render setup
+## Netlify setup
 
-- [ ] Web Service created; repo connected
-- [ ] Build: `npm install && npm run build`
-- [ ] Start: `npm start`
-- [ ] Node version ≥ 20
-- [ ] Environment variables copied from ENV_MATRIX production row
+- [ ] Site connected to GitHub repo
+- [ ] Build: `npm run build` · Node **20** (`netlify.toml`)
+- [ ] Env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `DEMO_DASHBOARD_KEY`
+- [ ] Redeploy after env changes
 
 ## Post-deploy smoke (15 min)
 
+- [ ] `GET /api/health` → `productionReady: true`, `storage.connected: true`
 - [ ] `/en` loads
-- [ ] POST `/api/reservations` → row in Supabase
-- [ ] Paystack test transaction (live or test per env)
-- [ ] Manager SMS + WhatsApp test with `NOTIFY_CHANNEL=both`
-- [ ] `/demo?key=` works with production key
-- [ ] Paystack callback URL matches `NEXT_PUBLIC_APP_URL`
-
-## DNS
-
-- [ ] Custom domain CNAME to Render
-- [ ] SSL certificate active
+- [ ] Full booking: property bar → rooms → book → pay demo → callback success
+- [ ] POST reservation → row in Supabase (not ephemeral file store)
+- [ ] `/en/demo?key=relief-demo-2026` — reservation **confirmed**, payment **success**, no amber storage warning
+- [ ] Paystack callback URL matches `NEXT_PUBLIC_APP_URL` (when using live/test keys)
 
 ## Sign-off
 
