@@ -137,6 +137,38 @@ function DateField({
   );
 }
 
+export const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
+export type PageSizeOption = (typeof PAGE_SIZE_OPTIONS)[number];
+
+export function DashboardPageSizeSelect({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (size: PageSizeOption) => void;
+}) {
+  const t = useTranslations("demo");
+
+  return (
+    <label className="inline-flex items-center gap-2 text-xs text-muted">
+      <span>{t("paginationPageSize")}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value) as PageSizeOption)}
+        className="h-8 rounded-lg border border-border bg-card px-2 text-xs font-medium text-foreground"
+        aria-label={t("paginationPageSize")}
+      >
+        {PAGE_SIZE_OPTIONS.map((size) => (
+          <option key={size} value={size}>
+            {t("paginationPerPage", { count: size })}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 export function getPaginationMeta(
   page: number,
   totalItems: number,
@@ -170,7 +202,7 @@ export function DashboardPagination({
     pageSize,
   );
 
-  if (!needsPagination) return null;
+  if (totalItems === 0) return null;
 
   const isHeader = placement === "header";
 
@@ -186,6 +218,7 @@ export function DashboardPagination({
       <p className="text-xs text-muted">
         {t("paginationShowing", { start, end, total: totalItems })}
       </p>
+      {needsPagination ? (
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -211,6 +244,7 @@ export function DashboardPagination({
           <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </div>
+      ) : null}
     </div>
   );
 }

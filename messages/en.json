@@ -624,6 +624,8 @@
     "paginationNext": "Next",
     "paginationPrevShort": "Prev",
     "paginationNextShort": "Next",
+    "paginationPageSize": "Cards per page",
+    "paginationPerPage": "{count}",
     "searchTitle": "Search reservations & payments",
     "filtersPanelTitle": "Filters",
     "filterSummarySearch": "Search: {query}",

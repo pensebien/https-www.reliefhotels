@@ -4,9 +4,12 @@ import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
 import { DashboardSearchBar } from "@/components/dashboard-search-bar";
 import {
   DashboardDateFilter,
+  DashboardPageSizeSelect,
   DashboardPagination,
   fieldsForPreset,
   getPaginationMeta,
+  PAGE_SIZE_OPTIONS,
+  type PageSizeOption,
 } from "@/components/dashboard-date-pagination";
 import {
   filterPaymentsBySearch,
@@ -89,7 +92,7 @@ type Activity = {
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE: PageSizeOption = 10;
 
 const DEFAULT_KEY = "relief-demo-2026";
 
@@ -173,6 +176,7 @@ export function DemoDashboard({
   const [dateError, setDateError] = useState<string | null>(null);
   const [resPage, setResPage] = useState(1);
   const [payPage, setPayPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(DEFAULT_PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -200,9 +204,23 @@ export function DemoDashboard({
   }, [searchParams]);
 
   useEffect(() => {
+    const saved = sessionStorage.getItem("dashboard-page-size");
+    if (!saved) return;
+    const parsed = Number(saved);
+    if (PAGE_SIZE_OPTIONS.includes(parsed as PageSizeOption)) {
+      setPageSize(parsed as PageSizeOption);
+    }
+  }, []);
+
+  useEffect(() => {
     setResPage(1);
     setPayPage(1);
-  }, [statusFilter, datePreset, customFrom, customTo, searchQuery, searchScope]);
+  }, [statusFilter, datePreset, customFrom, customTo, searchQuery, searchScope, pageSize]);
+
+  function handlePageSizeChange(size: PageSizeOption) {
+    setPageSize(size);
+    sessionStorage.setItem("dashboard-page-size", String(size));
+  }
 
   function handlePresetChange(preset: DateRangePreset) {
     setDatePreset(preset);
@@ -421,31 +439,31 @@ export function DemoDashboard({
     const { safePage } = getPaginationMeta(
       resPage,
       filteredReservations.length,
-      PAGE_SIZE,
+      pageSize,
     );
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredReservations.slice(start, start + PAGE_SIZE);
-  }, [filteredReservations, resPage]);
+    const start = (safePage - 1) * pageSize;
+    return filteredReservations.slice(start, start + pageSize);
+  }, [filteredReservations, pageSize, resPage]);
 
   const paginatedPayments = useMemo(() => {
     const { safePage } = getPaginationMeta(
       payPage,
       filteredPayments.length,
-      PAGE_SIZE,
+      pageSize,
     );
-    const start = (safePage - 1) * PAGE_SIZE;
-    return filteredPayments.slice(start, start + PAGE_SIZE);
-  }, [filteredPayments, payPage]);
+    const start = (safePage - 1) * pageSize;
+    return filteredPayments.slice(start, start + pageSize);
+  }, [filteredPayments, pageSize, payPage]);
 
   const reservationPagination = getPaginationMeta(
     resPage,
     filteredReservations.length,
-    PAGE_SIZE,
+    pageSize,
   );
   const paymentPagination = getPaginationMeta(
     payPage,
     filteredPayments.length,
-    PAGE_SIZE,
+    pageSize,
   );
 
   const scrollToSection = useCallback((section: HTMLElement | null) => {
@@ -668,6 +686,13 @@ export function DemoDashboard({
             ) : null}
           </DashboardFiltersPanel>
 
+          <div className="mb-4 flex flex-wrap items-center justify-end">
+            <DashboardPageSizeSelect
+              value={pageSize}
+              onChange={handlePageSizeChange}
+            />
+          </div>
+
           <div
             className={cn(
               "grid gap-10",
@@ -698,7 +723,7 @@ export function DemoDashboard({
                 placement="header"
                 page={resPage}
                 totalItems={filteredReservations.length}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onPageChange={handleReservationPageChange}
               />
               <div className="space-y-3">
@@ -783,7 +808,7 @@ export function DemoDashboard({
               <DashboardPagination
                 page={resPage}
                 totalItems={filteredReservations.length}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onPageChange={handleReservationPageChange}
               />
             </section>
@@ -812,7 +837,7 @@ export function DemoDashboard({
                 placement="header"
                 page={payPage}
                 totalItems={filteredPayments.length}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onPageChange={handlePaymentPageChange}
               />
               <div className="space-y-3">
@@ -887,7 +912,7 @@ export function DemoDashboard({
               <DashboardPagination
                 page={payPage}
                 totalItems={filteredPayments.length}
-                pageSize={PAGE_SIZE}
+                pageSize={pageSize}
                 onPageChange={handlePaymentPageChange}
               />
             </section>
