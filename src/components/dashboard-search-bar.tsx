@@ -21,11 +21,7 @@ export function DashboardSearchBar({
   const t = useTranslations("demo");
 
   return (
-    <div className="mb-6 rounded-xl border border-border bg-card/50 p-4">
-      <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">
-        {t("searchTitle")}
-      </p>
-
+    <div>
       <div className="relative">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
@@ -71,7 +67,10 @@ export function DashboardSearchBar({
 
       {query.trim() ? (
         <p className="mt-3 text-xs text-muted">
-          {t("searchActiveHint", { scope: t(`searchScope.${scope}`) })}
+          {t("searchActiveHint", {
+            query: query.trim(),
+            scope: t(`searchScope.${scope}`),
+          })}
         </p>
       ) : null}
     </div>

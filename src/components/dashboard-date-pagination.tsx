@@ -41,12 +41,12 @@ export function DashboardDateFilter({
   const t = useTranslations("demo");
 
   return (
-    <div className="mb-6 rounded-xl border border-border bg-card/50 p-4">
+    <div className="rounded-xl border border-border bg-card/50 p-4">
       <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">
         {t("dateFilterTitle")}
       </p>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {DATE_PRESETS.map((preset) => (
           <button
             key={preset}
@@ -64,35 +64,39 @@ export function DashboardDateFilter({
         ))}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <DateField
-          label={t("dateFrom")}
-          hint={t("dateFormatHint")}
-          value={fromValue}
-          onChange={onFromChange}
-        />
-        <DateField
-          label={t("dateTo")}
-          hint={t("dateFormatHint")}
-          value={toValue}
-          onChange={onToChange}
-        />
-      </div>
+      {datePreset === "custom" ? (
+        <>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <DateField
+              label={t("dateFrom")}
+              hint={t("dateFormatHint")}
+              value={fromValue}
+              onChange={onFromChange}
+            />
+            <DateField
+              label={t("dateTo")}
+              hint={t("dateFormatHint")}
+              value={toValue}
+              onChange={onToChange}
+            />
+          </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={onApply}
-          className="rounded-lg bg-teal px-4 py-2 text-sm font-medium text-gray-950"
-        >
-          {t("applyDateFilter")}
-        </button>
-        {dateError ? (
-          <p className="text-xs text-red-600" role="alert">
-            {dateError}
-          </p>
-        ) : null}
-      </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={onApply}
+              className="rounded-lg bg-teal px-4 py-2 text-sm font-medium text-gray-950"
+            >
+              {t("applyDateFilter")}
+            </button>
+            {dateError ? (
+              <p className="text-xs text-red-600" role="alert">
+                {dateError}
+              </p>
+            ) : null}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

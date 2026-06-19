@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
 import { DashboardSearchBar } from "@/components/dashboard-search-bar";
 import {
   DashboardDateFilter,
@@ -88,7 +89,7 @@ type Activity = {
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 10;
 
 const DEFAULT_KEY = "relief-demo-2026";
 
@@ -174,6 +175,7 @@ export function DemoDashboard({
   const [payPage, setPayPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const reservationsSectionRef = useRef<HTMLElement>(null);
   const paymentsSectionRef = useRef<HTMLElement>(null);
 
@@ -205,9 +207,15 @@ export function DemoDashboard({
   function handlePresetChange(preset: DateRangePreset) {
     setDatePreset(preset);
     setDateError(null);
-    const fields = fieldsForPreset(preset);
-    setCustomFrom(fields.from);
-    setCustomTo(fields.to);
+    if (preset === "custom") {
+      const fields = fieldsForPreset("custom");
+      setCustomFrom(fields.from);
+      setCustomTo(fields.to);
+    } else {
+      const fields = fieldsForPreset(preset);
+      setCustomFrom(fields.from);
+      setCustomTo(fields.to);
+    }
   }
 
   function handleApplyDateFilter() {
@@ -458,6 +466,50 @@ export function DemoDashboard({
     data?.config.storageHealth.mode === "file" ||
     data?.config.storageHealth.connected === false;
 
+  const defaultDatePreset: DateRangePreset =
+    variant === "portal" ? "upcoming" : "all";
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (normalizedSearch) count += 1;
+    if (statusFilter !== "all") count += 1;
+    if (datePreset !== defaultDatePreset) count += 1;
+    return count;
+  }, [datePreset, defaultDatePreset, normalizedSearch, statusFilter]);
+
+  const filterSummary = useMemo(() => {
+    const parts: string[] = [];
+    if (normalizedSearch) {
+      parts.push(t("filterSummarySearch", { query: searchQuery.trim() }));
+    }
+    if (datePreset !== defaultDatePreset || activeDateRange) {
+      if (datePreset === "all") {
+        parts.push(t("dateFilters.all"));
+      } else if (activeDateRange) {
+        parts.push(
+          t("filterSummaryDates", {
+            from: formatStayDate(activeDateRange.from),
+            to: formatStayDate(activeDateRange.to),
+          }),
+        );
+      } else {
+        parts.push(t(`dateFilters.${datePreset}`));
+      }
+    }
+    if (statusFilter !== "all") {
+      parts.push(t(`filters.${statusFilter}`));
+    }
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }, [
+    activeDateRange,
+    datePreset,
+    defaultDatePreset,
+    normalizedSearch,
+    searchQuery,
+    statusFilter,
+    t,
+  ]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -525,79 +577,96 @@ export function DemoDashboard({
             </div>
           )}
 
-          <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatusCard
-              label={t("status.storage")}
-              ok={data.config.storageHealth.connected === true}
-              hint={data.config.storageHealth.message}
-            />
-            <StatusCard
-              label={t("status.paystack")}
-              ok={data.config.paystackConfigured}
-              hint={data.config.demoMode ? t("status.demoPayments") : t("status.live")}
-            />
-            <StatusCard
-              label={t("status.email")}
-              ok={data.config.emailConfigured}
-              hint={data.config.emailConfigured ? t("status.resend") : t("status.console")}
-            />
-            <StatusCard
-              label={t("status.notify")}
-              ok={data.config.notifyChannel !== "console"}
-              hint={data.config.notifyChannel}
-            />
-          </div>
+          <DashboardFiltersPanel
+            open={filtersOpen}
+            onOpenChange={setFiltersOpen}
+            activeCount={activeFilterCount}
+            summary={filterSummary}
+          >
+            <div>
+              <p className="mb-2 text-xs font-medium text-muted">{t("searchTitle")}</p>
+              <DashboardSearchBar
+                query={searchQuery}
+                scope={searchScope}
+                onQueryChange={setSearchQuery}
+                onScopeChange={setSearchScope}
+              />
+            </div>
 
-          <DashboardSearchBar
-            query={searchQuery}
-            scope={searchScope}
-            onQueryChange={setSearchQuery}
-            onScopeChange={setSearchScope}
-          />
+            <DashboardDateFilter
+              datePreset={datePreset}
+              onPresetChange={handlePresetChange}
+              fromValue={customFrom}
+              toValue={customTo}
+              onFromChange={setCustomFrom}
+              onToChange={setCustomTo}
+              onApply={handleApplyDateFilter}
+              dateError={dateError}
+            />
 
-          <DashboardDateFilter
-            datePreset={datePreset}
-            onPresetChange={handlePresetChange}
-            fromValue={customFrom}
-            toValue={customTo}
-            onFromChange={(v) => {
-              setCustomFrom(v);
-              if (datePreset !== "custom") setDatePreset("custom");
-            }}
-            onToChange={(v) => {
-              setCustomTo(v);
-              if (datePreset !== "custom") setDatePreset("custom");
-            }}
-            onApply={handleApplyDateFilter}
-            dateError={dateError}
-          />
-
-          {activeDateRange && (
-            <p className="mb-4 text-xs text-muted">
-              {t("dateRangeShowing", {
-                from: formatStayDate(activeDateRange.from),
-                to: formatStayDate(activeDateRange.to),
-              })}
-            </p>
-          )}
-
-          <div className="mb-6 flex flex-wrap gap-2">
-            {(["all", "pending", "confirmed", "cancelled"] as const).map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setStatusFilter(filter)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors",
-                  statusFilter === filter
-                    ? "bg-teal text-gray-950"
-                    : "border border-border bg-card text-muted hover:border-teal",
+            <div>
+              <p className="mb-2 text-xs font-medium text-muted">
+                {t("statusFilterTitle")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {(["all", "pending", "confirmed", "cancelled"] as const).map(
+                  (filter) => (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setStatusFilter(filter)}
+                      className={cn(
+                        "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors",
+                        statusFilter === filter
+                          ? "bg-teal text-gray-950"
+                          : "border border-border bg-card text-muted hover:border-teal",
+                      )}
+                    >
+                      {t(`filters.${filter}`)}
+                    </button>
+                  ),
                 )}
-              >
-                {t(`filters.${filter}`)}
-              </button>
-            ))}
-          </div>
+              </div>
+            </div>
+
+            {variant === "demo" ? (
+              <div>
+                <p className="mb-2 text-xs font-medium text-muted">
+                  {t("systemStatusTitle")}
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <StatusCard
+                    label={t("status.storage")}
+                    ok={data.config.storageHealth.connected === true}
+                    hint={data.config.storageHealth.message}
+                  />
+                  <StatusCard
+                    label={t("status.paystack")}
+                    ok={data.config.paystackConfigured}
+                    hint={
+                      data.config.demoMode
+                        ? t("status.demoPayments")
+                        : t("status.live")
+                    }
+                  />
+                  <StatusCard
+                    label={t("status.email")}
+                    ok={data.config.emailConfigured}
+                    hint={
+                      data.config.emailConfigured
+                        ? t("status.resend")
+                        : t("status.console")
+                    }
+                  />
+                  <StatusCard
+                    label={t("status.notify")}
+                    ok={data.config.notifyChannel !== "console"}
+                    hint={data.config.notifyChannel}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </DashboardFiltersPanel>
 
           <div
             className={cn(
@@ -634,7 +703,11 @@ export function DemoDashboard({
               />
               <div className="space-y-3">
                 {filteredReservations.length === 0 ? (
-                  <p className="text-sm text-muted">{t("emptyReservations")}</p>
+                  <p className="text-sm text-muted">
+                    {normalizedSearch
+                      ? t("emptySearchReservations", { query: searchQuery.trim() })
+                      : t("emptyReservations")}
+                  </p>
                 ) : (
                   paginatedReservations.map((r) => {
                     const linked = paymentsByReservation.get(r.id) ?? [];
@@ -744,7 +817,11 @@ export function DemoDashboard({
               />
               <div className="space-y-3">
                 {filteredPayments.length === 0 ? (
-                  <p className="text-sm text-muted">{t("emptyPayments")}</p>
+                  <p className="text-sm text-muted">
+                    {normalizedSearch
+                      ? t("emptySearchPayments", { query: searchQuery.trim() })
+                      : t("emptyPayments")}
+                  </p>
                 ) : (
                   paginatedPayments.map((p) => {
                       const linkedReservation = p.reservationId
