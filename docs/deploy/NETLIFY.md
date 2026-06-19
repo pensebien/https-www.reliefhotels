@@ -116,7 +116,15 @@ curl -s -o /dev/null -w "%{http_code}" "$BASE/en"        # 200
 curl -s -o /dev/null -w "%{http_code}" "$BASE/en/rooms"  # 200
 ```
 
-Browser: homepage, rooms, `/demo?key=relief-demo-2026`
+Browser: homepage, rooms, staff portal (`docs/deploy/STAFF_PORTAL.md`)
+
+```bash
+# Staff portal (after DNS + STAFF_PORTAL_HOST)
+open "https://reservation.reliefhotelsandsuites.com.ng?key=relief-demo-2026"
+
+# Legacy demo path on main domain
+open "https://reliefhotelsandsuites.com.ng/en/demo?key=relief-demo-2026"
+```
 
 ---
 

@@ -1,14 +1,17 @@
 import { DemoBanner } from "@/components/demo-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { StaffPortalShell } from "@/components/staff-portal-shell";
 import { StructuredDataScript } from "@/components/structured-data-script";
 import { ThemeScript } from "@/components/theme-script";
 import { site, structuredData } from "@/content/site";
 import { routing } from "@/i18n/routing";
+import { STAFF_PORTAL_HEADER } from "@/lib/staff-portal";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { DM_Sans, EB_Garamond } from "next/font/google";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import "../globals.css";
 
@@ -88,6 +91,8 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
   const messages = await getMessages();
+  const headersList = await headers();
+  const isStaffPortal = headersList.get(STAFF_PORTAL_HEADER) === "1";
 
   return (
     <html
@@ -97,12 +102,18 @@ export default async function LocaleLayout({
     >
       <body className="flex min-h-screen flex-col bg-background text-foreground">
         <ThemeScript />
-        <StructuredDataScript data={structuredData} />
+        {!isStaffPortal && <StructuredDataScript data={structuredData} />}
         <NextIntlClientProvider messages={messages}>
-          <DemoBanner />
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          {isStaffPortal ? (
+            <StaffPortalShell>{children}</StaffPortalShell>
+          ) : (
+            <>
+              <DemoBanner />
+              <SiteHeader />
+              <main className="flex-1">{children}</main>
+              <SiteFooter />
+            </>
+          )}
         </NextIntlClientProvider>
       </body>
     </html>

@@ -26,7 +26,7 @@
 - [ ] `/en` loads
 - [ ] Full booking: property bar → rooms → book → pay demo → callback success
 - [ ] POST reservation → row in Supabase (not ephemeral file store)
-- [ ] `/en/demo?key=relief-demo-2026` — reservation **confirmed**, payment **success**, no amber storage warning
+- [ ] `/en/staff?key=…` or `reservation.…?key=…` — reservations, payments, category badges, no marketing chrome
 - [ ] Paystack callback URL matches `NEXT_PUBLIC_APP_URL` (when using live/test keys)
 
 ## Sign-off

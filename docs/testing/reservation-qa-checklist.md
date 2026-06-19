@@ -55,7 +55,7 @@
 | M15 | Supabase row persists after Netlify redeploy | `GET /api/health` → `productionReady: true`; `npm run verify:supabase` |
 | M16 | `NEXT_PUBLIC_APP_URL` matches live domain | Env config |
 | M17 | Paystack live callback URL in dashboard | Paystack admin |
-| M18 | Demo dashboard `/demo?key=…` — filters, status badges, payment link, storage warning | Stakeholder review |
+| M18 | Staff portal `reservation.…?key=…` — filters, categories, storage | Stakeholder review |
 | M19 | Resend confirmation email received | Inbox check |
 | M20 | Double-click pay button (no duplicate charge) | Browser behaviour |
 

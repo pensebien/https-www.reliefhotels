@@ -1,8 +1,10 @@
 import { Link } from "@/i18n/navigation";
 import { getServerConfig } from "@/lib/config";
+import { getStaffPortalPublicUrl } from "@/lib/staff-portal";
 
 export function DemoBanner() {
   const config = getServerConfig();
+  const staffPortalUrl = getStaffPortalPublicUrl();
 
   if (!config.demoMode && config.paystack.configured) {
     return null;
@@ -15,8 +17,12 @@ export function DemoBanner() {
       {config.paystack.configured
         ? "Paystack test keys active."
         : "Payments simulate without Paystack keys."}{" "}
+      <a href={staffPortalUrl} className="underline hover:no-underline">
+        Open staff portal →
+      </a>
+      {" · "}
       <Link href="/demo" className="underline hover:no-underline">
-        Open demo dashboard →
+        Legacy /demo
       </Link>
     </div>
   );

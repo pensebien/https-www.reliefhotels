@@ -571,6 +571,8 @@
   "demo": {
     "title": "Demo Dashboard",
     "subtitle": "Live reservations and payments for client presentations.",
+    "portalHeading": "Reservations & payments",
+    "portalSubheading": "Track guest bookings, deposit status, and payment references.",
     "refresh": "Refresh",
     "keyPlaceholder": "Dashboard key",
     "unlock": "Load data",
@@ -611,6 +613,13 @@
       "resend": "Sending via Resend",
       "console": "Logged to server console"
     }
+  },
+  "staffPortal": {
+    "title": "Staff Portal",
+    "subtitle": "Relief Hotels — reservations & operations",
+    "metaTitle": "Staff Portal | Relief Hotels & Suites",
+    "viewPublicSite": "View public website →",
+    "footer": "Internal use only · Relief Hotels & Suites"
   },
   "reviews": {
     "eyebrow": "Guest reflections",

@@ -117,7 +117,11 @@ function CategoryBadge({
   );
 }
 
-export function DemoDashboard() {
+export function DemoDashboard({
+  variant = "demo",
+}: {
+  variant?: "demo" | "portal";
+}) {
   const t = useTranslations("demo");
   const searchParams = useSearchParams();
   const keyFromUrl = searchParams.get("key");
@@ -208,11 +212,20 @@ export function DemoDashboard() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-[0.22em] text-teal">Internal</p>
-          <h1 className="font-serif text-3xl font-medium sm:text-4xl">{t("title")}</h1>
-          <p className="mt-2 text-muted">{t("subtitle")}</p>
-        </div>
+        {variant === "demo" ? (
+          <div>
+            <p className="text-sm uppercase tracking-[0.22em] text-teal">Internal</p>
+            <h1 className="font-serif text-3xl font-medium sm:text-4xl">{t("title")}</h1>
+            <p className="mt-2 text-muted">{t("subtitle")}</p>
+          </div>
+        ) : (
+          <div>
+            <h1 className="font-serif text-2xl font-medium sm:text-3xl">
+              {t("portalHeading")}
+            </h1>
+            <p className="mt-1 text-sm text-muted">{t("portalSubheading")}</p>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => load(key)}
