@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  resolveBookingCategoryKey,
+  type BookingCategoryKey,
+} from "@/lib/booking-category";
 import { cn, formatNaira } from "@/lib/utils";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -23,6 +27,8 @@ type ReservationRow = {
   checkOut?: string;
   nights?: number;
   guests: number;
+  itemType?: "room" | "tour" | "inquiry";
+  roomId?: string;
   stayPreference: string;
   status: "pending" | "confirmed" | "cancelled";
   paymentReference?: string;
@@ -38,6 +44,8 @@ type PaymentRow = {
   email: string;
   amountKobo: number;
   status: string;
+  itemType?: "room" | "tour";
+  itemId?: string;
   itemLabel: string;
   source: string;
   createdAt: string;
@@ -84,6 +92,31 @@ function StatusBadge({ status }: { status: ReservationRow["status"] }) {
   );
 }
 
+function CategoryBadge({
+  categoryKey,
+  label,
+}: {
+  categoryKey: BookingCategoryKey;
+  label: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        categoryKey === "penthouse" && "bg-violet-500/15 text-violet-200",
+        categoryKey === "suite" && "bg-teal/15 text-teal-dark",
+        categoryKey === "executive" && "bg-sky-500/15 text-sky-200",
+        categoryKey === "room" && "bg-border text-muted",
+        categoryKey === "eventsMeetings" && "bg-amber-500/15 text-amber-200",
+        categoryKey === "tour" && "bg-emerald-500/15 text-emerald-200",
+        categoryKey === "inquiry" && "bg-border text-muted",
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function DemoDashboard() {
   const t = useTranslations("demo");
   const searchParams = useSearchParams();
@@ -103,12 +136,24 @@ export function DemoDashboard() {
       const res = await fetch(
         `/api/demo/activity?key=${encodeURIComponent(dashboardKey)}`,
       );
-      if (!res.ok) throw new Error("Unauthorized");
+      if (res.status === 401) {
+        setError(t("unauthorized"));
+        setData(null);
+        return;
+      }
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        setError(body?.error ?? t("serverError"));
+        setData(null);
+        return;
+      }
       const json = (await res.json()) as Activity;
       setData(json);
       sessionStorage.setItem("demo-dashboard-key", dashboardKey);
     } catch {
-      setError(t("unauthorized"));
+      setError(t("serverError"));
       setData(null);
     } finally {
       setLoading(false);
@@ -133,6 +178,15 @@ export function DemoDashboard() {
       const list = map.get(payment.reservationId) ?? [];
       list.push(payment);
       map.set(payment.reservationId, list);
+    }
+    return map;
+  }, [data]);
+
+  const reservationsById = useMemo(() => {
+    const map = new Map<string, ReservationRow>();
+    if (!data) return map;
+    for (const reservation of data.reservations) {
+      map.set(reservation.id, reservation);
     }
     return map;
   }, [data]);
@@ -265,6 +319,11 @@ export function DemoDashboard() {
                   filteredReservations.map((r) => {
                     const linked = paymentsByReservation.get(r.id) ?? [];
                     const successPayment = linked.find((p) => p.status === "success");
+                    const categoryKey = resolveBookingCategoryKey({
+                      itemType: r.itemType,
+                      roomId: r.roomId,
+                      stayPreference: r.stayPreference,
+                    });
 
                     return (
                       <div
@@ -275,7 +334,13 @@ export function DemoDashboard() {
                           <p className="font-medium">
                             {r.firstName} {r.lastName}
                           </p>
-                          <StatusBadge status={r.status} />
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <CategoryBadge
+                              categoryKey={categoryKey}
+                              label={t(`categories.${categoryKey}`)}
+                            />
+                            <StatusBadge status={r.status} />
+                          </div>
                         </div>
                         <p className="text-muted">{r.email}</p>
                         {r.phone ? (
@@ -335,7 +400,18 @@ export function DemoDashboard() {
                         new Date(a.createdAt).getTime(),
                     )
                     .slice(0, 20)
-                    .map((p) => (
+                    .map((p) => {
+                      const linkedReservation = p.reservationId
+                        ? reservationsById.get(p.reservationId)
+                        : undefined;
+                      const categoryKey = resolveBookingCategoryKey({
+                        itemType: p.itemType ?? linkedReservation?.itemType,
+                        itemId: p.itemId,
+                        roomId: linkedReservation?.roomId,
+                        stayPreference: linkedReservation?.stayPreference,
+                      });
+
+                      return (
                       <div
                         key={p.id}
                         className="rounded-xl border border-border bg-card p-4 text-sm"
@@ -344,16 +420,22 @@ export function DemoDashboard() {
                           <p className="font-medium">
                             {formatNaira(p.amountKobo / 100)}
                           </p>
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-xs capitalize",
-                              p.status === "success"
-                                ? "bg-teal/20 text-teal-dark"
-                                : "bg-border text-muted",
-                            )}
-                          >
-                            {p.status}
-                          </span>
+                          <div className="flex flex-wrap items-center justify-end gap-1.5">
+                            <CategoryBadge
+                              categoryKey={categoryKey}
+                              label={t(`categories.${categoryKey}`)}
+                            />
+                            <span
+                              className={cn(
+                                "shrink-0 rounded-full px-2 py-0.5 text-xs capitalize",
+                                p.status === "success"
+                                  ? "bg-teal/20 text-teal-dark"
+                                  : "bg-border text-muted",
+                              )}
+                            >
+                              {p.status}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-muted">{p.itemLabel}</p>
                         <p className="mt-1 font-mono text-xs text-muted">
@@ -368,7 +450,8 @@ export function DemoDashboard() {
                           {formatDate(p.createdAt)} · {p.source}
                         </p>
                       </div>
-                    ))
+                    );
+                    })
                 )}
               </div>
             </section>

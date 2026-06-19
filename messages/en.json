@@ -575,6 +575,17 @@
     "keyPlaceholder": "Dashboard key",
     "unlock": "Load data",
     "unauthorized": "Invalid dashboard key.",
+    "serverError": "Could not load dashboard data. Check Supabase env vars on Netlify (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY), then redeploy.",
+    "bookingCategory": "Category",
+    "categories": {
+      "room": "Room",
+      "executive": "Executive",
+      "suite": "Suite",
+      "penthouse": "Penthouse",
+      "eventsMeetings": "Events & Meetings",
+      "tour": "Tour / Experience",
+      "inquiry": "Inquiry"
+    },
     "reservations": "Reservations",
     "payments": "Payments",
     "reservationId": "Reservation",
