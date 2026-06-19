@@ -1,10 +1,23 @@
 "use client";
 
+import { DashboardSearchBar } from "@/components/dashboard-search-bar";
+import {
+  DashboardDateFilter,
+  DashboardPagination,
+  fieldsForPreset,
+} from "@/components/dashboard-date-pagination";
+import {
+  filterPaymentsBySearch,
+  filterReservationsBySearch,
+  normalizeSearchQuery,
+  type SearchScope,
+} from "@/lib/dashboard-search";
 import {
   resolveBookingCategoryKey,
   type BookingCategoryKey,
 } from "@/lib/booking-category";
 import {
+  isValidYmd,
   parseYmd,
   reservationInDateRange,
   resolveDateRange,
@@ -74,14 +87,7 @@ type Activity = {
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
 
-const DATE_PRESETS: DateRangePreset[] = [
-  "upcoming",
-  "today",
-  "week",
-  "month",
-  "all",
-  "custom",
-];
+const PAGE_SIZE = 12;
 
 const DEFAULT_KEY = "relief-demo-2026";
 
@@ -154,23 +160,69 @@ export function DemoDashboard({
   const [data, setData] = useState<Activity | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const initialPreset: DateRangePreset =
+    variant === "portal" ? "upcoming" : "all";
+  const initialFields = fieldsForPreset(initialPreset);
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [datePreset, setDatePreset] = useState<DateRangePreset>(
-    variant === "portal" ? "upcoming" : "all",
-  );
-  const [customFrom, setCustomFrom] = useState("");
-  const [customTo, setCustomTo] = useState("");
+  const [datePreset, setDatePreset] = useState<DateRangePreset>(initialPreset);
+  const [customFrom, setCustomFrom] = useState(initialFields.from);
+  const [customTo, setCustomTo] = useState(initialFields.to);
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [resPage, setResPage] = useState(1);
+  const [payPage, setPayPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchScope, setSearchScope] = useState<SearchScope>("both");
 
   useEffect(() => {
     const rangeParam = searchParams.get("range") as DateRangePreset | null;
-    if (rangeParam && DATE_PRESETS.includes(rangeParam)) {
+    if (rangeParam) {
       setDatePreset(rangeParam);
+      const fields = fieldsForPreset(rangeParam);
+      if (fields.from) setCustomFrom(fields.from);
+      if (fields.to) setCustomTo(fields.to);
     }
     const fromParam = searchParams.get("from");
     const toParam = searchParams.get("to");
-    if (fromParam) setCustomFrom(fromParam);
-    if (toParam) setCustomTo(toParam);
+    if (fromParam) {
+      setCustomFrom(fromParam);
+      setDatePreset("custom");
+    }
+    if (toParam) {
+      setCustomTo(toParam);
+      setDatePreset("custom");
+    }
   }, [searchParams]);
+
+  useEffect(() => {
+    setResPage(1);
+    setPayPage(1);
+  }, [statusFilter, datePreset, customFrom, customTo, searchQuery, searchScope]);
+
+  function handlePresetChange(preset: DateRangePreset) {
+    setDatePreset(preset);
+    setDateError(null);
+    const fields = fieldsForPreset(preset);
+    setCustomFrom(fields.from);
+    setCustomTo(fields.to);
+  }
+
+  function handleApplyDateFilter() {
+    if (datePreset === "all") {
+      setDateError(null);
+      return;
+    }
+    if (!isValidYmd(customFrom) || !isValidYmd(customTo)) {
+      setDateError(t("dateInvalid"));
+      return;
+    }
+    if (parseYmd(customTo) < parseYmd(customFrom)) {
+      setDateError(t("dateRangeInvalid"));
+      return;
+    }
+    setDatePreset("custom");
+    setDateError(null);
+  }
 
   const load = useCallback(async (dashboardKey: string) => {
     setLoading(true);
@@ -243,7 +295,9 @@ export function DemoDashboard({
     [customFrom, customTo, datePreset],
   );
 
-  const filteredReservations = useMemo(() => {
+  const normalizedSearch = normalizeSearchQuery(searchQuery);
+
+  const baseReservations = useMemo(() => {
     if (!data) return [];
     let list = data.reservations.filter((r) =>
       reservationInDateRange(r, activeDateRange),
@@ -261,16 +315,41 @@ export function DemoDashboard({
     });
   }, [activeDateRange, data, statusFilter]);
 
-  const visibleReservationIds = useMemo(
-    () => new Set(filteredReservations.map((r) => r.id)),
-    [filteredReservations],
-  );
+  const filteredReservations = useMemo(() => {
+    if (!normalizedSearch) return baseReservations;
+    return filterReservationsBySearch(
+      baseReservations,
+      paymentsByReservation,
+      searchQuery,
+      searchScope,
+    );
+  }, [
+    baseReservations,
+    normalizedSearch,
+    paymentsByReservation,
+    searchQuery,
+    searchScope,
+  ]);
 
-  const filteredPayments = useMemo(() => {
+  const basePayments = useMemo(() => {
     if (!data) return [];
     return [...data.payments]
       .filter((p) => {
-        if (p.reservationId && visibleReservationIds.has(p.reservationId)) {
+        if (p.reservationId) {
+          const reservation = reservationsById.get(p.reservationId);
+          if (
+            reservation &&
+            !reservationInDateRange(reservation, activeDateRange)
+          ) {
+            return false;
+          }
+          if (
+            statusFilter !== "all" &&
+            reservation &&
+            reservation.status !== statusFilter
+          ) {
+            return false;
+          }
           return true;
         }
         if (!activeDateRange) return true;
@@ -285,9 +364,67 @@ export function DemoDashboard({
       .sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-      .slice(0, 20);
-  }, [activeDateRange, data, visibleReservationIds]);
+      );
+  }, [activeDateRange, data, reservationsById, statusFilter]);
+
+  const filteredPayments = useMemo(() => {
+    if (!normalizedSearch) {
+      const visibleReservationIds = new Set(
+        filteredReservations.map((r) => r.id),
+      );
+      return basePayments.filter((p) => {
+        if (p.reservationId && visibleReservationIds.has(p.reservationId)) {
+          return true;
+        }
+        if (!activeDateRange) return true;
+        return !p.reservationId;
+      });
+    }
+
+    if (searchScope === "reservations") {
+      const visibleReservationIds = new Set(
+        filteredReservations.map((r) => r.id),
+      );
+      return basePayments.filter(
+        (p) => p.reservationId && visibleReservationIds.has(p.reservationId),
+      );
+    }
+
+    return filterPaymentsBySearch(
+      basePayments,
+      reservationsById,
+      searchQuery,
+      searchScope,
+    );
+  }, [
+    activeDateRange,
+    basePayments,
+    filteredReservations,
+    normalizedSearch,
+    reservationsById,
+    searchQuery,
+    searchScope,
+  ]);
+
+  const paginatedReservations = useMemo(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredReservations.length / PAGE_SIZE),
+    );
+    const safePage = Math.min(resPage, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredReservations.slice(start, start + PAGE_SIZE);
+  }, [filteredReservations, resPage]);
+
+  const paginatedPayments = useMemo(() => {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredPayments.length / PAGE_SIZE),
+    );
+    const safePage = Math.min(payPage, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredPayments.slice(start, start + PAGE_SIZE);
+  }, [filteredPayments, payPage]);
 
   const storageWarning =
     data?.config.storageHealth.mode === "file" ||
@@ -383,49 +520,32 @@ export function DemoDashboard({
             />
           </div>
 
-          <div className="mb-4 flex flex-wrap gap-2">
-            {DATE_PRESETS.map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setDatePreset(preset)}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors",
-                  datePreset === preset
-                    ? "bg-teal text-gray-950"
-                    : "border border-border bg-card text-muted hover:border-teal",
-                )}
-              >
-                {t(`dateFilters.${preset}`)}
-              </button>
-            ))}
-          </div>
+          <DashboardSearchBar
+            query={searchQuery}
+            scope={searchScope}
+            onQueryChange={setSearchQuery}
+            onScopeChange={setSearchScope}
+          />
 
-          {datePreset === "custom" && (
-            <div className="mb-6 flex flex-wrap items-end gap-3">
-              <label className="text-xs text-muted">
-                {t("dateFrom")}
-                <input
-                  type="date"
-                  value={customFrom}
-                  onChange={(e) => setCustomFrom(e.target.value)}
-                  className="mt-1 block h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
-                />
-              </label>
-              <label className="text-xs text-muted">
-                {t("dateTo")}
-                <input
-                  type="date"
-                  value={customTo}
-                  onChange={(e) => setCustomTo(e.target.value)}
-                  className="mt-1 block h-10 rounded-lg border border-border bg-card px-3 text-sm text-foreground"
-                />
-              </label>
-            </div>
-          )}
+          <DashboardDateFilter
+            datePreset={datePreset}
+            onPresetChange={handlePresetChange}
+            fromValue={customFrom}
+            toValue={customTo}
+            onFromChange={(v) => {
+              setCustomFrom(v);
+              if (datePreset !== "custom") setDatePreset("custom");
+            }}
+            onToChange={(v) => {
+              setCustomTo(v);
+              if (datePreset !== "custom") setDatePreset("custom");
+            }}
+            onApply={handleApplyDateFilter}
+            dateError={dateError}
+          />
 
           {activeDateRange && (
-            <p className="mb-6 text-xs text-muted">
+            <p className="mb-4 text-xs text-muted">
               {t("dateRangeShowing", {
                 from: formatStayDate(activeDateRange.from),
                 to: formatStayDate(activeDateRange.to),
@@ -463,7 +583,7 @@ export function DemoDashboard({
                 {filteredReservations.length === 0 ? (
                   <p className="text-sm text-muted">{t("emptyReservations")}</p>
                 ) : (
-                  filteredReservations.map((r) => {
+                  paginatedReservations.map((r) => {
                     const linked = paymentsByReservation.get(r.id) ?? [];
                     const successPayment = linked.find((p) => p.status === "success");
                     const categoryKey = resolveBookingCategoryKey({
@@ -534,6 +654,12 @@ export function DemoDashboard({
                   })
                 )}
               </div>
+              <DashboardPagination
+                page={resPage}
+                totalItems={filteredReservations.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setResPage}
+              />
             </section>
 
             <section>
@@ -547,7 +673,7 @@ export function DemoDashboard({
                 {filteredPayments.length === 0 ? (
                   <p className="text-sm text-muted">{t("emptyPayments")}</p>
                 ) : (
-                  filteredPayments.map((p) => {
+                  paginatedPayments.map((p) => {
                       const linkedReservation = p.reservationId
                         ? reservationsById.get(p.reservationId)
                         : undefined;
@@ -608,6 +734,12 @@ export function DemoDashboard({
                     })
                 )}
               </div>
+              <DashboardPagination
+                page={payPage}
+                totalItems={filteredPayments.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPayPage}
+              />
             </section>
           </div>
         </>

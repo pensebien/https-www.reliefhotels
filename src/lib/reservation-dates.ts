@@ -1,5 +1,15 @@
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 
+export function isValidYmd(value: string): boolean {
+  if (!YMD.test(value.trim())) return false;
+  try {
+    parseYmd(value.trim());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function parseYmd(value: string): Date {
   if (!YMD.test(value)) {
     throw new Error(`Invalid date: ${value}`);
