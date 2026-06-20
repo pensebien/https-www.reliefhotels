@@ -4,11 +4,12 @@ export type ReservationFormData = {
   email: string;
   phone?: string;
   message: string;
+  experienceInterests: string[];
   termsAccepted: boolean;
 };
 
 export type StayContext = {
-  itemType: "room" | "tour";
+  itemType: "room";
   itemId: string;
   itemLabel: string;
   checkIn?: string;
@@ -19,7 +20,6 @@ export type StayContext = {
 };
 
 export type ReservationFlowProps = {
-  itemType: "room" | "tour";
   itemId: string;
   itemLabel: string;
   checkIn?: string;
@@ -33,10 +33,8 @@ export type ReservationFlowProps = {
 export type ReservationFlowStatus = "idle" | "loading" | "success" | "error";
 
 export type BookQueryParams = {
-  type?: "room" | "tour";
   id?: string;
   room?: string;
-  tour?: string;
   checkIn?: string;
   checkOut?: string;
   nights?: number;

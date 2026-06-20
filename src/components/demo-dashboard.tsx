@@ -1,6 +1,9 @@
 "use client";
 
 import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
+import { InventoryCalendarView } from "@/components/staff/inventory-calendar-view";
+import { rooms } from "@/content/site";
+import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
 import { DashboardSearchBar } from "@/components/dashboard-search-bar";
 import {
   DashboardDateFilter,
@@ -29,7 +32,7 @@ import {
   type DateRangePreset,
 } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
+import { CalendarDays, LayoutList, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -75,6 +78,19 @@ type PaymentRow = {
   createdAt: string;
 };
 
+type EventInquiryRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  eventType: string;
+  eventDate: string;
+  guestCount: string;
+  message: string;
+  createdAt: string;
+};
+
 type Activity = {
   config: {
     demoMode: boolean;
@@ -88,7 +104,10 @@ type Activity = {
   };
   reservations: ReservationRow[];
   payments: PaymentRow[];
+  eventInquiries?: EventInquiryRow[];
 };
+
+type DashboardView = "calendar" | "lists";
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
 
@@ -157,6 +176,8 @@ export function DemoDashboard({
   variant?: "demo" | "portal";
 }) {
   const t = useTranslations("demo");
+  const tRooms = useTranslations("rooms");
+  const tEvents = useTranslations("phase2.events.spaces");
   const searchParams = useSearchParams();
   const keyFromUrl = searchParams.get("key");
 
@@ -180,6 +201,9 @@ export function DemoDashboard({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<DashboardView>(
+    variant === "portal" ? "calendar" : "lists",
+  );
   const reservationsSectionRef = useRef<HTMLElement>(null);
   const paymentsSectionRef = useRef<HTMLElement>(null);
 
@@ -528,6 +552,19 @@ export function DemoDashboard({
     t,
   ]);
 
+  const unitLabels = useMemo(() => {
+    const labels: Record<string, string> = {};
+    for (const room of rooms) {
+      const path = room.nameKey.replace(/^rooms\./, "");
+      labels[room.nameKey] = tRooms(path as "guest.name");
+    }
+    for (const space of eventSpaces) {
+      const path = space.nameKey.replace(/^spaces\./, "");
+      labels[space.nameKey] = tEvents(path as "ballroom.name");
+    }
+    return labels;
+  }, [tEvents, tRooms]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 lg:px-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -686,13 +723,60 @@ export function DemoDashboard({
             ) : null}
           </DashboardFiltersPanel>
 
-          <div className="mb-4 flex flex-wrap items-center justify-end">
-            <DashboardPageSizeSelect
-              value={pageSize}
-              onChange={handlePageSizeChange}
-            />
+          <div
+            className="mb-6 flex flex-wrap items-center justify-between gap-3"
+            role="tablist"
+            aria-label={t("viewModeLabel")}
+          >
+            <div className="inline-flex rounded-lg border border-border bg-card p-1">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === "calendar"}
+                onClick={() => setViewMode("calendar")}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal",
+                  viewMode === "calendar"
+                    ? "bg-teal text-gray-950"
+                    : "text-muted hover:text-foreground",
+                )}
+              >
+                <CalendarDays className="h-4 w-4" aria-hidden />
+                {t("viewCalendar")}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={viewMode === "lists"}
+                onClick={() => setViewMode("lists")}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal",
+                  viewMode === "lists"
+                    ? "bg-teal text-gray-950"
+                    : "text-muted hover:text-foreground",
+                )}
+              >
+                <LayoutList className="h-4 w-4" aria-hidden />
+                {t("viewLists")}
+              </button>
+            </div>
+            {viewMode === "lists" ? (
+              <DashboardPageSizeSelect
+                value={pageSize}
+                onChange={handlePageSizeChange}
+              />
+            ) : null}
           </div>
 
+          {viewMode === "calendar" ? (
+            <InventoryCalendarView
+              reservations={filteredReservations}
+              eventInquiries={data.eventInquiries ?? []}
+              paymentsByReservation={paymentsByReservation}
+              unitLabels={unitLabels}
+            />
+          ) : (
+          <>
           <div
             className={cn(
               "grid gap-10",
@@ -917,6 +1001,8 @@ export function DemoDashboard({
               />
             </section>
           </div>
+          </>
+          )}
         </>
       )}
     </div>

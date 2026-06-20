@@ -85,3 +85,15 @@ export async function addDiningReservation(
   await writeStore(store);
   return record;
 }
+
+export async function getEventInquiries(): Promise<EventInquiry[]> {
+  if (isSupabaseEnabled()) {
+    const { dbGetEventInquiries } = await import("@/lib/db/inquiry-store");
+    return dbGetEventInquiries();
+  }
+
+  const store = await readStore();
+  return store.eventInquiries.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}

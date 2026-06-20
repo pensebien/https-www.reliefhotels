@@ -5,7 +5,7 @@ import { randomBytes } from "crypto";
 export type InitializePaymentInput = {
   email: string;
   amountKobo: number;
-  itemType: "room" | "tour";
+  itemType: "room";
   itemId: string;
   itemLabel: string;
   reservationId?: string;

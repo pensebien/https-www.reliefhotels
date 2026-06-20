@@ -1,6 +1,7 @@
 import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
 import { getActivity } from "@/lib/demo-store";
+import { getEventInquiries } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
 
   try {
     const activity = await getActivity();
+    const eventInquiries = await getEventInquiries();
     const storageHealth = await checkStorageHealth();
 
     return NextResponse.json({
@@ -29,6 +31,7 @@ export async function GET(request: Request) {
         notifyChannel: config.notifications.channel,
       },
       ...activity,
+      eventInquiries,
     });
   } catch (error) {
     const message =

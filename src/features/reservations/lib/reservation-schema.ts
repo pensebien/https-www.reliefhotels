@@ -6,6 +6,7 @@ export const reservationFormSchema = z.object({
   email: z.string().email("Enter a valid email"),
   phone: z.string().max(30).optional(),
   message: z.string().max(2000).default(""),
+  experienceInterests: z.array(z.string()).default([]),
   termsAccepted: z
     .boolean()
     .refine((val) => val === true, { message: "You must accept the terms" }),

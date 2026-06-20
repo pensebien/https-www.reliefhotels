@@ -1,5 +1,6 @@
 "use client";
 
+import { experienceOptions } from "@/content/experience-options";
 import { cn, formatNaira } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, CreditCard, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -17,7 +18,6 @@ const labelClassName =
 
 export function ReservationForm(props: ReservationFlowProps) {
   const {
-    itemType,
     itemLabel,
     checkIn,
     checkOut,
@@ -28,6 +28,7 @@ export function ReservationForm(props: ReservationFlowProps) {
   } = props;
 
   const t = useTranslations("booking");
+  const tTours = useTranslations("tours");
   const [step, setStep] = useState<1 | 2>(1);
   const {
     formData,
@@ -38,6 +39,7 @@ export function ReservationForm(props: ReservationFlowProps) {
     errorMessage,
     depositNgn,
     handleReserveAndPay,
+    toggleExperienceInterest,
   } = useReservationFlow(props);
 
   function validateStep1(): boolean {
@@ -128,7 +130,6 @@ export function ReservationForm(props: ReservationFlowProps) {
 
       <div className="mt-6">
         <BookingSummary
-          itemType={itemType}
           itemLabel={itemLabel}
           checkIn={checkIn}
           checkOut={checkOut}
@@ -214,6 +215,37 @@ export function ReservationForm(props: ReservationFlowProps) {
                 className={inputClassName}
               />
             </div>
+
+            <fieldset className="space-y-3 sm:col-span-2">
+              <legend className={labelClassName}>{t("experienceInterests")}</legend>
+              <p className="text-xs leading-5 text-muted">{t("experienceInterestsHint")}</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {experienceOptions.map((option) => {
+                  const checked = formData.experienceInterests.includes(option.id);
+                  return (
+                    <label
+                      key={option.id}
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-colors",
+                        checked
+                          ? "border-teal bg-teal/10"
+                          : "border-border hover:border-teal/50",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleExperienceInterest(option.id)}
+                        className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
+                      />
+                      <span className="text-sm leading-snug">
+                        {tTours(`${option.labelKey}.name`)}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
 
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="res-message" className={labelClassName}>

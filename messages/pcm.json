@@ -324,9 +324,11 @@
   "tours": {
     "pageTitle": "Tours & Local Guides",
     "pageDescription": "Explore Calabar and Cross River with guides wey our concierge trust.",
+    "infoOnlyNote": "These experiences na just for inspiration — you no fit book or pay online. When you dey reserve room, tell us wetin interest you and our concierge go advise you.",
     "guideIncluded": "Licensed guide dey included",
+    "bookRoomToExplore": "Book room & note wetin you wan explore",
     "from": "From",
-    "bookTour": "Book this experience",
+    "bookTour": "Talk to our team",
     "heritage": {
       "name": "Calabar Heritage Walk",
       "description": "See historic Calabar, market, and culture with guide wey sabi the story.",
@@ -369,16 +371,17 @@
     }
   },
   "booking": {
-    "managerNotified": "Our team don hear say you pay deposit."
-  },
-  "language": {
-    "label": "Language"
-  },
-  "booking": {
     "step1Title": "Your details",
     "step2Title": "Pay deposit",
     "depositDueNow": "20% deposit wey you go pay now",
     "totalStayEstimate": "Total stay estimate",
-    "managerNotifyAfterPayment": "Manager go get notify after you pay, dem go confirm your booking."
+    "depositNote": "20% room deposit due now. Tours and local experiences na just information — dem no dey charge online.",
+    "experienceInterests": "Calabar experiences (optional)",
+    "experienceInterestsHint": "Tell us wetin you fit like explore — our team go advise you. E no add to your payment today.",
+    "managerNotifyAfterPayment": "Manager go get notify after you pay, dem go confirm your booking.",
+    "managerNotified": "Our team don hear say you pay deposit."
+  },
+  "language": {
+    "label": "Language"
   }
 }

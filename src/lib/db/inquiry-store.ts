@@ -108,3 +108,17 @@ export async function dbAddDiningReservation(
   }
   return mapDining(row as DiningRow);
 }
+
+export async function dbGetEventInquiries(): Promise<EventInquiry[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data, error } = await supabase
+    .from("event_inquiries")
+    .select()
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) throw new Error(error.message);
+  return (data as EventRow[]).map(mapEvent);
+}

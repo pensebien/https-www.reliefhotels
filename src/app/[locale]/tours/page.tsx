@@ -1,10 +1,9 @@
 import { tours } from "@/content/site";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
-import { formatNaira } from "@/lib/utils";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { MapPin, UserCheck } from "lucide-react";
+import { Compass, MapPin, UserCheck } from "lucide-react";
 
 export default async function ToursPage({
   params,
@@ -28,6 +27,7 @@ export default async function ToursPage({
             {t("pageTitle")}
           </h1>
           <p className="mt-4 max-w-2xl text-white/70">{t("pageDescription")}</p>
+          <p className="mt-3 max-w-2xl text-sm text-white/60">{t("infoOnlyNote")}</p>
         </div>
       </section>
 
@@ -56,28 +56,23 @@ export default async function ToursPage({
                   <p className="mt-2 flex-1 text-muted">{t(`${key}.description`)}</p>
                   <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted">
                     <span className="flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4 text-teal" />
+                      <MapPin className="h-4 w-4 text-teal" aria-hidden />
                       {t(`${key}.duration`)}
                     </span>
                     {tour.guideIncluded && (
                       <span className="flex items-center gap-1.5">
-                        <UserCheck className="h-4 w-4 text-teal" />
+                        <UserCheck className="h-4 w-4 text-teal" aria-hidden />
                         {t("guideIncluded")}
                       </span>
                     )}
                   </div>
-                  <p className="mt-4 font-medium">
-                    {t("from")}{" "}
-                    <span className="text-teal-dark">
-                      {formatNaira(tour.priceFrom)}
-                    </span>
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-6 flex flex-wrap gap-3">
                     <Link
-                      href={`/book?type=tour&id=${tour.slug}`}
-                      className="inline-flex rounded-full bg-teal px-6 py-2.5 text-sm font-medium text-gray-950 hover:bg-teal-dark"
+                      href="/rooms"
+                      className="inline-flex items-center gap-2 rounded-full bg-teal px-6 py-2.5 text-sm font-medium text-gray-950 hover:bg-teal-dark"
                     >
-                      {t("payNow")}
+                      <Compass className="h-4 w-4" aria-hidden />
+                      {t("bookRoomToExplore")}
                     </Link>
                     <Link
                       href={`/#contact?tour=${tour.slug}`}

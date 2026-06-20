@@ -6,7 +6,7 @@ import { useState } from "react";
 
 type PaystackCheckoutProps = {
   email: string;
-  itemType: "room" | "tour";
+  itemType: "room";
   itemId: string;
   /** Required — create reservation via POST /api/reservations first (Part 1). */
   reservationId: string;

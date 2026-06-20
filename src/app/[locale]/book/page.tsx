@@ -1,6 +1,6 @@
 import { ReservationForm } from "@/features/reservations";
-import { rooms, tours } from "@/content/site";
-import { Link } from "@/i18n/navigation";
+import { rooms } from "@/content/site";
+import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
   isValidBookingDate,
@@ -32,15 +32,16 @@ export default async function BookPage({
   setRequestLocale(locale);
   const t = await getTranslations("booking");
 
-  const itemType = (sp.type === "tour" ? "tour" : "room") as "room" | "tour";
-  const rawId = sp.id ?? sp.room ?? sp.tour ?? "signature-suite";
+  if (sp.type === "tour" || sp.tour) {
+    redirect({ href: "/tours", locale });
+  }
+
+  const rawId = sp.id ?? sp.room ?? "signature-suite";
   const itemId = rawId === "wellness-retreat" ? "executive-spa" : rawId;
 
   const room = rooms.find((r) => r.id === itemId || r.slug === itemId);
-  const tour = tours.find((tr) => tr.id === itemId || tr.slug === itemId);
-  const item = itemType === "room" ? room : tour;
 
-  if (!item) {
+  if (!room) {
     return (
       <div className="mx-auto max-w-lg px-4 py-24 text-center">
         <p className="text-muted">{t("notFound")}</p>
@@ -70,17 +71,9 @@ export default async function BookPage({
     bookingQuery?.guests ??
     Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
 
-  const tr = await getTranslations(itemType === "room" ? "rooms" : "tours");
-  const tourKeys = ["heritage", "marina", "obudu", "culinary"] as const;
-  const tourIndex = tours.findIndex((x) => x.id === item.id);
-  const labelKey =
-    itemType === "room"
-      ? item.nameKey.split(".")[1]
-      : tourKeys[tourIndex >= 0 ? tourIndex : 0];
-  const itemLabel =
-    itemType === "room"
-      ? tr(`${labelKey}.name`)
-      : tr(`${labelKey}.name`);
+  const tr = await getTranslations("rooms");
+  const labelKey = room.nameKey.split(".")[1];
+  const itemLabel = tr(`${labelKey}.name`);
 
   return (
     <div className="bg-background">
@@ -97,14 +90,13 @@ export default async function BookPage({
 
       <section className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
         <ReservationForm
-          itemType={itemType}
-          itemId={item.id}
+          itemId={room.id}
           itemLabel={itemLabel}
           checkIn={checkIn}
           checkOut={checkOut}
           nights={nights}
           guests={guests}
-          priceFrom={item.priceFrom}
+          priceFrom={room.priceFrom}
         />
         <p className="mt-8 text-center text-sm text-muted">
           <Link href="/#contact" className="text-teal-dark hover:underline">

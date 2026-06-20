@@ -5,8 +5,9 @@
 
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { stableDemoUuid } from "@/lib/demo-seed-id";
+import { experienceOptions } from "@/content/experience-options";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
-import { rooms, tours } from "@/content/site";
+import { rooms } from "@/content/site";
 
 const FIRST_NAMES = [
   "Adaeze",
@@ -137,7 +138,15 @@ function buildRoomSeeds(): {
       const checkOut = addDaysYmd(checkIn, nights);
       const status = statusForIndex(i);
       const ref = paymentRef(seq);
-      const deposit = calculateDepositNgn("room", room.priceFrom, nights, guests);
+      const deposit = calculateDepositNgn(room.priceFrom, nights);
+
+      let message = `Demo room booking — ${room.id}. ${status === "confirmed" ? "Deposit received." : status === "pending" ? "Awaiting deposit." : "Guest cancelled."}`;
+      if (i % 3 === 0) {
+        const interest = experienceOptions[i % experienceOptions.length]?.id;
+        if (interest) {
+          message = `Calabar experiences of interest (informational — concierge will advise, not charged online): ${interest}\n\n${message}`;
+        }
+      }
 
       const record: ReservationRecord = {
         id: stableDemoUuid(`res-${pad2(seq)}`),
@@ -152,7 +161,7 @@ function buildRoomSeeds(): {
         nights,
         guests,
         stayPreference: `${room.id} · ${nights} night(s) · ${guests} guest(s)`,
-        message: `Demo room booking — ${room.id}. ${status === "confirmed" ? "Deposit received." : status === "pending" ? "Awaiting deposit." : "Guest cancelled."}`,
+        message,
         status,
         paymentReference: status === "confirmed" ? ref : undefined,
         source: "demo",
@@ -198,73 +207,6 @@ function buildRoomSeeds(): {
   }
 
   return { reservations, payments };
-}
-
-function buildTourSeeds(startSeq: number): {
-  reservations: ReservationRecord[];
-  payments: PaymentRecord[];
-  nextSeq: number;
-} {
-  const reservations: ReservationRecord[] = [];
-  const payments: PaymentRecord[] = [];
-  let seq = startSeq;
-
-  for (let t = 0; t < tours.length; t++) {
-    const tour = tours[t];
-    for (let j = 0; j < 4; j++) {
-      const i = seq + j + t * 4;
-      const firstName = pick(FIRST_NAMES, i + 11);
-      const lastName = pick(LAST_NAMES, i + 13);
-      const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}.tour${seq}@example.com`;
-      const guests = (j % 3) + 2;
-      const tourDate = addDaysYmd("2026-06-12", seq * 3 + j);
-      const status = statusForIndex(i);
-      const ref = paymentRef(seq);
-      const deposit = calculateDepositNgn("tour", tour.priceFrom, 1, guests);
-
-      const record: ReservationRecord = {
-        id: stableDemoUuid(`res-${pad2(seq)}`),
-        firstName,
-        lastName,
-        email,
-        phone: `+23490${String(20000000 + seq).slice(-8)}`,
-        itemType: "tour",
-        checkIn: tourDate,
-        checkOut: tourDate,
-        nights: 1,
-        guests,
-        stayPreference: `${tour.id} · ${guests} guest(s) · ${tourDate}`,
-        message: `Guided tour booking — ${tour.id}. Guide included.`,
-        status,
-        paymentReference: status === "confirmed" ? ref : undefined,
-        source: "demo",
-        createdAt: isoCreated(seq, 12 + (seq % 8)),
-        emailSent: emailSentFor(status, seq),
-      };
-      reservations.push(record);
-
-      if (status === "confirmed") {
-        payments.push({
-          id: stableDemoUuid(`pay-${pad2(seq)}`),
-          reference: ref,
-          reservationId: record.id,
-          email,
-          amountKobo: deposit * 100,
-          currency: "NGN",
-          status: "success",
-          itemType: "tour",
-          itemId: tour.id,
-          itemLabel: `${tour.id} × ${guests} guests`,
-          source: "demo",
-          createdAt: isoCreated(seq, 13 + (seq % 8)),
-        });
-      }
-
-      seq++;
-    }
-  }
-
-  return { reservations, payments, nextSeq: seq };
 }
 
 const EXPERIENCE_SEEDS = [
@@ -381,16 +323,11 @@ export function generateDemoSeeds(): {
   payments: PaymentRecord[];
 } {
   const room = buildRoomSeeds();
-  const tour = buildTourSeeds(room.reservations.length + 1);
-  const experience = buildExperienceSeeds(tour.nextSeq);
+  const experience = buildExperienceSeeds(room.reservations.length + 1);
 
   return {
-    reservations: [
-      ...room.reservations,
-      ...tour.reservations,
-      ...experience.reservations,
-    ],
-    payments: [...room.payments, ...tour.payments],
+    reservations: [...room.reservations, ...experience.reservations],
+    payments: room.payments,
   };
 }
 

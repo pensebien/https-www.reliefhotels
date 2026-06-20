@@ -324,9 +324,11 @@
   "tours": {
     "pageTitle": "Visites & Guides Locaux",
     "pageDescription": "Explorez Calabar et le Cross River avec des guides de confiance sélectionnés par notre conciergerie.",
+    "infoOnlyNote": "Ces expériences sont à titre informatif — elles ne se réservent ni ne se paient en ligne. Indiquez vos centres d'intérêt lors de la réservation d'une chambre et notre conciergerie vous conseillera.",
     "guideIncluded": "Guide agréé inclus",
+    "bookRoomToExplore": "Réserver une chambre et indiquer vos intérêts",
     "from": "À partir de",
-    "bookTour": "Réserver cette expérience",
+    "bookTour": "Contacter notre équipe",
     "heritage": {
       "name": "Balade Patrimoine Calabar",
       "description": "Découvrez l'histoire, les marchés et les sites culturels avec un guide passionné.",
@@ -369,16 +371,17 @@
     }
   },
   "booking": {
-    "managerNotified": "Notre équipe a été informée de votre paiement d'acompte."
-  },
-  "language": {
-    "label": "Langue"
-  },
-  "booking": {
     "step1Title": "Vos informations",
     "step2Title": "Payer l'acompte",
     "depositDueNow": "Acompte de 20 % à payer maintenant",
     "totalStayEstimate": "Estimation totale du séjour",
-    "managerNotifyAfterPayment": "Notre responsable sera informé après votre paiement et confirmera votre réservation."
+    "depositNote": "Acompte chambre de 20 % à payer maintenant. Les visites et expériences locales sont informatives — non facturées en ligne.",
+    "experienceInterests": "Expériences à Calabar (optionnel)",
+    "experienceInterestsHint": "Indiquez ce que vous aimeriez explorer — notre équipe vous conseillera. Cela n'ajoute rien à votre paiement aujourd'hui.",
+    "managerNotifyAfterPayment": "Notre responsable sera informé après votre paiement et confirmera votre réservation.",
+    "managerNotified": "Notre équipe a été informée de votre paiement d'acompte."
+  },
+  "language": {
+    "label": "Langue"
   }
 }

@@ -19,12 +19,12 @@ const defaultFormData: ReservationFormData = {
   email: "",
   phone: "",
   message: "",
+  experienceInterests: [],
   termsAccepted: false,
 };
 
 export function useReservationFlow(options: ReservationFlowProps) {
   const {
-    itemType,
     itemId,
     itemLabel,
     checkIn,
@@ -44,7 +44,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
 
   const stayContext = useMemo<StayContext>(
     () => ({
-      itemType,
+      itemType: "room",
       itemId,
       itemLabel,
       checkIn,
@@ -53,12 +53,12 @@ export function useReservationFlow(options: ReservationFlowProps) {
       guests,
       priceFrom,
     }),
-    [checkIn, checkOut, guests, itemId, itemLabel, itemType, nights, priceFrom],
+    [checkIn, checkOut, guests, itemId, itemLabel, nights, priceFrom],
   );
 
   const depositNgn = useMemo(
-    () => calculateDepositNgn(itemType, priceFrom, nights, guests),
-    [guests, itemType, nights, priceFrom],
+    () => calculateDepositNgn(priceFrom, nights),
+    [nights, priceFrom],
   );
 
   const updateField = useCallback(
@@ -76,6 +76,18 @@ export function useReservationFlow(options: ReservationFlowProps) {
     },
     [],
   );
+
+  const toggleExperienceInterest = useCallback((id: string) => {
+    setFormData((prev) => {
+      const selected = prev.experienceInterests.includes(id);
+      return {
+        ...prev,
+        experienceInterests: selected
+          ? prev.experienceInterests.filter((x) => x !== id)
+          : [...prev.experienceInterests, id],
+      };
+    });
+  }, []);
 
   const submitReservation = useCallback(async (): Promise<string | null> => {
     const parsed = reservationFormSchema.safeParse(formData);
@@ -127,11 +139,10 @@ export function useReservationFlow(options: ReservationFlowProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: formData.email.trim(),
-            itemType,
+            itemType: "room",
             itemId,
             reservationId,
-            nights: itemType === "room" ? nights : undefined,
-            guests: itemType === "tour" ? guests : undefined,
+            nights,
             ...(useDemoTestAmount ? { demoAmountNgn: 5000 } : {}),
           }),
         });
@@ -155,14 +166,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
         );
       }
     },
-    [
-      formData.email,
-      guests,
-      itemId,
-      itemType,
-      nights,
-      useDemoTestAmount,
-    ],
+    [formData.email, itemId, nights, useDemoTestAmount],
   );
 
   const handleReserveAndPay = useCallback(async () => {
@@ -175,6 +179,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
   return {
     formData,
     updateField,
+    toggleExperienceInterest,
     validationErrors,
     setValidationErrors,
     status,

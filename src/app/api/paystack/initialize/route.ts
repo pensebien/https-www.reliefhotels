@@ -2,15 +2,8 @@ import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { findReservationById, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
 import { paystackInitializeSchema } from "@/lib/schemas/payment";
-import { rooms, tours } from "@/content/site";
+import { rooms } from "@/content/site";
 import { NextResponse } from "next/server";
-
-function resolveItem(itemType: "room" | "tour", itemId: string) {
-  if (itemType === "room") {
-    return rooms.find((r) => r.id === itemId || r.slug === itemId);
-  }
-  return tours.find((t) => t.id === itemId || t.slug === itemId);
-}
 
 export async function POST(request: Request) {
   try {
@@ -26,11 +19,9 @@ export async function POST(request: Request) {
 
     const {
       email,
-      itemType,
       itemId,
       reservationId,
       nights = 1,
-      guests = 1,
       demoAmountNgn,
     } = parsed.data;
 
@@ -49,30 +40,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const item = resolveItem(itemType, itemId);
+    const item = rooms.find((r) => r.id === itemId || r.slug === itemId);
 
     if (!item) {
-      return NextResponse.json({ error: "Item not found" }, { status: 404 });
+      return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    const amountNgn =
-      demoAmountNgn ??
-      calculateDepositNgn(itemType, item.priceFrom, nights, guests);
-
+    const amountNgn = demoAmountNgn ?? calculateDepositNgn(item.priceFrom, nights);
     const amountKobo = amountNgn * 100;
-    const itemLabel =
-      itemType === "room"
-        ? `${itemId} — ${nights} night(s) deposit (20%)`
-        : `${itemId} — ${guests} guest(s)`;
+    const itemLabel = `${itemId} — ${nights} night(s) deposit (20%)`;
 
     const result = await initializePayment({
       email,
       amountKobo,
-      itemType,
+      itemType: "room",
       itemId,
       itemLabel,
       reservationId,
-      metadata: { nights: String(nights), guests: String(guests) },
+      metadata: { nights: String(nights) },
     });
 
     await updateReservationById(reservationId, {
