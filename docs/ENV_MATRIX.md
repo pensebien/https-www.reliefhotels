@@ -77,6 +77,7 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `TERMII_API_KEY` | Live |
 | `MANAGER_PHONE` | Operations manager |
 | `DEMO_DASHBOARD_KEY` | Keep for stakeholder demo; rotate quarterly |
+| `MONIEPOINT_*` | Front-desk walk-in (cash / terminal / transfer) — see `docs/deploy/MONIEPOINT.md` |
 | `DATABASE_URL` | Supabase connection string (server only) |
 | `WHATSAPP_*` | Provider keys when `NOTIFY_CHANNEL=both` |
 
@@ -106,6 +107,13 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `WHATSAPP_PROVIDER` | WhatsApp | `termii` or `meta` |
 | `META_WHATSAPP_TOKEN` | WhatsApp | If provider=meta |
 | `META_WHATSAPP_PHONE_ID` | WhatsApp | If provider=meta |
+| `MONIEPOINT_CLIENT_ID` | Front-desk terminal | Production walk-in |
+| `MONIEPOINT_CLIENT_SECRET` | Front-desk terminal | Production (server only) |
+| `MONIEPOINT_TERMINAL_SERIAL` | Front-desk terminal | POS serial from Moniepoint |
+| `MONIEPOINT_BASE_URL` | Front-desk terminal | Optional; default `https://channel.moniepoint.com` |
+| `MONIEPOINT_TRANSFER_ACCOUNT_NAME` | Front-desk transfer | Shown in walk-in form |
+| `MONIEPOINT_TRANSFER_ACCOUNT_NUMBER` | Front-desk transfer | Shown in walk-in form |
+| `MONIEPOINT_TRANSFER_BANK_NAME` | Front-desk transfer | Optional; default `Moniepoint` |
 
 ---
 

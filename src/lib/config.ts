@@ -58,6 +58,16 @@ export function getServerConfig() {
         process.env.STAFF_PORTAL_HOST ??
         "reservation.reliefhotelsandsuites.com.ng",
     },
+    moniepoint: {
+      clientId: process.env.MONIEPOINT_CLIENT_ID ?? "",
+      clientSecret: process.env.MONIEPOINT_CLIENT_SECRET ?? "",
+      terminalSerial: process.env.MONIEPOINT_TERMINAL_SERIAL ?? "",
+      configured: Boolean(
+        process.env.MONIEPOINT_CLIENT_ID &&
+          process.env.MONIEPOINT_CLIENT_SECRET &&
+          process.env.MONIEPOINT_TERMINAL_SERIAL,
+      ),
+    },
   };
 }
 

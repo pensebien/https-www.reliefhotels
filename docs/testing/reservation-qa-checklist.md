@@ -58,6 +58,9 @@
 | M18 | Staff portal `reservation.…?key=…` — filters, categories, storage | Stakeholder review |
 | M19 | Resend confirmation email received | Inbox check |
 | M20 | Double-click pay button (no duplicate charge) | Browser behaviour |
+| M21 | Walk-in booking — cash deposit | Staff portal → New walk-in booking |
+| M22 | Walk-in booking — Moniepoint terminal (or demo mode) | See `docs/deploy/MONIEPOINT.md` |
+| M23 | Walk-in booking — Moniepoint transfer auto-detected | See `docs/deploy/MONIEPOINT.md` — no manual reference |
 
 ---
 

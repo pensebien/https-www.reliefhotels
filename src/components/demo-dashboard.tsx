@@ -2,6 +2,7 @@
 
 import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
 import { InventoryCalendarView } from "@/components/staff/inventory-calendar-view";
+import { StaffCreateReservationDialog } from "@/components/staff/staff-create-reservation-dialog";
 import { rooms } from "@/content/site";
 import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
 import { DashboardSearchBar } from "@/components/dashboard-search-bar";
@@ -32,7 +33,7 @@ import {
   type DateRangePreset,
 } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
-import { CalendarDays, LayoutList, RefreshCw } from "lucide-react";
+import { CalendarDays, LayoutList, Plus, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -74,6 +75,7 @@ type PaymentRow = {
   itemType?: "room" | "tour";
   itemId?: string;
   itemLabel: string;
+  paymentMethod?: "cash" | "moniepoint_terminal" | "moniepoint_transfer" | "paystack";
   source: string;
   createdAt: string;
 };
@@ -101,6 +103,16 @@ type Activity = {
     supabaseConfigured: boolean;
     storageHealth: StorageHealth;
     notifyChannel: string;
+  };
+  moniepoint?: {
+    configured: boolean;
+    terminalConfigured: boolean;
+    demoMode: boolean;
+    transferAccount: {
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+    } | null;
   };
   reservations: ReservationRow[];
   payments: PaymentRow[];
@@ -204,6 +216,7 @@ export function DemoDashboard({
   const [viewMode, setViewMode] = useState<DashboardView>(
     variant === "portal" ? "calendar" : "lists",
   );
+  const [createReservationOpen, setCreateReservationOpen] = useState(false);
   const reservationsSectionRef = useRef<HTMLElement>(null);
   const paymentsSectionRef = useRef<HTMLElement>(null);
 
@@ -552,6 +565,19 @@ export function DemoDashboard({
     t,
   ]);
 
+  const roomOptions = useMemo(
+    () =>
+      rooms.map((room) => {
+        const path = room.nameKey.replace(/^rooms\./, "");
+        return {
+          id: room.id,
+          label: tRooms(path as "guest.name"),
+          priceFrom: room.priceFrom,
+        };
+      }),
+    [tRooms],
+  );
+
   const unitLabels = useMemo(() => {
     const labels: Record<string, string> = {};
     for (const room of rooms) {
@@ -582,15 +608,27 @@ export function DemoDashboard({
             <p className="mt-1 text-sm text-muted">{t("portalSubheading")}</p>
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => load(key)}
-          disabled={loading}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          {t("refresh")}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {data ? (
+            <button
+              type="button"
+              onClick={() => setCreateReservationOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-teal px-4 py-2 text-sm font-medium text-gray-950 hover:bg-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              {t("createReservation.button")}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => load(key)}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            {t("refresh")}
+          </button>
+        </div>
       </div>
 
       <form
@@ -970,6 +1008,11 @@ export function DemoDashboard({
                           </div>
                         </div>
                         <p className="text-muted">{p.itemLabel}</p>
+                        {p.paymentMethod ? (
+                          <p className="mt-1 text-xs text-muted">
+                            {t(`createReservation.paymentMethods.${p.paymentMethod}`)}
+                          </p>
+                        ) : null}
                         <p className="mt-1 font-mono text-xs text-muted">
                           {p.reference}
                         </p>
@@ -1005,6 +1048,15 @@ export function DemoDashboard({
           )}
         </>
       )}
+
+      <StaffCreateReservationDialog
+        open={createReservationOpen}
+        onClose={() => setCreateReservationOpen(false)}
+        dashboardKey={key}
+        roomOptions={roomOptions}
+        moniepointConfig={data?.moniepoint}
+        onCreated={() => load(key)}
+      />
     </div>
   );
 }

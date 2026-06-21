@@ -2,6 +2,7 @@ import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
 import { getActivity } from "@/lib/demo-store";
 import { getEventInquiries } from "@/lib/inquiry-store";
+import { getMoniepointPublicConfig } from "@/lib/moniepoint";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
         storageHealth,
         notifyChannel: config.notifications.channel,
       },
+      moniepoint: getMoniepointPublicConfig(),
       ...activity,
       eventInquiries,
     });

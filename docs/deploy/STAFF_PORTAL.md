@@ -114,4 +114,4 @@ http://localhost:3002/en/staff?key=relief-demo-2026
 | “Invalid dashboard key” | Check `DEMO_DASHBOARD_KEY` on Netlify matches URL |
 | `/en/staff` on main site works but subdomain doesn’t | Verify `STAFF_PORTAL_HOST` matches hostname exactly |
 
-See also: [NETLIFY.md](./NETLIFY.md)
+See also: [NETLIFY.md](./NETLIFY.md) · [MONIEPOINT.md](./MONIEPOINT.md) (walk-in payments)

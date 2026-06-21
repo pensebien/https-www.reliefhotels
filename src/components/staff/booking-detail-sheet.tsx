@@ -1,10 +1,12 @@
 "use client";
 
 import type { CalendarBooking } from "@/lib/inventory-calendar";
+import { toMailtoHref } from "@/lib/contact-links";
 import { cn, formatNaira } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import { PhoneContactLink } from "./phone-contact-link";
 
 export function BookingDetailSheet({
   booking,
@@ -77,9 +79,22 @@ export function BookingDetailSheet({
             label={t("stayDates")}
             value={`${formatDate(booking.checkIn)} → ${formatDate(booking.checkOut)}`}
           />
-          <DetailRow label={t("calendar.detailEmail")} value={booking.email} />
+          <DetailRow label={t("calendar.detailEmail")}>
+            <a
+              href={toMailtoHref(booking.email)}
+              className="font-medium text-teal underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal"
+              aria-label={t("calendar.contactEmailAria", { email: booking.email })}
+            >
+              {booking.email}
+            </a>
+          </DetailRow>
           {booking.phone ? (
-            <DetailRow label={t("calendar.detailPhone")} value={booking.phone} />
+            <DetailRow label={t("calendar.detailPhone")}>
+              <PhoneContactLink
+                phone={booking.phone}
+                ariaLabel={t("calendar.contactPhoneAria", { phone: booking.phone })}
+              />
+            </DetailRow>
           ) : null}
           <DetailRow
             label={t("calendar.detailGuests")}
@@ -122,17 +137,23 @@ function DetailRow({
   label,
   value,
   mono,
+  children,
 }: {
   label: string;
-  value: string;
+  value?: string;
   mono?: boolean;
+  children?: ReactNode;
 }) {
   return (
     <div>
       <p className="text-xs text-muted">{label}</p>
-      <p className={cn("mt-0.5 font-medium", mono && "font-mono text-xs")}>
-        {value}
-      </p>
+      {children ? (
+        <div className="mt-0.5">{children}</div>
+      ) : (
+        <p className={cn("mt-0.5 font-medium", mono && "font-mono text-xs")}>
+          {value}
+        </p>
+      )}
     </div>
   );
 }

@@ -33,6 +33,9 @@ type PaymentRow = {
   item_type: PaymentRecord["itemType"];
   item_id: string;
   item_label: string;
+  payment_method: PaymentRecord["paymentMethod"] | null;
+  payment_channel: PaymentRecord["paymentChannel"] | null;
+  external_reference: string | null;
   source: PaymentRecord["source"];
   created_at: string;
 };
@@ -72,6 +75,9 @@ function mapPayment(row: PaymentRow): PaymentRecord {
     itemType: row.item_type,
     itemId: row.item_id,
     itemLabel: row.item_label,
+    paymentMethod: row.payment_method ?? undefined,
+    paymentChannel: row.payment_channel ?? undefined,
+    externalReference: row.external_reference ?? undefined,
     source: row.source,
     createdAt: row.created_at,
   };
@@ -222,6 +228,9 @@ export async function dbAddPayment(
       item_type: data.itemType,
       item_id: data.itemId,
       item_label: data.itemLabel,
+      payment_method: data.paymentMethod ?? null,
+      payment_channel: data.paymentChannel ?? null,
+      external_reference: data.externalReference ?? null,
       source: "live",
     })
     .select()
@@ -244,6 +253,12 @@ export async function dbUpdatePaymentByReference(
   if (patch.amountKobo !== undefined) update.amount_kobo = patch.amountKobo;
   if (patch.reservationId !== undefined) {
     update.reservation_id = patch.reservationId;
+  }
+  if (patch.externalReference !== undefined) {
+    update.external_reference = patch.externalReference;
+  }
+  if (patch.paymentMethod !== undefined) {
+    update.payment_method = patch.paymentMethod;
   }
 
   const { data: row, error } = await supabase

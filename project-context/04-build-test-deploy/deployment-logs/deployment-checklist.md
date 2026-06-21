@@ -8,7 +8,7 @@
 
 - [ ] `npm run build` PASS
 - [ ] `npm run test:qa` PASS (14 automated reservation tests)
-- [ ] Supabase schema applied (`docs/supabase/schema.sql` + `migration-002-reservation-fields.sql`)
+- [ ] Supabase schema applied (`docs/supabase/schema.sql` + `migration-002-reservation-fields.sql` + `migration-004-payment-method.sql`)
 - [ ] `npm run verify:supabase` PASS locally with production credentials
 - [ ] All secrets in Netlify dashboard (not in Git)
 - [ ] `NEXT_PUBLIC_APP_URL` = `https://reliefhotelsandsuites.com.ng`
@@ -27,6 +27,8 @@
 - [ ] Full booking: property bar → rooms → book → pay demo → callback success
 - [ ] POST reservation → row in Supabase (not ephemeral file store)
 - [ ] `/en/staff?key=…` or `reservation.…?key=…` — reservations, payments, category badges, no marketing chrome
+- [ ] Walk-in booking: cash + Moniepoint transfer (see `docs/deploy/MONIEPOINT.md`)
+- [ ] Moniepoint env vars set when terminal goes live (`MONIEPOINT_CLIENT_ID`, `MONIEPOINT_CLIENT_SECRET`, `MONIEPOINT_TERMINAL_SERIAL`)
 - [ ] Paystack callback URL matches `NEXT_PUBLIC_APP_URL` (when using live/test keys)
 
 ## Sign-off

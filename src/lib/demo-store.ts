@@ -9,6 +9,10 @@ import {
   dbUpdateReservationById,
 } from "@/lib/db/booking-store";
 import { isSupabaseEnabled } from "@/lib/db/client";
+import type {
+  FrontDeskPaymentMethod,
+  PaymentChannel,
+} from "@/lib/payment-methods";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
@@ -45,6 +49,9 @@ export type PaymentRecord = {
   itemType: "room" | "tour";
   itemId: string;
   itemLabel: string;
+  paymentMethod?: FrontDeskPaymentMethod | "paystack";
+  paymentChannel?: PaymentChannel;
+  externalReference?: string;
   source: "live" | "demo";
   createdAt: string;
 };
