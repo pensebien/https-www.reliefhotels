@@ -2,6 +2,12 @@
 
 import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
 import { InventoryCalendarView } from "@/components/staff/inventory-calendar-view";
+import { DashboardInboxView } from "@/components/staff/dashboard-inbox-view";
+import { DashboardListsView } from "@/components/staff/dashboard-lists-view";
+import type {
+  DashboardPaymentRow,
+  DashboardReservationRow,
+} from "@/components/staff/dashboard-shared";
 import { StaffCreateReservationDialog } from "@/components/staff/staff-create-reservation-dialog";
 import { rooms } from "@/content/site";
 import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
@@ -9,9 +15,7 @@ import { DashboardSearchBar } from "@/components/dashboard-search-bar";
 import {
   DashboardDateFilter,
   DashboardPageSizeSelect,
-  DashboardPagination,
   fieldsForPreset,
-  getPaginationMeta,
   PAGE_SIZE_OPTIONS,
   type PageSizeOption,
 } from "@/components/dashboard-date-pagination";
@@ -21,63 +25,24 @@ import {
   normalizeSearchQuery,
   type SearchScope,
 } from "@/lib/dashboard-search";
-import {
-  resolveBookingCategoryKey,
-  type BookingCategoryKey,
-} from "@/lib/booking-category";
+import { parseYmd } from "@/lib/reservation-dates";
 import {
   isValidYmd,
-  parseYmd,
   reservationInDateRange,
   resolveDateRange,
   type DateRangePreset,
 } from "@/lib/reservation-dates";
-import { cn, formatNaira } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { CalendarDays, LayoutList, Plus, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type StorageHealth = {
   mode: "supabase" | "file";
   supabaseConfigured: boolean;
   connected: boolean | null;
   message: string;
-};
-
-type ReservationRow = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  checkIn?: string;
-  checkOut?: string;
-  nights?: number;
-  guests: number;
-  itemType?: "room" | "tour" | "inquiry";
-  roomId?: string;
-  stayPreference: string;
-  status: "pending" | "confirmed" | "cancelled";
-  paymentReference?: string;
-  source: string;
-  createdAt: string;
-  emailSent: boolean;
-};
-
-type PaymentRow = {
-  id: string;
-  reference: string;
-  reservationId?: string;
-  email: string;
-  amountKobo: number;
-  status: string;
-  itemType?: "room" | "tour";
-  itemId?: string;
-  itemLabel: string;
-  paymentMethod?: "cash" | "moniepoint_terminal" | "moniepoint_transfer" | "paystack";
-  source: string;
-  createdAt: string;
 };
 
 type EventInquiryRow = {
@@ -114,16 +79,14 @@ type Activity = {
       accountName: string;
     } | null;
   };
-  reservations: ReservationRow[];
-  payments: PaymentRow[];
+  reservations: DashboardReservationRow[];
+  payments: DashboardPaymentRow[];
   eventInquiries?: EventInquiryRow[];
 };
 
 type DashboardView = "calendar" | "lists";
 
-type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
-
-const DEFAULT_PAGE_SIZE: PageSizeOption = 10;
+const DEFAULT_PAGE_SIZE: PageSizeOption = 4;
 
 const DEFAULT_KEY = "relief-demo-2026";
 
@@ -133,53 +96,6 @@ function formatStayDate(ymd: string) {
   } catch {
     return ymd;
   }
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
-
-function StatusBadge({ status }: { status: ReservationRow["status"] }) {
-  return (
-    <span
-      className={cn(
-        "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
-        status === "confirmed" && "bg-teal/20 text-teal-dark",
-        status === "pending" && "bg-amber-500/15 text-amber-800 dark:text-amber-200",
-        status === "cancelled" && "bg-border text-muted",
-      )}
-    >
-      {status}
-    </span>
-  );
-}
-
-function CategoryBadge({
-  categoryKey,
-  label,
-}: {
-  categoryKey: BookingCategoryKey;
-  label: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
-        categoryKey === "penthouse" && "bg-violet-500/15 text-violet-200",
-        categoryKey === "suite" && "bg-teal/15 text-teal-dark",
-        categoryKey === "executive" && "bg-sky-500/15 text-sky-200",
-        categoryKey === "room" && "bg-border text-muted",
-        categoryKey === "eventsMeetings" && "bg-amber-500/15 text-amber-200",
-        categoryKey === "tour" && "bg-emerald-500/15 text-emerald-200",
-        categoryKey === "inquiry" && "bg-border text-muted",
-      )}
-    >
-      {label}
-    </span>
-  );
 }
 
 export function DemoDashboard({
@@ -202,13 +118,10 @@ export function DemoDashboard({
     variant === "portal" ? "upcoming" : "all";
   const initialFields = fieldsForPreset(initialPreset);
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [datePreset, setDatePreset] = useState<DateRangePreset>(initialPreset);
   const [customFrom, setCustomFrom] = useState(initialFields.from);
   const [customTo, setCustomTo] = useState(initialFields.to);
   const [dateError, setDateError] = useState<string | null>(null);
-  const [resPage, setResPage] = useState(1);
-  const [payPage, setPayPage] = useState(1);
   const [pageSize, setPageSize] = useState<PageSizeOption>(DEFAULT_PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
@@ -217,8 +130,6 @@ export function DemoDashboard({
     variant === "portal" ? "calendar" : "lists",
   );
   const [createReservationOpen, setCreateReservationOpen] = useState(false);
-  const reservationsSectionRef = useRef<HTMLElement>(null);
-  const paymentsSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const rangeParam = searchParams.get("range") as DateRangePreset | null;
@@ -248,11 +159,6 @@ export function DemoDashboard({
       setPageSize(parsed as PageSizeOption);
     }
   }, []);
-
-  useEffect(() => {
-    setResPage(1);
-    setPayPage(1);
-  }, [statusFilter, datePreset, customFrom, customTo, searchQuery, searchScope, pageSize]);
 
   function handlePageSizeChange(size: PageSizeOption) {
     setPageSize(size);
@@ -332,7 +238,7 @@ export function DemoDashboard({
   }, [keyFromUrl, load]);
 
   const paymentsByReservation = useMemo(() => {
-    const map = new Map<string, PaymentRow[]>();
+    const map = new Map<string, DashboardPaymentRow[]>();
     if (!data) return map;
     for (const payment of data.payments) {
       if (!payment.reservationId) continue;
@@ -344,7 +250,7 @@ export function DemoDashboard({
   }, [data]);
 
   const reservationsById = useMemo(() => {
-    const map = new Map<string, ReservationRow>();
+    const map = new Map<string, DashboardReservationRow>();
     if (!data) return map;
     for (const reservation of data.reservations) {
       map.set(reservation.id, reservation);
@@ -365,13 +271,9 @@ export function DemoDashboard({
 
   const baseReservations = useMemo(() => {
     if (!data) return [];
-    let list = data.reservations.filter((r) =>
-      reservationInDateRange(r, activeDateRange),
-    );
-    if (statusFilter !== "all") {
-      list = list.filter((r) => r.status === statusFilter);
-    }
-    return list.sort((a, b) => {
+    return data.reservations
+      .filter((r) => reservationInDateRange(r, activeDateRange))
+      .sort((a, b) => {
       if (a.checkIn && b.checkIn) {
         return a.checkIn.localeCompare(b.checkIn);
       }
@@ -379,7 +281,7 @@ export function DemoDashboard({
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     });
-  }, [activeDateRange, data, statusFilter]);
+  }, [activeDateRange, data]);
 
   const filteredReservations = useMemo(() => {
     if (!normalizedSearch) return baseReservations;
@@ -409,13 +311,6 @@ export function DemoDashboard({
           ) {
             return false;
           }
-          if (
-            statusFilter !== "all" &&
-            reservation &&
-            reservation.status !== statusFilter
-          ) {
-            return false;
-          }
           return true;
         }
         if (!activeDateRange) return true;
@@ -431,20 +326,11 @@ export function DemoDashboard({
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
-  }, [activeDateRange, data, reservationsById, statusFilter]);
+  }, [activeDateRange, data, reservationsById]);
 
   const filteredPayments = useMemo(() => {
     if (!normalizedSearch) {
-      const visibleReservationIds = new Set(
-        filteredReservations.map((r) => r.id),
-      );
-      return basePayments.filter((p) => {
-        if (p.reservationId && visibleReservationIds.has(p.reservationId)) {
-          return true;
-        }
-        if (!activeDateRange) return true;
-        return !p.reservationId;
-      });
+      return basePayments;
     }
 
     if (searchScope === "reservations") {
@@ -463,7 +349,6 @@ export function DemoDashboard({
       searchScope,
     );
   }, [
-    activeDateRange,
     basePayments,
     filteredReservations,
     normalizedSearch,
@@ -471,51 +356,6 @@ export function DemoDashboard({
     searchQuery,
     searchScope,
   ]);
-
-  const paginatedReservations = useMemo(() => {
-    const { safePage } = getPaginationMeta(
-      resPage,
-      filteredReservations.length,
-      pageSize,
-    );
-    const start = (safePage - 1) * pageSize;
-    return filteredReservations.slice(start, start + pageSize);
-  }, [filteredReservations, pageSize, resPage]);
-
-  const paginatedPayments = useMemo(() => {
-    const { safePage } = getPaginationMeta(
-      payPage,
-      filteredPayments.length,
-      pageSize,
-    );
-    const start = (safePage - 1) * pageSize;
-    return filteredPayments.slice(start, start + pageSize);
-  }, [filteredPayments, pageSize, payPage]);
-
-  const reservationPagination = getPaginationMeta(
-    resPage,
-    filteredReservations.length,
-    pageSize,
-  );
-  const paymentPagination = getPaginationMeta(
-    payPage,
-    filteredPayments.length,
-    pageSize,
-  );
-
-  const scrollToSection = useCallback((section: HTMLElement | null) => {
-    section?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  function handleReservationPageChange(page: number) {
-    setResPage(page);
-    scrollToSection(reservationsSectionRef.current);
-  }
-
-  function handlePaymentPageChange(page: number) {
-    setPayPage(page);
-    scrollToSection(paymentsSectionRef.current);
-  }
 
   const storageWarning =
     data?.config.storageHealth.mode === "file" ||
@@ -527,10 +367,9 @@ export function DemoDashboard({
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (normalizedSearch) count += 1;
-    if (statusFilter !== "all") count += 1;
     if (datePreset !== defaultDatePreset) count += 1;
     return count;
-  }, [datePreset, defaultDatePreset, normalizedSearch, statusFilter]);
+  }, [datePreset, defaultDatePreset, normalizedSearch]);
 
   const filterSummary = useMemo(() => {
     const parts: string[] = [];
@@ -551,9 +390,6 @@ export function DemoDashboard({
         parts.push(t(`dateFilters.${datePreset}`));
       }
     }
-    if (statusFilter !== "all") {
-      parts.push(t(`filters.${statusFilter}`));
-    }
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [
     activeDateRange,
@@ -561,7 +397,6 @@ export function DemoDashboard({
     defaultDatePreset,
     normalizedSearch,
     searchQuery,
-    statusFilter,
     t,
   ]);
 
@@ -697,31 +532,6 @@ export function DemoDashboard({
               dateError={dateError}
             />
 
-            <div>
-              <p className="mb-2 text-xs font-medium text-muted">
-                {t("statusFilterTitle")}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(["all", "pending", "confirmed", "cancelled"] as const).map(
-                  (filter) => (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => setStatusFilter(filter)}
-                      className={cn(
-                        "rounded-full px-3 py-1.5 text-xs font-medium capitalize transition-colors",
-                        statusFilter === filter
-                          ? "bg-teal text-gray-950"
-                          : "border border-border bg-card text-muted hover:border-teal",
-                      )}
-                    >
-                      {t(`filters.${filter}`)}
-                    </button>
-                  ),
-                )}
-              </div>
-            </div>
-
             {variant === "demo" ? (
               <div>
                 <p className="mb-2 text-xs font-medium text-muted">
@@ -813,238 +623,23 @@ export function DemoDashboard({
               paymentsByReservation={paymentsByReservation}
               unitLabels={unitLabels}
             />
+          ) : variant === "portal" ? (
+            <DashboardListsView
+              reservations={filteredReservations}
+              payments={filteredPayments}
+              paymentsByReservation={paymentsByReservation}
+              reservationsById={reservationsById}
+              pageSize={pageSize}
+              defaultBookingStatus="pending"
+            />
           ) : (
-          <>
-          <div
-            className={cn(
-              "grid gap-10",
-              variant === "portal" ? "grid-cols-1" : "lg:grid-cols-2",
-            )}
-          >
-            <section
-              ref={reservationsSectionRef}
-              className="scroll-mt-24"
-            >
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-                <h2 className="text-lg font-semibold">
-                  {t("reservations")}{" "}
-                  <span className="text-sm font-normal text-muted">
-                    ({filteredReservations.length})
-                  </span>
-                  {reservationPagination.needsPagination ? (
-                    <span className="ml-2 text-xs font-normal text-teal-dark">
-                      · {t("paginationPage", {
-                        page: reservationPagination.safePage,
-                        totalPages: reservationPagination.totalPages,
-                      })}
-                    </span>
-                  ) : null}
-                </h2>
-              </div>
-              <DashboardPagination
-                placement="header"
-                page={resPage}
-                totalItems={filteredReservations.length}
-                pageSize={pageSize}
-                onPageChange={handleReservationPageChange}
-              />
-              <div className="space-y-3">
-                {filteredReservations.length === 0 ? (
-                  <p className="text-sm text-muted">
-                    {normalizedSearch
-                      ? t("emptySearchReservations", { query: searchQuery.trim() })
-                      : t("emptyReservations")}
-                  </p>
-                ) : (
-                  paginatedReservations.map((r) => {
-                    const linked = paymentsByReservation.get(r.id) ?? [];
-                    const successPayment = linked.find((p) => p.status === "success");
-                    const categoryKey = resolveBookingCategoryKey({
-                      itemType: r.itemType,
-                      roomId: r.roomId,
-                      stayPreference: r.stayPreference,
-                    });
-
-                    return (
-                      <div
-                        key={r.id}
-                        className="rounded-xl border border-border bg-card p-4 text-sm"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium">
-                            {r.firstName} {r.lastName}
-                          </p>
-                          <div className="flex flex-wrap items-center justify-end gap-1.5">
-                            <CategoryBadge
-                              categoryKey={categoryKey}
-                              label={t(`categories.${categoryKey}`)}
-                            />
-                            <StatusBadge status={r.status} />
-                          </div>
-                        </div>
-                        <p className="text-muted">{r.email}</p>
-                        {r.phone ? (
-                          <p className="text-xs text-muted">{r.phone}</p>
-                        ) : null}
-                        {(r.checkIn || r.checkOut) && (
-                          <p className="mt-2 rounded-lg border border-teal/20 bg-teal/5 px-3 py-2 text-xs font-medium text-foreground">
-                            {t("stayDates")}:{" "}
-                            {r.checkIn ? formatStayDate(r.checkIn) : "—"} →{" "}
-                            {r.checkOut ? formatStayDate(r.checkOut) : "—"}
-                            {r.nights ? ` · ${r.nights} night(s)` : ""}
-                            {r.guests ? ` · ${r.guests} guest(s)` : ""}
-                          </p>
-                        )}
-                        {!r.checkIn && !r.checkOut && r.itemType === "room" && (
-                          <p className="mt-2 text-xs font-medium text-amber-600">
-                            {t("missingStayDates")}
-                          </p>
-                        )}
-                        <p className="mt-1 text-xs text-muted">{r.stayPreference}</p>
-                        <p className="mt-2 font-mono text-[10px] text-muted">
-                          {t("reservationId")}: {r.id}
-                        </p>
-                        {r.paymentReference && (
-                          <p className="font-mono text-[10px] text-muted">
-                            {t("paymentRef")}: {r.paymentReference}
-                          </p>
-                        )}
-                        {successPayment && (
-                          <p className="mt-2 text-xs font-medium text-teal-dark">
-                            {t("linkedPayment")}:{" "}
-                            {formatNaira(successPayment.amountKobo / 100)} ·{" "}
-                            {successPayment.reference}
-                          </p>
-                        )}
-                        <p className="mt-2 text-[10px] text-muted">
-                          {formatDate(r.createdAt)}
-                          {r.emailSent ? " · ✉ sent" : ""}
-                          {" · "}
-                          {r.source}
-                        </p>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              <DashboardPagination
-                page={resPage}
-                totalItems={filteredReservations.length}
-                pageSize={pageSize}
-                onPageChange={handleReservationPageChange}
-              />
-            </section>
-
-            <section
-              ref={paymentsSectionRef}
-              className="scroll-mt-24"
-            >
-              <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-                <h2 className="text-lg font-semibold">
-                  {t("payments")}{" "}
-                  <span className="text-sm font-normal text-muted">
-                    ({filteredPayments.length})
-                  </span>
-                  {paymentPagination.needsPagination ? (
-                    <span className="ml-2 text-xs font-normal text-teal-dark">
-                      · {t("paginationPage", {
-                        page: paymentPagination.safePage,
-                        totalPages: paymentPagination.totalPages,
-                      })}
-                    </span>
-                  ) : null}
-                </h2>
-              </div>
-              <DashboardPagination
-                placement="header"
-                page={payPage}
-                totalItems={filteredPayments.length}
-                pageSize={pageSize}
-                onPageChange={handlePaymentPageChange}
-              />
-              <div className="space-y-3">
-                {filteredPayments.length === 0 ? (
-                  <p className="text-sm text-muted">
-                    {normalizedSearch
-                      ? t("emptySearchPayments", { query: searchQuery.trim() })
-                      : t("emptyPayments")}
-                  </p>
-                ) : (
-                  paginatedPayments.map((p) => {
-                      const linkedReservation = p.reservationId
-                        ? reservationsById.get(p.reservationId)
-                        : undefined;
-                      const categoryKey = resolveBookingCategoryKey({
-                        itemType: p.itemType ?? linkedReservation?.itemType,
-                        itemId: p.itemId,
-                        roomId: linkedReservation?.roomId,
-                        stayPreference: linkedReservation?.stayPreference,
-                      });
-
-                      return (
-                      <div
-                        key={p.id}
-                        className="rounded-xl border border-border bg-card p-4 text-sm"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium">
-                            {formatNaira(p.amountKobo / 100)}
-                          </p>
-                          <div className="flex flex-wrap items-center justify-end gap-1.5">
-                            <CategoryBadge
-                              categoryKey={categoryKey}
-                              label={t(`categories.${categoryKey}`)}
-                            />
-                            <span
-                              className={cn(
-                                "shrink-0 rounded-full px-2 py-0.5 text-xs capitalize",
-                                p.status === "success"
-                                  ? "bg-teal/20 text-teal-dark"
-                                  : "bg-border text-muted",
-                              )}
-                            >
-                              {p.status}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-muted">{p.itemLabel}</p>
-                        {p.paymentMethod ? (
-                          <p className="mt-1 text-xs text-muted">
-                            {t(`createReservation.paymentMethods.${p.paymentMethod}`)}
-                          </p>
-                        ) : null}
-                        <p className="mt-1 font-mono text-xs text-muted">
-                          {p.reference}
-                        </p>
-                        {p.reservationId && linkedReservation?.checkIn && (
-                          <p className="mt-1 text-xs text-muted">
-                            {t("stayDates")}:{" "}
-                            {formatStayDate(linkedReservation.checkIn)} →{" "}
-                            {formatStayDate(linkedReservation.checkOut ?? "—")}
-                          </p>
-                        )}
-                        {p.reservationId && (
-                          <p className="mt-1 font-mono text-[10px] text-muted">
-                            {t("reservationId")}: {p.reservationId}
-                          </p>
-                        )}
-                        <p className="mt-2 text-[10px] text-muted">
-                          {formatDate(p.createdAt)} · {p.source}
-                        </p>
-                      </div>
-                    );
-                    })
-                )}
-              </div>
-              <DashboardPagination
-                page={payPage}
-                totalItems={filteredPayments.length}
-                pageSize={pageSize}
-                onPageChange={handlePaymentPageChange}
-              />
-            </section>
-          </div>
-          </>
+            <DashboardInboxView
+              reservations={filteredReservations}
+              payments={filteredPayments}
+              paymentsByReservation={paymentsByReservation}
+              reservationsById={reservationsById}
+              pageSize={pageSize}
+            />
           )}
         </>
       )}

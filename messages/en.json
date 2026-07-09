@@ -613,7 +613,14 @@
         "executive": "Executive",
         "suites": "Suites",
         "penthouse": "Penthouse",
-        "eventsMeetings": "Events & halls"
+        "eventsMeetings": "Pavilion & halls"
+      },
+      "pagination": {
+        "label": "Occupancy table pages",
+        "showing": "Showing {from}–{to} of {total} units",
+        "prev": "Previous page",
+        "next": "Next page",
+        "page": "Page {page} of {total}"
       }
     },
     "refresh": "Refresh",
@@ -691,11 +698,36 @@
     },
     "reservations": "Reservations",
     "payments": "Payments",
+    "rowTypeReservation": "Booking reservation",
+    "rowTypePayment": "Payment",
     "reservationId": "Reservation",
     "paymentRef": "Payment ref",
     "linkedPayment": "Deposit paid",
     "emptyReservations": "No reservations match this filter.",
+    "emptyPendingBookings": "No pending bookings in this date range.",
     "emptyPayments": "No payments match this filter.",
+    "entityTabsLabel": "List type",
+    "entityBookings": "Bookings",
+    "entityPayments": "Payments",
+    "bookingStatusTabsLabel": "Booking status",
+    "paymentStatusTabsLabel": "Payment status",
+    "paymentStatus": {
+      "pending": "Pending",
+      "success": "Paid",
+      "failed": "Failed"
+    },
+    "depositPaidChip": "Deposit {amount}",
+    "depositMissingChip": "No deposit",
+    "inbox": {
+      "title": "Booking inbox",
+      "subtitle": "Cases that need follow-up, confirmed stays, and payment history.",
+      "tabsLabel": "Inbox views",
+      "needsAction": "Needs action",
+      "paymentsLedger": "Payments ledger",
+      "awaitingDeposit": "Awaiting deposit",
+      "emptyNeedsAction": "No pending bookings need action right now.",
+      "contactEmail": "Email guest"
+    },
     "storageWarningTitle": "Bookings may not persist on this host",
     "filters": {
       "all": "All",

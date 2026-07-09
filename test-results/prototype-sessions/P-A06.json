@@ -1,0 +1,62 @@
+{
+  "participantId": "P-A06",
+  "profile": "corporate",
+  "device": "desktop",
+  "automated": true,
+  "startedAt": "2026-07-08T21:13:24.864Z",
+  "finishedAt": "2026-07-08T21:13:53.885Z",
+  "tasks": [
+    {
+      "id": "task-1",
+      "name": "First impression",
+      "pass": true,
+      "durationMs": 4159,
+      "notes": "Homepage conveys luxury hotel in Calabar"
+    },
+    {
+      "id": "task-2",
+      "name": "Room discovery",
+      "pass": true,
+      "durationMs": 841,
+      "notes": "Reached book page with deposit context"
+    },
+    {
+      "id": "task-3",
+      "name": "Booking / deposit",
+      "pass": true,
+      "durationMs": 11018,
+      "notes": "Demo payment success for prototype.p-a06.mrckrjpd@relief-test.example"
+    },
+    {
+      "id": "task-4",
+      "name": "Event inquiry",
+      "pass": true,
+      "durationMs": 11387
+    },
+    {
+      "id": "task-5",
+      "name": "Concierge contact",
+      "pass": true,
+      "durationMs": 787
+    },
+    {
+      "id": "task-6",
+      "name": "Language & mobile",
+      "pass": true,
+      "durationMs": 84,
+      "notes": "Switched to FR locale"
+    },
+    {
+      "id": "task-ops",
+      "name": "Dashboard API visibility",
+      "pass": true,
+      "durationMs": 0,
+      "notes": "Reservation prototype.p-a06.mrckrjpd@relief-test.example in activity feed"
+    }
+  ],
+  "tasksPassed": 6,
+  "usabilityScore": 5,
+  "wouldBook": "yes",
+  "guestEmail": "prototype.p-a06.mrckrjpd@relief-test.example",
+  "guestName": "Chidi Okonkwo"
+}

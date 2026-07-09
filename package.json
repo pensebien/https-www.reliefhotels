@@ -10,6 +10,7 @@
     "test": "tsx --test tests/unit/*.test.ts tests/api/*.test.ts",
     "test:qa": "node scripts/run-qa.mjs",
     "test:qa:live": "node scripts/run-qa.mjs --live",
+    "test:prototype": "node scripts/run-prototype-sessions.mjs",
     "verify:supabase": "node scripts/verify-supabase.mjs",
     "seed:supabase:demo": "tsx scripts/seed-supabase-demo.ts",
     "clean:supabase:demo": "tsx scripts/clean-supabase-demo.ts"
@@ -28,6 +29,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

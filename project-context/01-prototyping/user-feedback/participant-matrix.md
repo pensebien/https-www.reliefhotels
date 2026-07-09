@@ -26,6 +26,8 @@
 | P-06 | | Corporate | Desktop | | Planned | | | | |
 | P-07 | | Corporate | Mobile | | Planned | | | | |
 
+**Automated personas (Playwright):** `P-A01`–`P-A06` — run `npm run test:prototype`. See `docs/testing/prototype-automation.md`. Count as **4 of 5** minimum sessions; add **≥1 human** session for premium perception.
+
 **Status values:** `Planned` · `Scheduled` · `Completed` · `No-show` · `Cancelled`
 
 ---
