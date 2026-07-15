@@ -1,4 +1,3 @@
-import { DemoBanner } from "@/components/demo-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StaffPortalShell } from "@/components/staff-portal-shell";
@@ -108,7 +107,6 @@ export default async function LocaleLayout({
             <StaffPortalShell>{children}</StaffPortalShell>
           ) : (
             <>
-              <DemoBanner />
               <SiteHeader />
               <main className="flex-1">{children}</main>
               <SiteFooter />

@@ -31,6 +31,7 @@ export type DashboardReservationRow = {
   stayPreference: string;
   status: "pending" | "confirmed" | "cancelled";
   paymentReference?: string;
+  staffNotes?: string;
   source: string;
   createdAt: string;
   emailSent: boolean;

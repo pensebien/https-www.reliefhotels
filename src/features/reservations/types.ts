@@ -2,7 +2,7 @@ export type ReservationFormData = {
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string;
+  phone: string;
   message: string;
   experienceInterests: string[];
   termsAccepted: boolean;

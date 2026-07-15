@@ -24,7 +24,7 @@ export default function middleware(request: NextRequest) {
   const onStaffHost = isStaffPortalHost(host);
   const onStaffPath = isStaffPortalPath(pathname);
   const mainSiteUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com.ng";
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com";
 
   if (onStaffHost) {
     if (pathname === "/" || pathname === "") {

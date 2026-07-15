@@ -1,3 +1,4 @@
+import { ConciergeContactPrompt } from "@/components/concierge-contact-prompt";
 import { ReservationForm } from "@/features/reservations";
 import { rooms } from "@/content/site";
 import { Link, redirect } from "@/i18n/navigation";
@@ -65,8 +66,22 @@ export default async function BookPage({
   const checkOut =
     bookingQuery?.checkOut ??
     (isValidBookingDate(sp.checkOut) ? sp.checkOut : undefined);
-  const nights =
-    checkIn && checkOut ? nightsBetween(checkIn, checkOut) : 2;
+
+  if (!checkIn || !checkOut) {
+    const roomsParams = new URLSearchParams();
+    roomsParams.set("room", room.id);
+    if (sp.guests) roomsParams.set("guests", sp.guests);
+    if (sp.rooms) roomsParams.set("rooms", sp.rooms);
+    const qs = roomsParams.toString();
+    redirect({
+      href: qs ? `/rooms?${qs}` : "/rooms",
+      locale,
+    });
+  }
+
+  const stayCheckIn = checkIn as string;
+  const stayCheckOut = checkOut as string;
+  const nights = nightsBetween(stayCheckIn, stayCheckOut);
   const guests =
     bookingQuery?.guests ??
     Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
@@ -92,17 +107,13 @@ export default async function BookPage({
         <ReservationForm
           itemId={room.id}
           itemLabel={itemLabel}
-          checkIn={checkIn}
-          checkOut={checkOut}
+          checkIn={stayCheckIn}
+          checkOut={stayCheckOut}
           nights={nights}
           guests={guests}
           priceFrom={room.priceFrom}
         />
-        <p className="mt-8 text-center text-sm text-muted">
-          <Link href="/#contact" className="text-teal-dark hover:underline">
-            {t("preferConcierge")}
-          </Link>
-        </p>
+        <ConciergeContactPrompt />
       </section>
     </div>
   );

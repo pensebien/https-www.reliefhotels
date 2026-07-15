@@ -26,7 +26,7 @@ npm run seed:supabase:demo -- --fresh
 ## Verify in staff portal
 
 ```text
-https://reservation.reliefhotelsandsuites.com.ng?key=relief-demo-2026
+https://reservation.reliefhotelsandsuites.com?key=relief-demo-2026
 ```
 
 Set date filter to **All dates** to see the full demo set.

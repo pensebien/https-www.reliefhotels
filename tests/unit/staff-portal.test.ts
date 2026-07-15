@@ -8,12 +8,12 @@ import {
 
 describe("staff portal routing helpers", () => {
   it("detects configured staff portal host", () => {
-    process.env.STAFF_PORTAL_HOST = "reservation.reliefhotelsandsuites.com.ng";
+    process.env.STAFF_PORTAL_HOST = "reservation.reliefhotelsandsuites.com";
     assert.equal(
-      isStaffPortalHost("reservation.reliefhotelsandsuites.com.ng"),
+      isStaffPortalHost("reservation.reliefhotelsandsuites.com"),
       true,
     );
-    assert.equal(isStaffPortalHost("www.reliefhotelsandsuites.com.ng"), false);
+    assert.equal(isStaffPortalHost("www.reliefhotelsandsuites.com"), false);
   });
 
   it("normalizes host with port", () => {

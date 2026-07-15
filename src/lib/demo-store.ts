@@ -33,6 +33,7 @@ export type ReservationRecord = {
   message: string;
   status: "pending" | "confirmed" | "cancelled";
   paymentReference?: string;
+  staffNotes?: string;
   source: "live" | "demo";
   createdAt: string;
   emailSent: boolean;

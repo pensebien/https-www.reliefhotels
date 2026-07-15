@@ -76,7 +76,7 @@ npm run dev
 npm run test:qa:live
 
 # Against production
-BASE_URL=https://reliefhotelsandsuites.com.ng npm run test:qa:live
+BASE_URL=https://reliefhotelsandsuites.com npm run test:qa:live
 ```
 
 ---

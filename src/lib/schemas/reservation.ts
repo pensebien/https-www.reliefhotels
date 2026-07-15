@@ -8,7 +8,7 @@ export const reservationSchema = z
     firstName: z.string().min(1).max(100),
     lastName: z.string().min(1).max(100),
     email: z.string().email(),
-    phone: z.string().max(30).optional(),
+    phone: z.string().trim().min(7).max(30),
     stayPreference: z.string().min(1).max(200),
     message: z.string().min(1).max(5000),
     itemType: z.enum(["room", "tour", "inquiry"]).default("room"),

@@ -34,10 +34,6 @@ export function buildReservationPayload(
   );
 
   let message = formData.message.trim();
-  if (formData.phone?.trim()) {
-    const phoneLine = `Phone: ${formData.phone.trim()}`;
-    message = message ? `${phoneLine}\n\n${message}` : phoneLine;
-  }
 
   if (formData.experienceInterests.length > 0) {
     const interestsLine = `Calabar experiences of interest (informational — concierge will advise, not charged online): ${formData.experienceInterests.join(", ")}`;
@@ -48,7 +44,7 @@ export function buildReservationPayload(
     firstName: formData.firstName.trim(),
     lastName: formData.lastName.trim(),
     email: formData.email.trim(),
-    phone: formData.phone?.trim() || undefined,
+    phone: formData.phone.trim(),
     itemType: "room" as const,
     roomId: stayContext.itemId,
     checkIn: stayContext.checkIn,

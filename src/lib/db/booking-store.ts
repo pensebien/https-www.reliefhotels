@@ -19,6 +19,7 @@ type ReservationRow = {
   status: ReservationRecord["status"];
   source: ReservationRecord["source"];
   email_sent: boolean;
+  staff_notes: string | null;
   created_at: string;
 };
 
@@ -59,6 +60,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     paymentReference: row.payment_reference ?? undefined,
     source: row.source,
     emailSent: row.email_sent,
+    staffNotes: row.staff_notes ?? undefined,
     createdAt: row.created_at,
   };
 }
@@ -106,6 +108,7 @@ function reservationPatchToRow(
     update.payment_reference = patch.paymentReference;
   }
   if (patch.emailSent !== undefined) update.email_sent = patch.emailSent;
+  if (patch.staffNotes !== undefined) update.staff_notes = patch.staffNotes;
   return update;
 }
 

@@ -4,6 +4,9 @@ import { site } from "@/content/site";
 import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
 
+const inputClassName =
+  "h-12 w-full rounded-2xl border border-border/70 bg-background/80 px-4 text-base outline-none focus:border-teal focus:ring-2 focus:ring-teal/20";
+
 export function ContactSection() {
   const t = useTranslations("contact");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">(
@@ -15,7 +18,14 @@ export function ContactSection() {
     e.preventDefault();
     setStatus("loading");
     const form = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(form.entries());
+
+    const payload = {
+      firstName: String(form.get("firstName") ?? "").trim(),
+      lastName: String(form.get("lastName") ?? "").trim(),
+      email: String(form.get("email") ?? "").trim(),
+      phone: String(form.get("phone") ?? "").trim() || undefined,
+      message: String(form.get("message") ?? "").trim(),
+    };
 
     try {
       const res = await fetch("/api/feedback", {
@@ -108,12 +118,77 @@ export function ContactSection() {
                   </p>
                 </div>
               ) : (
-                <form className="relative z-10 space-y-6" onSubmit={onSubmit}>
+                <form className="relative z-10 space-y-5" onSubmit={onSubmit}>
                   {status === "error" && (
                     <p className="text-sm text-red-600 dark:text-red-400">
                       {t("error")}
                     </p>
                   )}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="firstName"
+                        className="text-xs font-medium uppercase tracking-[0.18em] text-muted"
+                      >
+                        {t("firstName")}
+                      </label>
+                      <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        required
+                        autoComplete="given-name"
+                        className={inputClassName}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="lastName"
+                        className="text-xs font-medium uppercase tracking-[0.18em] text-muted"
+                      >
+                        {t("lastName")}
+                      </label>
+                      <input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        required
+                        autoComplete="family-name"
+                        className={inputClassName}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="contactEmail"
+                      className="text-xs font-medium uppercase tracking-[0.18em] text-muted"
+                    >
+                      {t("email")}
+                    </label>
+                    <input
+                      id="contactEmail"
+                      name="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      className={inputClassName}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="contactPhone"
+                      className="text-xs font-medium uppercase tracking-[0.18em] text-muted"
+                    >
+                      {t("phoneOptional")}
+                    </label>
+                    <input
+                      id="contactPhone"
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      className={inputClassName}
+                    />
+                  </div>
                   <div className="space-y-2.5">
                     <label
                       htmlFor="message"

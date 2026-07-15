@@ -11,7 +11,7 @@ Walk-in reservations on the **staff portal** can record deposits via:
 
 **Online guest bookings** still use **Paystack only** — Moniepoint is for front-desk / walk-in.
 
-**Staff portal:** `https://reservation.reliefhotelsandsuites.com.ng?key=YOUR_DEMO_DASHBOARD_KEY`  
+**Staff portal:** `https://reservation.reliefhotelsandsuites.com?key=YOUR_DEMO_DASHBOARD_KEY`  
 See also: [STAFF_PORTAL.md](./STAFF_PORTAL.md)
 
 ---
@@ -64,7 +64,7 @@ Subscribe to transaction events so the app confirms payments without relying onl
 
 | Setting | Value |
 |---------|--------|
-| **Webhook URL** | `https://reliefhotelsandsuites.com.ng/api/moniepoint/webhook` |
+| **Webhook URL** | `https://reliefhotelsandsuites.com/api/moniepoint/webhook` |
 | **Events** | `V1_POS_TRANSFER_TRANSACTION`, `V1_TRANSFER_TRANSACTION`, and POS purchase events |
 
 Use your real production domain. If the staff portal is on a subdomain, the API still lives on the main site — webhook URL should point to wherever the Next.js app is hosted.

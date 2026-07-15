@@ -44,7 +44,7 @@ export function getServerConfig() {
         "Relief Hotels <onboarding@resend.dev>",
       to:
         process.env.RESERVATION_EMAIL ??
-        "reservations@reliefhotelsandsuites.com.ng",
+        "reservations@reliefhotelsandsuites.com",
     },
     notifications: {
       channel: notifyChannel,
@@ -56,7 +56,7 @@ export function getServerConfig() {
     staffPortal: {
       host:
         process.env.STAFF_PORTAL_HOST ??
-        "reservation.reliefhotelsandsuites.com.ng",
+        "reservation.reliefhotelsandsuites.com",
     },
     moniepoint: {
       clientId: process.env.MONIEPOINT_CLIENT_ID ?? "",
@@ -67,6 +67,13 @@ export function getServerConfig() {
           process.env.MONIEPOINT_CLIENT_SECRET &&
           process.env.MONIEPOINT_TERMINAL_SERIAL,
       ),
+    },
+    rayza: {
+      enabled:
+        process.env.RAYZA_CONNECT_ENABLED === "true" &&
+        Boolean(process.env.RAYZA_API_KEY?.trim()),
+      baseUrl:
+        process.env.RAYZA_BASE_URL ?? "https://cloud-relay-nu.vercel.app",
     },
   };
 }

@@ -11,7 +11,7 @@
 - [ ] Supabase schema applied (`docs/supabase/schema.sql` + `migration-002-reservation-fields.sql` + `migration-004-payment-method.sql`)
 - [ ] `npm run verify:supabase` PASS locally with production credentials
 - [ ] All secrets in Netlify dashboard (not in Git)
-- [ ] `NEXT_PUBLIC_APP_URL` = `https://reliefhotelsandsuites.com.ng`
+- [ ] `NEXT_PUBLIC_APP_URL` = `https://reliefhotelsandsuites.com`
 
 ## Netlify setup
 

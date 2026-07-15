@@ -59,7 +59,7 @@ Copy from `docs/ENV_MATRIX.md` **Production** row into Render → **Environment*
 | Key | Required | Notes |
 |-----|----------|-------|
 | `NODE_VERSION` | Recommended | `20` |
-| `NEXT_PUBLIC_APP_URL` | Yes | `https://www.reliefhotelsandsuites.com.ng` (no trailing slash) |
+| `NEXT_PUBLIC_APP_URL` | Yes | `https://www.reliefhotelsandsuites.com` (no trailing slash) |
 | `SUPABASE_URL` | Yes | Supabase → Settings → API |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | **Secret** — server only |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Yes | Live or test |

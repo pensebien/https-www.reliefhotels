@@ -152,17 +152,20 @@
     "phone": "Phone",
     "email": "Email",
     "location": "Location",
-    "formBadge": "Customer Service",
-    "formTitle": "We appreciate your feedback",
-    "formDescription": "Tell us about your experience or share any suggestions. Our customer service team will review your feedback and respond promptly.",
-    "details": "Feedback",
-    "detailsPlaceholder": "Share your feedback, suggestions, or questions",
-    "terms": "I agree to be contacted about my feedback",
-    "termsNote": "Your feedback helps us improve. Your details stay private.",
-    "submit": "Submit Feedback",
-    "success": "Thank you for your feedback. Our team will review it shortly.",
+    "formBadge": "Get in touch",
+    "formTitle": "Send us a message",
+    "formDescription": "Questions, special requests, or feedback about your stay — our team will respond promptly. To book a room, use Check Rooms & Rates above.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "phoneOptional": "Phone (optional)",
+    "details": "Message",
+    "detailsPlaceholder": "Share your question, request, or feedback",
+    "terms": "I agree to be contacted about this message",
+    "termsNote": "We use your details only to respond. They stay private.",
+    "submit": "Send message",
+    "success": "Thank you. Our team will review your message shortly.",
     "successEmail": "A copy has been sent to our customer service team.",
-    "successDemo": "Demo mode: feedback saved — view it on the demo dashboard.",
+    "successDemo": "Demo mode: message saved — view it under Messages on the demo dashboard.",
     "error": "Something went wrong. Please try again or call us directly."
   },
   "form": {
@@ -183,7 +186,39 @@
     "contactLink": "Contact",
     "contact": "Contact",
     "rights": "All rights reserved.",
+    "privacy": "Privacy policy",
     "tagline": "Luxury stays, bespoke service, and memorable arrivals in Calabar."
+  },
+  "privacy": {
+    "pageTitle": "Privacy policy",
+    "pageDescription": "How Relief Hotels & Suites collects, uses, and protects your personal information when you browse our website or make a reservation.",
+    "lastUpdated": "Last updated: June 2026",
+    "sections": {
+      "collect": {
+        "title": "Information we collect",
+        "body": "When you book a stay, request an event quote, or contact us, we collect details you provide — such as your name, email address, phone number, stay dates, and any special requests. Payment references and transaction status are recorded when you pay a deposit through our payment partners."
+      },
+      "use": {
+        "title": "How we use your information",
+        "body": "We use your information to confirm reservations, communicate about your stay, process deposits, and improve our hospitality services. Staff may add internal notes to a booking to coordinate arrivals and guest preferences."
+      },
+      "share": {
+        "title": "Sharing with service providers",
+        "body": "We share data only with trusted processors needed to operate the website — including hosting (Render), database (Supabase), email (Resend), and payment providers (Paystack, Moniepoint). If your hotel enables RAYZA Connect, confirmed booking details may be relayed to your property management system at your request."
+      },
+      "retention": {
+        "title": "Retention",
+        "body": "Reservation and payment records are kept as long as needed for legal, accounting, and guest-service purposes, then deleted or anonymised when no longer required."
+      },
+      "rights": {
+        "title": "Your rights",
+        "body": "You may request access, correction, or deletion of your personal data by contacting us at reservations@reliefhotelsandsuites.com. We will respond within a reasonable time."
+      },
+      "contact": {
+        "title": "Contact",
+        "body": "Relief Hotels & Suites\nCalabar, Cross River State, Nigeria\nEmail: reservations@reliefhotelsandsuites.com"
+      }
+    }
   },
   "rooms": {
     "pageTitle": "Rooms & Suites",
@@ -529,7 +564,7 @@
     "firstName": "First name",
     "lastName": "Last name",
     "email": "Email for receipt",
-    "phone": "Phone (optional)",
+    "phone": "Phone",
     "phonePlaceholder": "+234 800 000 0000",
     "specialRequests": "Special requests",
     "nights": "Nights",
@@ -553,7 +588,14 @@
     "secureCheckout": "Paystack · Test or Live",
     "notFound": "We could not find that room.",
     "browseRooms": "Browse rooms",
-    "preferConcierge": "Prefer to speak with concierge? Request a callback →",
+    "preferConcierge": "Prefer to speak with concierge?",
+    "conciergeEmail": "Email reservations",
+    "conciergeShowPhone": "Show call / WhatsApp options",
+    "conciergePhoneRevealed": "Call or WhatsApp concierge",
+    "conciergeMaskedHint": "Or reach us at {phone} after revealing contact options.",
+    "conciergePhoneHint": "Tap Call to open your phone app, or WhatsApp to message us.",
+    "conciergeCall": "Call",
+    "conciergeWhatsApp": "WhatsApp",
     "managerNotified": "Our team has been notified of your deposit payment."
   },
   "payment": {
@@ -720,13 +762,27 @@
     "depositMissingChip": "No deposit",
     "inbox": {
       "title": "Booking inbox",
-      "subtitle": "Cases that need follow-up, confirmed stays, and payment history.",
+      "subtitle": "Bookings that need follow-up, guest messages, and payment history.",
       "tabsLabel": "Inbox views",
       "needsAction": "Needs action",
+      "messages": "Messages",
+      "messageBadge": "Guest message",
       "paymentsLedger": "Payments ledger",
       "awaitingDeposit": "Awaiting deposit",
       "emptyNeedsAction": "No pending bookings need action right now.",
+      "emptyMessages": "No guest messages yet.",
       "contactEmail": "Email guest"
+    },
+    "staffActions": {
+      "confirm": "Confirm booking",
+      "cancel": "Cancel booking",
+      "cancelConfirm": "Cancel this booking? This cannot be undone.",
+      "notesLabel": "Staff notes",
+      "notesPlaceholder": "VIP arrival, late check-in, etc.",
+      "saveNotes": "Save notes",
+      "working": "Saving…",
+      "error": "Could not update booking",
+      "demoReadOnly": "Demo seed bookings are read-only"
     },
     "storageWarningTitle": "Bookings may not persist on this host",
     "filters": {

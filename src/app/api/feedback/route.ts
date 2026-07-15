@@ -1,10 +1,19 @@
-import { addReservation } from "@/lib/demo-store";
-import { sendReservationEmail } from "@/lib/email";
+import { sendFeedbackEmail } from "@/lib/email";
+import { addGuestFeedback } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const feedbackSchema = z.object({
-  message: z.string().min(1).max(5000),
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(200),
+  phone: z
+    .string()
+    .trim()
+    .max(30)
+    .optional()
+    .transform((value) => (value && value.length > 0 ? value : undefined)),
+  message: z.string().trim().min(1).max(5000),
 });
 
 export async function POST(request: Request) {
@@ -19,22 +28,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const record = await addReservation({
-      firstName: "Feedback",
-      lastName: "Guest",
-      email: "feedback@reliefhotelsandsuites.com",
-      stayPreference: "feedback",
-      itemType: "inquiry",
-      guests: 1,
-      message: parsed.data.message,
-      emailSent: false,
-      status: "pending",
-    });
-
-    const sent = await sendReservationEmail(record);
-    if (sent) {
-      record.emailSent = true;
-    }
+    const record = await addGuestFeedback(parsed.data);
+    const sent = await sendFeedbackEmail(record);
 
     return NextResponse.json({
       ok: true,

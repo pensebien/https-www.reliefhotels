@@ -18,7 +18,7 @@ export const site = {
   appleIconSrc: "/apple-touch-icon.png",
   phone: "+234 803 326 2719",
   phoneHref: "tel:+2348033262719",
-  email: "reservations@reliefhotelsandsuites.com.ng",
+  email: "reservations@reliefhotelsandsuites.com",
   themeStorageKey: "relief-theme",
 } as const;
 

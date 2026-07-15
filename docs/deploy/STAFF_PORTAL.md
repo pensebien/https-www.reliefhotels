@@ -2,9 +2,9 @@
 
 Kalu’s **staff portal** runs on the **same Next.js app** as the public site. The subdomain gives an ops-focused entry point without a separate deploy.
 
-**Production URL:** `https://reservation.reliefhotelsandsuites.com.ng?key=YOUR_DEMO_DASHBOARD_KEY`
+**Production URL:** `https://reservation.reliefhotelsandsuites.com?key=YOUR_DEMO_DASHBOARD_KEY`
 
-**Legacy (still works):** `https://reliefhotelsandsuites.com.ng/en/demo?key=…`
+**Legacy (still works):** `https://reliefhotelsandsuites.com/en/demo?key=…`
 
 ---
 
@@ -38,7 +38,7 @@ Wait until DNS propagates (often 15 minutes–48 hours).
 ## Step 2 — Netlify domain
 
 1. **Site configuration → Domain management → Add a domain**
-2. Enter `reservation.reliefhotelsandsuites.com.ng`
+2. Enter `reservation.reliefhotelsandsuites.com`
 3. Confirm **Verified** + SSL active
 
 ---
@@ -49,10 +49,10 @@ Wait until DNS propagates (often 15 minutes–48 hours).
 
 | Key | Value |
 |-----|--------|
-| `STAFF_PORTAL_HOST` | `reservation.reliefhotelsandsuites.com.ng` |
+| `STAFF_PORTAL_HOST` | `reservation.reliefhotelsandsuites.com` |
 
 Optional: comma-separated list for staging, e.g.  
-`reservation.reliefhotelsandsuites.com.ng,reservation-staging.netlify.app`
+`reservation.reliefhotelsandsuites.com,reservation-staging.netlify.app`
 
 Redeploy after saving.
 
@@ -61,7 +61,7 @@ Redeploy after saving.
 ## Step 4 — Share with Kalu
 
 ```
-https://reservation.reliefhotelsandsuites.com.ng?key=relief-demo-2026
+https://reservation.reliefhotelsandsuites.com?key=relief-demo-2026
 ```
 
 Rotate `DEMO_DASHBOARD_KEY` periodically; treat the URL like a password.

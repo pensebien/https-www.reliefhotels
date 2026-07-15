@@ -1,6 +1,7 @@
 "use client";
 
 import { formatNaira } from "@/lib/utils";
+import { Minus, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { calculateTotalEstimateNgn } from "../lib/reservation-service";
 
@@ -13,6 +14,9 @@ type BookingSummaryProps = {
   depositNgn: number;
   priceFrom: number;
   emphasizeDeposit?: boolean;
+  editableStay?: boolean;
+  onNightsChange?: (nights: number) => void;
+  onGuestsChange?: (guests: number) => void;
 };
 
 function formatStayDate(value: string): string {
@@ -25,6 +29,62 @@ function formatStayDate(value: string): string {
   }).format(new Date(year, month - 1, day));
 }
 
+function Stepper({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  id,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (next: number) => void;
+  id: string;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wider text-muted">
+        {label}
+      </label>
+      <div className="mt-1.5 inline-flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+        <button
+          type="button"
+          aria-label={`Decrease ${label}`}
+          disabled={value <= min}
+          onClick={() => onChange(value - 1)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted/40 disabled:opacity-40"
+        >
+          <Minus className="h-4 w-4" aria-hidden />
+        </button>
+        <input
+          id={id}
+          type="number"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => {
+            const next = Number(e.target.value);
+            if (Number.isFinite(next)) onChange(next);
+          }}
+          className="h-9 w-12 border-0 bg-transparent text-center text-sm font-medium outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        />
+        <button
+          type="button"
+          aria-label={`Increase ${label}`}
+          disabled={value >= max}
+          onClick={() => onChange(value + 1)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-foreground transition-colors hover:bg-muted/40 disabled:opacity-40"
+        >
+          <Plus className="h-4 w-4" aria-hidden />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function BookingSummary({
   itemLabel,
   checkIn,
@@ -34,6 +94,9 @@ export function BookingSummary({
   depositNgn,
   priceFrom,
   emphasizeDeposit = false,
+  editableStay = false,
+  onNightsChange,
+  onGuestsChange,
 }: BookingSummaryProps) {
   const t = useTranslations("booking");
   const totalEstimate = calculateTotalEstimateNgn(priceFrom, nights);
@@ -55,18 +118,41 @@ export function BookingSummary({
       ) : null}
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-        <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-            {t("nights")}
-          </dt>
-          <dd className="mt-1 font-medium text-foreground">{nights}</dd>
-        </div>
-        <div>
-          <dt className="text-xs font-medium uppercase tracking-wider text-muted">
-            {t("guests")}
-          </dt>
-          <dd className="mt-1 font-medium text-foreground">{guests}</dd>
-        </div>
+        {editableStay && onNightsChange && onGuestsChange ? (
+          <>
+            <Stepper
+              id="booking-nights"
+              label={t("nights")}
+              value={nights}
+              min={1}
+              max={30}
+              onChange={onNightsChange}
+            />
+            <Stepper
+              id="booking-guests"
+              label={t("guests")}
+              value={guests}
+              min={1}
+              max={12}
+              onChange={onGuestsChange}
+            />
+          </>
+        ) : (
+          <>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+                {t("nights")}
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">{nights}</dd>
+            </div>
+            <div>
+              <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+                {t("guests")}
+              </dt>
+              <dd className="mt-1 font-medium text-foreground">{guests}</dd>
+            </div>
+          </>
+        )}
         <div className="sm:col-span-2">
           <dt className="text-xs font-medium uppercase tracking-wider text-muted">
             {t("totalStayEstimate")}

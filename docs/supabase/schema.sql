@@ -80,6 +80,20 @@ create table if not exists dining_reservations (
   created_at timestamptz not null default now()
 );
 
+-- Guest contact / feedback messages (not bookings — see migration-007)
+create table if not exists guest_feedback (
+  id uuid primary key default gen_random_uuid(),
+  first_name text not null,
+  last_name text not null,
+  email text not null,
+  phone text,
+  message text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists guest_feedback_created_at_idx
+  on guest_feedback (created_at desc);
+
 -- Optional: manager notification audit (KPI ≥95%)
 create table if not exists notification_log (
   id uuid primary key default gen_random_uuid(),
@@ -100,4 +114,40 @@ alter table reservations enable row level security;
 alter table payments enable row level security;
 alter table event_inquiries enable row level security;
 alter table dining_reservations enable row level security;
+alter table guest_feedback enable row level security;
 alter table notification_log enable row level security;
+
+-- HMS Tier 1: staff notes on reservations
+alter table reservations
+  add column if not exists staff_notes text;
+
+-- HMS Tier 2: room inventory and manual blocks
+create table if not exists room_inventory (
+  room_id text primary key,
+  total_units integer not null check (total_units > 0),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists room_blocks (
+  id uuid primary key default gen_random_uuid(),
+  room_id text not null,
+  check_in date not null,
+  check_out date not null,
+  reason text,
+  created_at timestamptz not null default now(),
+  check (check_out > check_in)
+);
+
+create index if not exists room_blocks_room_dates_idx
+  on room_blocks (room_id, check_in, check_out);
+
+alter table room_inventory enable row level security;
+alter table room_blocks enable row level security;
+
+insert into room_inventory (room_id, total_units) values
+  ('guest-room', 12),
+  ('executive-room', 8),
+  ('signature-suite', 4),
+  ('presidential-suite', 1),
+  ('executive-spa', 3)
+on conflict (room_id) do nothing;

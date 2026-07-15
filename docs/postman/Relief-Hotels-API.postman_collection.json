@@ -1,0 +1,1183 @@
+{
+  "info": {
+    "_postman_id": "2932dee8-8531-4ca7-8a21-e2ba7cf62ba2",
+    "name": "Relief Hotels API",
+    "description": "Postman collection for **RAYZA Connect** (SaaS booking relay) and the **Relief Hotels** website API.\n\nImport with `Relief-Hotels-Production.postman_environment.json` (or the local environment) and set secrets before running staff or RAYZA requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "rayza_base_url",
+      "value": "https://cloud-relay-nu.vercel.app"
+    },
+    {
+      "key": "rayza_api_key",
+      "value": "PASTE_RAYZA_API_KEY_HERE"
+    },
+    {
+      "key": "rayza_booking_reference",
+      "value": "RH-RAYZA-TEST-001"
+    },
+    {
+      "key": "rayza_room_identifier",
+      "value": "SIGNATURE_SUITE"
+    },
+    {
+      "key": "relief_base_url",
+      "value": "https://reliefhotelsandsuites.com"
+    },
+    {
+      "key": "dashboard_key",
+      "value": "relief-demo-2026"
+    },
+    {
+      "key": "check_in",
+      "value": "2026-09-10"
+    },
+    {
+      "key": "check_out",
+      "value": "2026-09-12"
+    },
+    {
+      "key": "guest_email",
+      "value": "guest.test@example.com"
+    },
+    {
+      "key": "room_id",
+      "value": "signature-suite"
+    },
+    {
+      "key": "reservation_id",
+      "value": ""
+    },
+    {
+      "key": "payment_reference",
+      "value": ""
+    },
+    {
+      "key": "block_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "RAYZA Connect (SaaS relay)",
+      "description": "RAYZA Connect relay API at `{{rayza_base_url}}`. Authenticate with the `authorization` header (API key). OpenAPI: `/openapi.json`, Swagger UI: `/docs`.",
+      "item": [
+        {
+          "name": "Create booking (test mode)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{rayza_base_url}}/v1/bookings",
+            "description": "Create a test booking (`is_test: true`). A unique `booking_reference` is generated in the pre-request script and saved after a successful 201 response.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_reference\": \"{{rayza_booking_reference}}\",\n  \"guest_name\": \"Test Guest\",\n  \"guest_phone\": \"+2348012345678\",\n  \"guest_email\": \"test@example.com\",\n  \"room_identifier\": \"{{rayza_room_identifier}}\",\n  \"check_in\": \"{{check_in}}\",\n  \"check_out\": \"{{check_out}}\",\n  \"amount\": 150000,\n  \"currency\": \"NGN\",\n  \"is_test\": true,\n  \"source_platform\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "const ref = `RH-RAYZA-${ts}`;",
+                  "pm.collectionVariables.set('rayza_booking_reference', ref);",
+                  "pm.environment.set('rayza_booking_reference', ref);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    let body = {};",
+                  "    try { body = pm.response.json(); } catch (e) {}",
+                  "    const ref = body.booking_reference || pm.variables.get('rayza_booking_reference');",
+                  "    pm.environment.set('rayza_booking_reference', ref);",
+                  "    pm.collectionVariables.set('rayza_booking_reference', ref);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create booking (live)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{rayza_base_url}}/v1/bookings",
+            "description": "Create a live booking (`is_test: false`). Uses the same reference-chaining scripts as the test-mode request.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_reference\": \"{{rayza_booking_reference}}\",\n  \"guest_name\": \"Live Guest\",\n  \"guest_phone\": \"+2348098765432\",\n  \"guest_email\": \"live.guest@example.com\",\n  \"room_identifier\": \"{{rayza_room_identifier}}\",\n  \"check_in\": \"{{check_in}}\",\n  \"check_out\": \"{{check_out}}\",\n  \"amount\": 250000,\n  \"currency\": \"NGN\",\n  \"is_test\": false,\n  \"source_platform\": \"relief-hotels\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ts = Date.now();",
+                  "const ref = `RH-RAYZA-${ts}`;",
+                  "pm.collectionVariables.set('rayza_booking_reference', ref);",
+                  "pm.environment.set('rayza_booking_reference', ref);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    let body = {};",
+                  "    try { body = pm.response.json(); } catch (e) {}",
+                  "    const ref = body.booking_reference || pm.variables.get('rayza_booking_reference');",
+                  "    pm.environment.set('rayza_booking_reference', ref);",
+                  "    pm.collectionVariables.set('rayza_booking_reference', ref);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List pending bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{rayza_base_url}}/v1/bookings?status=pending",
+              "host": [
+                "{{rayza_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "List bookings with `status=pending`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List cancelled bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{rayza_base_url}}/v1/bookings?status=cancelled",
+              "host": [
+                "{{rayza_base_url}}"
+              ],
+              "path": [
+                "v1",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "cancelled"
+                }
+              ]
+            },
+            "description": "List bookings with `status=cancelled`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{rayza_base_url}}/v1/bookings/{{rayza_booking_reference}}/cancel",
+            "description": "Cancel a booking by reference. Run **Create booking** first so `{{rayza_booking_reference}}` is populated."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negative: missing auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{rayza_base_url}}/v1/bookings",
+            "description": "Expect **422** when the `authorization` header is omitted.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"booking_reference\": \"{{rayza_booking_reference}}\",\n  \"guest_name\": \"Test Guest\",\n  \"guest_phone\": \"+2348012345678\",\n  \"guest_email\": \"test@example.com\",\n  \"room_identifier\": \"{{rayza_room_identifier}}\",\n  \"check_in\": \"{{check_in}}\",\n  \"check_out\": \"{{check_out}}\",\n  \"amount\": 150000,\n  \"currency\": \"NGN\",\n  \"is_test\": true,\n  \"source_platform\": \"postman\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422 Validation Error', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negative: missing required fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "authorization",
+                "value": "{{rayza_api_key}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": "{{rayza_base_url}}/v1/bookings",
+            "description": "Expect **422** when required booking fields are missing. Sends an empty JSON object with a valid API key.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422 Validation Error', function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET OpenAPI spec",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rayza_base_url}}/openapi.json",
+            "description": "Download the RAYZA Connect OpenAPI 3.1 specification."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Swagger UI",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{rayza_base_url}}/docs",
+            "description": "Open the interactive Swagger UI (returns HTML)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Relief Hotels API",
+      "description": "Relief Hotels website API at `{{relief_base_url}}`. Guest endpoints are public; staff/HMS endpoints require `?key={{dashboard_key}}`.",
+      "item": [
+        {
+          "name": "Health & config",
+          "item": [
+            {
+              "name": "GET /api/health",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{relief_base_url}}/api/health",
+                "description": "Public health check. Verifies storage readiness and whether `productionReady` is true (Supabase connected)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                      "const json = pm.response.json();",
+                      "pm.test('Response has productionReady boolean', function () {",
+                      "    pm.expect(json).to.have.property('productionReady');",
+                      "    pm.expect(json.productionReady).to.be.a('boolean');",
+                      "});",
+                      "pm.test('Response ok is true', function () { pm.expect(json.ok).to.eql(true); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Room availability (Tier 2)",
+          "item": [
+            {
+              "name": "GET /api/rooms/availability",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/rooms/availability?checkIn={{check_in}}&checkOut={{check_out}}&rooms=1&guests=2",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "rooms",
+                    "availability"
+                  ],
+                  "query": [
+                    {
+                      "key": "checkIn",
+                      "value": "{{check_in}}"
+                    },
+                    {
+                      "key": "checkOut",
+                      "value": "{{check_out}}"
+                    },
+                    {
+                      "key": "rooms",
+                      "value": "1"
+                    },
+                    {
+                      "key": "guests",
+                      "value": "2"
+                    }
+                  ]
+                },
+                "description": "Check room availability for the configured stay dates. Dates must be `YYYY-MM-DD` with check-out after check-in."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Guest booking flow",
+          "item": [
+            {
+              "name": "POST /api/reservations",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{relief_base_url}}/api/reservations",
+                "description": "Create a guest room reservation. On success, saves `reservation_id` for the Paystack flow.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Ada\",\n  \"lastName\": \"Okonkwo\",\n  \"email\": \"{{guest_email}}\",\n  \"phone\": \"+2348012345678\",\n  \"stayPreference\": \"{{room_id}} \u00b7 2 night(s) \u00b7 2 guest(s)\",\n  \"message\": \"Late arrival after 9pm. Quiet room preferred.\",\n  \"itemType\": \"room\",\n  \"roomId\": \"{{room_id}}\",\n  \"checkIn\": \"{{check_in}}\",\n  \"checkOut\": \"{{check_out}}\",\n  \"nights\": 2,\n  \"guests\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                      "const json = pm.response.json();",
+                      "pm.test('Reservation id returned', function () { pm.expect(json.id).to.be.a('string'); });",
+                      "if (json.id) {",
+                      "    pm.environment.set('reservation_id', json.id);",
+                      "    pm.collectionVariables.set('reservation_id', json.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/paystack/initialize",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{relief_base_url}}/api/paystack/initialize",
+                "description": "Initialize a Paystack deposit payment. Requires `reservation_id` from the prior reservation step. Saves `payment_reference` on success.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{guest_email}}\",\n  \"itemType\": \"room\",\n  \"itemId\": \"{{room_id}}\",\n  \"reservationId\": \"{{reservation_id}}\",\n  \"nights\": 2,\n  \"demoAmountNgn\": 5000\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                      "const json = pm.response.json();",
+                      "pm.test('Payment reference returned', function () { pm.expect(json.reference).to.be.a('string'); });",
+                      "if (json.reference) {",
+                      "    pm.environment.set('payment_reference', json.reference);",
+                      "    pm.collectionVariables.set('payment_reference', json.reference);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "GET /api/paystack/verify",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/paystack/verify?reference={{payment_reference}}&demo=1",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "paystack",
+                    "verify"
+                  ],
+                  "query": [
+                    {
+                      "key": "reference",
+                      "value": "{{payment_reference}}"
+                    },
+                    {
+                      "key": "demo",
+                      "value": "1"
+                    }
+                  ]
+                },
+                "description": "Verify a Paystack payment by reference. Use `demo=1` for simulated success without live Paystack keys."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Inquiries",
+          "item": [
+            {
+              "name": "POST /api/event-inquiries",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{relief_base_url}}/api/event-inquiries",
+                "description": "Submit an event or conference inquiry.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Chioma\",\n  \"lastName\": \"Eze\",\n  \"email\": \"events@example.com\",\n  \"phone\": \"+2348098765432\",\n  \"eventType\": \"Corporate retreat\",\n  \"eventDate\": \"2026-11-15\",\n  \"guestCount\": \"40\",\n  \"message\": \"Need conference hall and catering for a full-day workshop.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/dining-reservations",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{relief_base_url}}/api/dining-reservations",
+                "description": "Submit a restaurant dining reservation request.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Tunde\",\n  \"lastName\": \"Balogun\",\n  \"email\": \"dining@example.com\",\n  \"venue\": \"Terrace Restaurant\",\n  \"reservationDate\": \"2026-09-11\",\n  \"reservationTime\": \"19:30\",\n  \"partySize\": \"4\",\n  \"notes\": \"Birthday celebration \u2014 window table if possible.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/feedback",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{relief_base_url}}/api/feedback",
+                "description": "Submit guest feedback (stored as an inquiry-type reservation).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"message\": \"Wonderful stay. Housekeeping was excellent and breakfast was superb.\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Staff / HMS (Tier 1)",
+          "item": [
+            {
+              "name": "GET /api/demo/activity",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/activity?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "activity"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Staff dashboard activity feed \u2014 reservations, payments, config, and event inquiries."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/demo/reservations (walk-in cash)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/reservations?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "reservations"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Record a front-desk walk-in reservation with cash deposit. Saves `reservation_id` and `payment_reference`.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Walk\",\n  \"lastName\": \"In\",\n  \"email\": \"walkin@example.com\",\n  \"phone\": \"+2348012345678\",\n  \"roomId\": \"{{room_id}}\",\n  \"checkIn\": \"{{check_in}}\",\n  \"checkOut\": \"{{check_out}}\",\n  \"guests\": 2,\n  \"message\": \"Arriving by 4pm\",\n  \"status\": \"confirmed\",\n  \"paymentMethod\": \"cash\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                      "const json = pm.response.json();",
+                      "if (json.id) {",
+                      "    pm.environment.set('reservation_id', json.id);",
+                      "    pm.collectionVariables.set('reservation_id', json.id);",
+                      "}",
+                      "if (json.paymentReference) {",
+                      "    pm.environment.set('payment_reference', json.paymentReference);",
+                      "    pm.collectionVariables.set('payment_reference', json.paymentReference);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "PATCH /api/demo/reservations \u2014 confirm",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/reservations/{{reservation_id}}?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "reservations",
+                    "{{reservation_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Update reservation status to **confirmed**. Endpoint planned for HMS Tier 1 \u2014 run walk-in create first.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"status\": \"confirmed\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "PATCH /api/demo/reservations \u2014 cancel",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/reservations/{{reservation_id}}?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "reservations",
+                    "{{reservation_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Update reservation status to **cancelled**.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"status\": \"cancelled\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "PATCH /api/demo/reservations \u2014 staff notes",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/reservations/{{reservation_id}}?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "reservations",
+                    "{{reservation_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Attach front-desk staff notes to a reservation.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"staffNotes\": \"VIP arrival\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Staff inventory (Tier 2)",
+          "item": [
+            {
+              "name": "GET /api/staff/room-blocks",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/staff/room-blocks?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "staff",
+                    "room-blocks"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "List manual room blocks (maintenance, holds). Tier 2 endpoint."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "POST /api/staff/room-blocks",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/staff/room-blocks?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "staff",
+                    "room-blocks"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Create a room block. Saves `block_id` from the response for deletion.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomId\": \"{{room_id}}\",\n  \"checkIn\": \"{{check_in}}\",\n  \"checkOut\": \"{{check_out}}\",\n  \"reason\": \"Maintenance \u2014 HVAC service\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200 or 201', function () {",
+                      "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                      "});",
+                      "const json = pm.response.json();",
+                      "const blockId = json.id || json.blockId;",
+                      "if (blockId) {",
+                      "    pm.environment.set('block_id', blockId);",
+                      "    pm.collectionVariables.set('block_id', blockId);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "DELETE /api/staff/room-blocks/{{block_id}}",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/staff/room-blocks/{{block_id}}?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "staff",
+                    "room-blocks",
+                    "{{block_id}}"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Remove a room block by ID. Run **POST /api/staff/room-blocks** first."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200 or 204', function () { pm.expect(pm.response.code).to.be.oneOf([200, 204]); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Moniepoint",
+          "item": [
+            {
+              "name": "GET /api/demo/payments/{{payment_reference}}/status",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{relief_base_url}}/api/demo/payments/{{payment_reference}}/status?key={{dashboard_key}}",
+                  "host": [
+                    "{{relief_base_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "demo",
+                    "payments",
+                    "{{payment_reference}}",
+                    "status"
+                  ],
+                  "query": [
+                    {
+                      "key": "key",
+                      "value": "{{dashboard_key}}"
+                    }
+                  ]
+                },
+                "description": "Poll Moniepoint terminal/transfer payment status and sync reservation state."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

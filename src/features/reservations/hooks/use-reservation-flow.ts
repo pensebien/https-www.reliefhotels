@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  parseDateString,
+  toDateString,
+} from "@/lib/booking-search";
 import { useCallback, useMemo, useState } from "react";
 import { reservationFormSchema } from "../lib/reservation-schema";
 import {
@@ -23,24 +27,43 @@ const defaultFormData: ReservationFormData = {
   termsAccepted: false,
 };
 
+const MIN_NIGHTS = 1;
+const MAX_NIGHTS = 30;
+const MIN_GUESTS = 1;
+const MAX_GUESTS = 12;
+
+function addDaysYmd(ymd: string, days: number): string {
+  const date = parseDateString(ymd);
+  date.setDate(date.getDate() + days);
+  return toDateString(date);
+}
+
 export function useReservationFlow(options: ReservationFlowProps) {
   const {
     itemId,
     itemLabel,
-    checkIn,
-    checkOut,
-    nights,
-    guests,
+    checkIn: initialCheckIn,
+    checkOut: initialCheckOut,
+    nights: initialNights,
+    guests: initialGuests,
     priceFrom,
     useDemoTestAmount = false,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
+  const [nights, setNights] = useState(initialNights);
+  const [guests, setGuests] = useState(initialGuests);
+  const [checkOut, setCheckOut] = useState(
+    initialCheckOut ??
+      (initialCheckIn ? addDaysYmd(initialCheckIn, initialNights) : undefined),
+  );
   const [validationErrors, setValidationErrors] = useState<
     Partial<Record<keyof ReservationFormData, string>>
   >({});
   const [status, setStatus] = useState<ReservationFlowStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const checkIn = initialCheckIn;
 
   const stayContext = useMemo<StayContext>(
     () => ({
@@ -60,6 +83,21 @@ export function useReservationFlow(options: ReservationFlowProps) {
     () => calculateDepositNgn(priceFrom, nights),
     [nights, priceFrom],
   );
+
+  const updateNights = useCallback(
+    (next: number) => {
+      const clamped = Math.min(MAX_NIGHTS, Math.max(MIN_NIGHTS, next));
+      setNights(clamped);
+      if (checkIn) {
+        setCheckOut(addDaysYmd(checkIn, clamped));
+      }
+    },
+    [checkIn],
+  );
+
+  const updateGuests = useCallback((next: number) => {
+    setGuests(Math.min(MAX_GUESTS, Math.max(MIN_GUESTS, next)));
+  }, []);
 
   const updateField = useCallback(
     <K extends keyof ReservationFormData>(
@@ -186,6 +224,12 @@ export function useReservationFlow(options: ReservationFlowProps) {
     errorMessage,
     depositNgn,
     stayContext,
+    nights,
+    guests,
+    checkIn,
+    checkOut,
+    updateNights,
+    updateGuests,
     submitReservation,
     initiatePayment,
     handleReserveAndPay,

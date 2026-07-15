@@ -159,7 +159,12 @@ export function SiteFooter() {
           <p>
             © {year} {site.name}. {t("rights")}
           </p>
-          <p>{t("tagline")}</p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+            <Link href="/privacy" className="hover:text-teal">
+              {t("privacy")}
+            </Link>
+            <p>{t("tagline")}</p>
+          </div>
         </div>
       </div>
     </footer>

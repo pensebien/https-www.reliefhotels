@@ -143,12 +143,12 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 28153,
+                  "duration": 29496,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-08T21:12:01.789Z",
+                  "startTime": "2026-07-09T06:34:31.826Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -177,12 +177,12 @@
                   "workerIndex": 1,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 24240,
+                  "duration": 23470,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-08T21:12:30.571Z",
+                  "startTime": "2026-07-09T06:35:03.678Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -211,12 +211,12 @@
                   "workerIndex": 2,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 28876,
+                  "duration": 27212,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-08T21:12:55.298Z",
+                  "startTime": "2026-07-09T06:35:27.700Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -245,12 +245,12 @@
                   "workerIndex": 3,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 29120,
+                  "duration": 28497,
                   "errors": [],
                   "stdout": [],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-08T21:13:24.676Z",
+                  "startTime": "2026-07-09T06:35:55.610Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -268,8 +268,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-08T21:12:01.377Z",
-    "duration": 112609.363,
+    "startTime": "2026-07-09T06:34:31.494Z",
+    "duration": 112820.267,
     "expected": 4,
     "skipped": 0,
     "unexpected": 0,

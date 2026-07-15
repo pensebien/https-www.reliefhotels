@@ -33,9 +33,20 @@ export type DiningReservation = {
   createdAt: string;
 };
 
+export type GuestFeedback = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  message: string;
+  createdAt: string;
+};
+
 type InquiryStore = {
   eventInquiries: EventInquiry[];
   diningReservations: DiningReservation[];
+  guestFeedback: GuestFeedback[];
 };
 
 const STORE_FILE = path.join(process.cwd(), "data", "inquiries.json");
@@ -43,10 +54,22 @@ const STORE_FILE = path.join(process.cwd(), "data", "inquiries.json");
 async function readStore(): Promise<InquiryStore> {
   try {
     const raw = await fs.readFile(STORE_FILE, "utf-8");
-    return JSON.parse(raw) as InquiryStore;
+    return normalizeStore(JSON.parse(raw) as InquiryStore);
   } catch {
-    return { eventInquiries: [], diningReservations: [] };
+    return {
+      eventInquiries: [],
+      diningReservations: [],
+      guestFeedback: [],
+    };
   }
+}
+
+function normalizeStore(store: InquiryStore): InquiryStore {
+  return {
+    eventInquiries: store.eventInquiries ?? [],
+    diningReservations: store.diningReservations ?? [],
+    guestFeedback: store.guestFeedback ?? [],
+  };
 }
 
 async function writeStore(store: InquiryStore): Promise<void> {
@@ -94,6 +117,37 @@ export async function getEventInquiries(): Promise<EventInquiry[]> {
 
   const store = await readStore();
   return store.eventInquiries.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+export async function addGuestFeedback(
+  data: Omit<GuestFeedback, "id" | "createdAt">,
+): Promise<GuestFeedback> {
+  if (isSupabaseEnabled()) {
+    const { dbAddGuestFeedback } = await import("@/lib/db/inquiry-store");
+    return dbAddGuestFeedback(data);
+  }
+
+  const store = await readStore();
+  const record: GuestFeedback = {
+    id: randomUUID(),
+    createdAt: new Date().toISOString(),
+    ...data,
+  };
+  store.guestFeedback.unshift(record);
+  await writeStore(store);
+  return record;
+}
+
+export async function getGuestFeedback(): Promise<GuestFeedback[]> {
+  if (isSupabaseEnabled()) {
+    const { dbGetGuestFeedback } = await import("@/lib/db/inquiry-store");
+    return dbGetGuestFeedback();
+  }
+
+  const store = await readStore();
+  return store.guestFeedback.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 }

@@ -3,47 +3,47 @@
   "profile": "local-luxury",
   "device": "desktop",
   "automated": true,
-  "startedAt": "2026-07-08T21:12:30.757Z",
-  "finishedAt": "2026-07-08T21:12:54.897Z",
+  "startedAt": "2026-07-09T06:35:03.937Z",
+  "finishedAt": "2026-07-09T06:35:27.298Z",
   "tasks": [
     {
       "id": "task-1",
       "name": "First impression",
       "pass": true,
-      "durationMs": 3586,
+      "durationMs": 1826,
       "notes": "Homepage conveys luxury hotel in Calabar"
     },
     {
       "id": "task-2",
       "name": "Room discovery",
       "pass": true,
-      "durationMs": 1244,
+      "durationMs": 1007,
       "notes": "Reached book page with deposit context"
     },
     {
       "id": "task-3",
       "name": "Booking / deposit",
       "pass": true,
-      "durationMs": 10488,
-      "notes": "Demo payment success for prototype.p-a02.mrckqdyd@relief-test.example"
+      "durationMs": 10704,
+      "notes": "Demo payment success for prototype.p-a02.mrd4tu2p@relief-test.example"
     },
     {
       "id": "task-4",
       "name": "Dining inquiry",
       "pass": true,
-      "durationMs": 7633
+      "durationMs": 7955
     },
     {
       "id": "task-5",
       "name": "Concierge contact",
       "pass": true,
-      "durationMs": 478
+      "durationMs": 981
     },
     {
       "id": "task-6",
       "name": "Language & mobile",
       "pass": true,
-      "durationMs": 96,
+      "durationMs": 88,
       "notes": "Switched to FR locale"
     },
     {
@@ -51,12 +51,12 @@
       "name": "Dashboard API visibility",
       "pass": true,
       "durationMs": 0,
-      "notes": "Reservation prototype.p-a02.mrckqdyd@relief-test.example in activity feed"
+      "notes": "Reservation prototype.p-a02.mrd4tu2p@relief-test.example in activity feed"
     }
   ],
   "tasksPassed": 6,
   "usabilityScore": 5,
   "wouldBook": "yes",
-  "guestEmail": "prototype.p-a02.mrckqdyd@relief-test.example",
+  "guestEmail": "prototype.p-a02.mrd4tu2p@relief-test.example",
   "guestName": "Ada Eze"
 }

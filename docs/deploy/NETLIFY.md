@@ -1,6 +1,6 @@
 # Netlify Deployment — Relief Hotels
 
-Get the site live on **`*.netlify.app` first**, then attach **`www.reliefhotelsandsuites.com.ng`**.
+Get the site live on **`*.netlify.app` first**, then attach **`www.reliefhotelsandsuites.com`**.
 
 ---
 
@@ -60,7 +60,7 @@ Add at minimum:
 
 | Key | Value |
 |-----|--------|
-| `NEXT_PUBLIC_APP_URL` | `https://reliefhotelsandsuites.com.ng` *(must match live domain)* |
+| `NEXT_PUBLIC_APP_URL` | `https://reliefhotelsandsuites.com` *(must match live domain)* |
 | `DEMO_DASHBOARD_KEY` | `relief-demo-2026` |
 | `DEMO_MODE` | `true` *(or `false` when Paystack test keys are set)* |
 | `NOTIFY_CHANNEL` | `console` |
@@ -83,12 +83,12 @@ Optional: Paystack test keys, Resend keys (see `docs/ENV_MATRIX.md`).
 
 ---
 
-## Step 4 — Custom domain (`reliefhotelsandsuites.com.ng`)
+## Step 4 — Custom domain (`reliefhotelsandsuites.com`)
 
 Only after Step 2 works on `*.netlify.app`.
 
 1. **Site configuration → Domain management → Add a domain**
-2. Enter `reliefhotelsandsuites.com.ng`
+2. Enter `reliefhotelsandsuites.com`
 3. Netlify shows DNS records — add them at your **registrar or Cloudflare**:
 
    | Host | Type | Points to |
@@ -97,8 +97,8 @@ Only after Step 2 works on `*.netlify.app`.
    | `@` | A | Netlify apex IPs *(shown in Netlify UI)* |
 
 4. Wait until domain shows **Verified** and SSL is active
-5. Set **Primary domain** to `www.reliefhotelsandsuites.com.ng`
-6. Update env var: `NEXT_PUBLIC_APP_URL` = `https://www.reliefhotelsandsuites.com.ng`
+5. Set **Primary domain** to `www.reliefhotelsandsuites.com`
+6. Update env var: `NEXT_PUBLIC_APP_URL` = `https://www.reliefhotelsandsuites.com`
 7. **Trigger deploy** again
 
 ---
@@ -110,7 +110,7 @@ Only after Step 2 works on `*.netlify.app`.
 BASE=https://YOUR-SITE.netlify.app
 
 # Phase B — after DNS (custom domain)
-BASE=https://www.reliefhotelsandsuites.com.ng
+BASE=https://www.reliefhotelsandsuites.com
 
 curl -s -o /dev/null -w "%{http_code}" "$BASE/en"        # 200
 curl -s -o /dev/null -w "%{http_code}" "$BASE/en/rooms"  # 200
@@ -120,10 +120,10 @@ Browser: homepage, rooms, staff portal (`docs/deploy/STAFF_PORTAL.md`)
 
 ```bash
 # Staff portal (after DNS + STAFF_PORTAL_HOST)
-open "https://reservation.reliefhotelsandsuites.com.ng?key=relief-demo-2026"
+open "https://reservation.reliefhotelsandsuites.com?key=relief-demo-2026"
 
 # Legacy demo path on main domain
-open "https://reliefhotelsandsuites.com.ng/en/demo?key=relief-demo-2026"
+open "https://reliefhotelsandsuites.com/en/demo?key=relief-demo-2026"
 ```
 
 ---

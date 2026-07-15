@@ -4,15 +4,10 @@ import {
   parseDateString,
   type BookingSearchQuery,
 } from "@/lib/booking-search";
-
-/** Units per room type — replace with PMS / Supabase inventory when wired. */
-const INVENTORY_BY_ROOM_ID: Record<string, number> = {
-  "guest-room": 12,
-  "executive-room": 8,
-  "signature-suite": 4,
-  "presidential-suite": 1,
-  "executive-spa": 3,
-};
+import {
+  countOccupiedUnits,
+  getRoomInventory,
+} from "@/lib/db/inventory-store";
 
 export type AvailableRoom = {
   id: string;
@@ -34,30 +29,17 @@ export type RoomAvailabilityResult = {
   available: AvailableRoom[];
 };
 
-/**
- * Mock occupancy for demo — deterministic from dates + room id.
- * Swap this function for a Supabase query when inventory is live.
- */
+/** Fallback mock when inventory lookup fails — keeps demo usable offline. */
 function mockBookedUnits(roomId: string, checkIn: Date, checkOut: Date): number {
-  const inventory = INVENTORY_BY_ROOM_ID[roomId] ?? 1;
+  const inventory = 12;
   const daySeed = Math.floor(checkIn.getTime() / 86400000);
   const nightSpan = Math.max(
     1,
     Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000),
   );
-
   let hash = 0;
   for (const ch of roomId) hash = (hash + ch.charCodeAt(0)) % 97;
   const load = (daySeed + hash + nightSpan * 3) % (inventory + 2);
-
-  // Penthouse is a single unit — occasionally full, but usually shown for demo
-  if (roomId === "presidential-suite" && nightSpan >= 2 && load % 5 === 0) {
-    return inventory;
-  }
-  if (roomId === "executive-spa" && load % 5 === 0) {
-    return Math.max(0, inventory - 1);
-  }
-
   return Math.min(inventory - 1, Math.floor(load / 3));
 }
 
@@ -68,16 +50,26 @@ export async function getRoomAvailability(
   const checkOutDate = parseDateString(query.checkOut);
   const nights = nightsBetween(query.checkIn, query.checkOut);
 
+  let inventoryByRoom: Record<string, number>;
+  try {
+    inventoryByRoom = await getRoomInventory();
+  } catch {
+    inventoryByRoom = {};
+  }
+
   const available: AvailableRoom[] = [];
 
   for (const room of rooms) {
-    const inventory = INVENTORY_BY_ROOM_ID[room.id] ?? 1;
-    const booked = mockBookedUnits(room.id, checkInDate, checkOutDate);
-    const freeUnits = Math.max(0, inventory - booked);
+    const inventory = inventoryByRoom[room.id] ?? 1;
+    let occupied: number;
+    try {
+      occupied = await countOccupiedUnits(room.id, query.checkIn, query.checkOut);
+    } catch {
+      occupied = mockBookedUnits(room.id, checkInDate, checkOutDate);
+    }
+    const freeUnits = Math.max(0, inventory - occupied);
 
     if (freeUnits < query.rooms) continue;
-
-    const totalFrom = room.priceFrom * nights;
 
     available.push({
       id: room.id,
@@ -87,7 +79,7 @@ export async function getRoomAvailability(
       currency: room.currency,
       availableUnits: freeUnits,
       nights,
-      totalFrom,
+      totalFrom: room.priceFrom * nights,
     });
   }
 

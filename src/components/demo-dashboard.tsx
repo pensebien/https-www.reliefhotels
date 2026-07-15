@@ -25,6 +25,7 @@ import {
   normalizeSearchQuery,
   type SearchScope,
 } from "@/lib/dashboard-search";
+import { isBookingReservation } from "@/lib/is-booking-reservation";
 import { parseYmd } from "@/lib/reservation-dates";
 import {
   isValidYmd,
@@ -58,6 +59,16 @@ type EventInquiryRow = {
   createdAt: string;
 };
 
+type GuestFeedbackRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  message: string;
+  createdAt: string;
+};
+
 type Activity = {
   config: {
     demoMode: boolean;
@@ -82,6 +93,7 @@ type Activity = {
   reservations: DashboardReservationRow[];
   payments: DashboardPaymentRow[];
   eventInquiries?: EventInquiryRow[];
+  guestFeedback?: GuestFeedbackRow[];
 };
 
 type DashboardView = "calendar" | "lists";
@@ -272,6 +284,7 @@ export function DemoDashboard({
   const baseReservations = useMemo(() => {
     if (!data) return [];
     return data.reservations
+      .filter((r) => isBookingReservation(r.itemType))
       .filter((r) => reservationInDateRange(r, activeDateRange))
       .sort((a, b) => {
       if (a.checkIn && b.checkIn) {
@@ -627,18 +640,24 @@ export function DemoDashboard({
             <DashboardListsView
               reservations={filteredReservations}
               payments={filteredPayments}
+              guestFeedback={data.guestFeedback ?? []}
               paymentsByReservation={paymentsByReservation}
               reservationsById={reservationsById}
               pageSize={pageSize}
               defaultBookingStatus="pending"
+              dashboardKey={key}
+              onReservationUpdated={() => load(key)}
             />
           ) : (
             <DashboardInboxView
               reservations={filteredReservations}
               payments={filteredPayments}
+              guestFeedback={data.guestFeedback ?? []}
               paymentsByReservation={paymentsByReservation}
               reservationsById={reservationsById}
               pageSize={pageSize}
+              dashboardKey={key}
+              onReservationUpdated={() => load(key)}
             />
           )}
         </>

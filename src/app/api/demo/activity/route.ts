@@ -1,7 +1,7 @@
 import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
 import { getActivity } from "@/lib/demo-store";
-import { getEventInquiries } from "@/lib/inquiry-store";
+import { getEventInquiries, getGuestFeedback } from "@/lib/inquiry-store";
 import { getMoniepointPublicConfig } from "@/lib/moniepoint";
 import { NextResponse } from "next/server";
 
@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   try {
     const activity = await getActivity();
     const eventInquiries = await getEventInquiries();
+    const guestFeedback = await getGuestFeedback();
     const storageHealth = await checkStorageHealth();
 
     return NextResponse.json({
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
       moniepoint: getMoniepointPublicConfig(),
       ...activity,
       eventInquiries,
+      guestFeedback,
     });
   } catch (error) {
     const message =

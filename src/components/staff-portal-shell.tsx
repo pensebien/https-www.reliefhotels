@@ -12,7 +12,7 @@ export async function StaffPortalShell({
   const t = await getTranslations("staffPortal");
   const portalUrl = getStaffPortalPublicUrl();
   const publicSiteUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com.ng";
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

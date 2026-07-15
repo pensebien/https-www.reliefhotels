@@ -1,4 +1,4 @@
-export const DEFAULT_STAFF_PORTAL_HOST = "reservation.reliefhotelsandsuites.com.ng";
+export const DEFAULT_STAFF_PORTAL_HOST = "reservation.reliefhotelsandsuites.com";
 
 export const STAFF_PORTAL_HEADER = "x-staff-portal";
 

@@ -19,10 +19,6 @@ const labelClassName =
 export function ReservationForm(props: ReservationFlowProps) {
   const {
     itemLabel,
-    checkIn,
-    checkOut,
-    nights,
-    guests,
     priceFrom,
     useDemoTestAmount = false,
   } = props;
@@ -40,6 +36,12 @@ export function ReservationForm(props: ReservationFlowProps) {
     depositNgn,
     handleReserveAndPay,
     toggleExperienceInterest,
+    nights: stayNights,
+    guests: stayGuests,
+    checkIn: stayCheckIn,
+    checkOut: stayCheckOut,
+    updateNights,
+    updateGuests,
   } = useReservationFlow(props);
 
   function validateStep1(): boolean {
@@ -131,13 +133,16 @@ export function ReservationForm(props: ReservationFlowProps) {
       <div className="mt-6">
         <BookingSummary
           itemLabel={itemLabel}
-          checkIn={checkIn}
-          checkOut={checkOut}
-          nights={nights}
-          guests={guests}
+          checkIn={stayCheckIn}
+          checkOut={stayCheckOut}
+          nights={stayNights}
+          guests={stayGuests}
           depositNgn={depositNgn}
           priceFrom={priceFrom}
           emphasizeDeposit={step === 2}
+          editableStay={step === 1}
+          onNightsChange={updateNights}
+          onGuestsChange={updateGuests}
         />
       </div>
 
@@ -208,12 +213,16 @@ export function ReservationForm(props: ReservationFlowProps) {
               <input
                 id="res-phone"
                 type="tel"
+                required
                 autoComplete="tel"
                 placeholder={t("phonePlaceholder")}
-                value={formData.phone ?? ""}
+                value={formData.phone}
                 onChange={(e) => updateField("phone", e.target.value)}
                 className={inputClassName}
               />
+              {validationErrors.phone ? (
+                <p className="text-xs text-red-600">{validationErrors.phone}</p>
+              ) : null}
             </div>
 
             <fieldset className="space-y-3 sm:col-span-2">

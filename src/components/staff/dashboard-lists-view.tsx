@@ -1,18 +1,21 @@
 "use client";
 
-import { DashboardPagination } from "@/components/dashboard-date-pagination";
+import { DashboardPagination, getPaginationMeta } from "@/components/dashboard-date-pagination";
+import type { DashboardGuestFeedbackRow } from "@/components/staff/dashboard-inbox-view";
 import {
   BookingListCard,
   DashboardTabBar,
   PaymentListCard,
+  ContactActions,
+  formatDashboardDate,
   type DashboardPaymentRow,
   type DashboardReservationRow,
 } from "@/components/staff/dashboard-shared";
-import { getPaginationMeta } from "@/components/dashboard-date-pagination";
+import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type EntityTab = "bookings" | "payments";
+type EntityTab = "bookings" | "payments" | "messages";
 type BookingStatusTab = "pending" | "confirmed" | "cancelled";
 type PaymentStatusTab = "pending" | "success" | "failed" | "all";
 
@@ -26,22 +29,52 @@ function matchesPaymentStatus(
   return status === "pending";
 }
 
+function GuestMessageCard({ message }: { message: DashboardGuestFeedbackRow }) {
+  const t = useTranslations("demo");
+
+  return (
+    <article className="rounded-xl border border-border bg-card p-4 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-medium">
+            {message.firstName} {message.lastName}
+          </p>
+          <p className="text-xs text-muted">{t("inbox.messageBadge")}</p>
+        </div>
+        <p className="text-[10px] text-muted">
+          {formatDashboardDate(message.createdAt)}
+        </p>
+      </div>
+      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+        {message.message}
+      </p>
+      <ContactActions email={message.email} phone={message.phone} />
+    </article>
+  );
+}
+
 export function DashboardListsView({
   reservations,
   payments,
+  guestFeedback = [],
   paymentsByReservation,
   reservationsById,
   pageSize,
   defaultEntityTab = "bookings",
   defaultBookingStatus = "pending",
+  dashboardKey,
+  onReservationUpdated,
 }: {
   reservations: DashboardReservationRow[];
   payments: DashboardPaymentRow[];
+  guestFeedback?: DashboardGuestFeedbackRow[];
   paymentsByReservation: Map<string, DashboardPaymentRow[]>;
   reservationsById: Map<string, DashboardReservationRow>;
   pageSize: number;
   defaultEntityTab?: EntityTab;
   defaultBookingStatus?: BookingStatusTab;
+  dashboardKey: string;
+  onReservationUpdated: () => void;
 }) {
   const t = useTranslations("demo");
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,6 +103,15 @@ export function DashboardListsView({
     return counts;
   }, [payments]);
 
+  const messages = useMemo(
+    () =>
+      [...guestFeedback].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [guestFeedback],
+  );
+
   const filteredBookings = useMemo(
     () => reservations.filter((r) => r.status === bookingStatus),
     [reservations, bookingStatus],
@@ -80,14 +122,26 @@ export function DashboardListsView({
     [payments, paymentStatus],
   );
 
-  const activeList =
-    entityTab === "bookings" ? filteredBookings : filteredPaymentsList;
+  const activeListLength =
+    entityTab === "bookings"
+      ? filteredBookings.length
+      : entityTab === "payments"
+        ? filteredPaymentsList.length
+        : messages.length;
 
-  const pagination = getPaginationMeta(page, activeList.length, pageSize);
+  const pagination = getPaginationMeta(page, activeListLength, pageSize);
 
   useEffect(() => {
     setPage(1);
-  }, [entityTab, bookingStatus, paymentStatus, pageSize, reservations, payments]);
+  }, [
+    entityTab,
+    bookingStatus,
+    paymentStatus,
+    pageSize,
+    reservations,
+    payments,
+    guestFeedback,
+  ]);
 
   useEffect(() => {
     if (page > pagination.totalPages) setPage(pagination.totalPages);
@@ -103,6 +157,11 @@ export function DashboardListsView({
     return filteredPaymentsList.slice(start, start + pageSize);
   }, [filteredPaymentsList, pageSize, pagination.safePage]);
 
+  const paginatedMessages = useMemo(() => {
+    const start = (pagination.safePage - 1) * pageSize;
+    return messages.slice(start, start + pageSize);
+  }, [messages, pageSize, pagination.safePage]);
+
   function handlePageChange(next: number) {
     setPage(next);
     sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -113,7 +172,9 @@ export function DashboardListsView({
       ? bookingStatus === "pending"
         ? t("emptyPendingBookings")
         : t("emptyReservations")
-      : t("emptyPayments");
+      : entityTab === "messages"
+        ? t("inbox.emptyMessages")
+        : t("emptyPayments");
 
   return (
     <section ref={sectionRef} className="scroll-mt-24 space-y-4">
@@ -126,6 +187,11 @@ export function DashboardListsView({
             id: "bookings" as const,
             label: t("entityBookings"),
             count: reservations.length,
+          },
+          {
+            id: "messages" as const,
+            label: t("inbox.messages"),
+            count: messages.length,
           },
           {
             id: "payments" as const,
@@ -148,7 +214,7 @@ export function DashboardListsView({
             count: bookingCounts[status],
           }))}
         />
-      ) : (
+      ) : entityTab === "payments" ? (
         <DashboardTabBar
           label={t("paymentStatusTabsLabel")}
           active={paymentStatus}
@@ -165,31 +231,48 @@ export function DashboardListsView({
             count: paymentCounts[tab.id],
           }))}
         />
-      )}
+      ) : null}
 
       <DashboardPagination
         placement="header"
         page={page}
-        totalItems={activeList.length}
+        totalItems={activeListLength}
         pageSize={pageSize}
         onPageChange={handlePageChange}
       />
 
       <div className="space-y-3">
-        {activeList.length === 0 ? (
+        {activeListLength === 0 ? (
           <p className="text-sm text-muted">{emptyMessage}</p>
         ) : entityTab === "bookings" ? (
           paginatedBookings.map((r) => {
             const linked = paymentsByReservation.get(r.id) ?? [];
             const successPayment = linked.find((p) => p.status === "success");
             return (
-              <BookingListCard
-                key={r.id}
-                reservation={r}
-                successPayment={successPayment}
-              />
+              <div key={r.id} className="space-y-0">
+                <BookingListCard
+                  reservation={r}
+                  successPayment={successPayment}
+                />
+                {bookingStatus === "pending" ? (
+                  <div className="rounded-b-xl border border-t-0 border-border bg-card/60 px-4 pb-4">
+                    <StaffReservationActions
+                      reservationId={r.id}
+                      dashboardKey={dashboardKey}
+                      source={r.source}
+                      staffNotes={r.staffNotes}
+                      onUpdated={onReservationUpdated}
+                      compact
+                    />
+                  </div>
+                ) : null}
+              </div>
             );
           })
+        ) : entityTab === "messages" ? (
+          paginatedMessages.map((m) => (
+            <GuestMessageCard key={m.id} message={m} />
+          ))
         ) : (
           paginatedPayments.map((p) => (
             <PaymentListCard
@@ -207,7 +290,7 @@ export function DashboardListsView({
 
       <DashboardPagination
         page={page}
-        totalItems={activeList.length}
+        totalItems={activeListLength}
         pageSize={pageSize}
         onPageChange={handlePageChange}
       />

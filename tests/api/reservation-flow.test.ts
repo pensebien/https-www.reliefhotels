@@ -10,19 +10,31 @@ function setTestEnv() {
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
+/** Unique far-future stay dates so inventory from prior runs does not 409. */
+function stayDates() {
+  const offset = Math.floor(Date.now() / 1000) % 200;
+  const base = new Date(Date.UTC(2027, 5, 1 + offset));
+  const checkIn = base.toISOString().slice(0, 10);
+  const out = new Date(base);
+  out.setUTCDate(out.getUTCDate() + 2);
+  const checkOut = out.toISOString().slice(0, 10);
+  return { checkIn, checkOut, nights: 2 };
+}
+
 function reservationBody() {
+  const { checkIn, checkOut, nights } = stayDates();
   return {
     firstName: "Auto",
     lastName: "QA",
     email: `qa-${Date.now()}@example.com`,
     phone: "+2348000000000",
-    stayPreference: "signature-suite · 2 night(s) · 2 guest(s)",
+    stayPreference: `guest-room · ${nights} night(s) · 2 guest(s)`,
     message: "Automated API flow test",
     itemType: "room" as const,
-    roomId: "signature-suite",
-    checkIn: "2026-08-01",
-    checkOut: "2026-08-03",
-    nights: 2,
+    roomId: "guest-room",
+    checkIn,
+    checkOut,
+    nights,
     guests: 2,
   };
 }
@@ -62,7 +74,7 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
         body: JSON.stringify({
           email: "qa@example.com",
           itemType: "room",
-          itemId: "signature-suite",
+          itemId: "guest-room",
           nights: 2,
         }),
       }),
@@ -81,11 +93,12 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
       "@/app/api/paystack/verify/route"
     );
 
+    const body = reservationBody();
     const createRes = await createReservation(
       new Request("http://localhost/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reservationBody()),
+        body: JSON.stringify(body),
       }),
     );
     const created = (await createRes.json()) as { id: string };
@@ -98,9 +111,9 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
         body: JSON.stringify({
           email: "qa-flow@example.com",
           itemType: "room",
-          itemId: "signature-suite",
+          itemId: "guest-room",
           reservationId: created.id,
-          nights: 2,
+          nights: body.nights,
           guests: 2,
           demoAmountNgn: 5000,
         }),
@@ -148,11 +161,12 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
       "@/app/api/paystack/verify/route"
     );
 
+    const body = reservationBody();
     const createRes = await createReservation(
       new Request("http://localhost/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reservationBody()),
+        body: JSON.stringify(body),
       }),
     );
     const { id } = (await createRes.json()) as { id: string };
@@ -164,9 +178,9 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
         body: JSON.stringify({
           email: "qa@example.com",
           itemType: "room",
-          itemId: "signature-suite",
+          itemId: "guest-room",
           reservationId: id,
-          nights: 2,
+          nights: body.nights,
           demoAmountNgn: 5000,
         }),
       }),
@@ -186,9 +200,9 @@ describe("Reservation API flow (Part 1 + Part 2)", () => {
         body: JSON.stringify({
           email: "qa@example.com",
           itemType: "room",
-          itemId: "signature-suite",
+          itemId: "guest-room",
           reservationId: id,
-          nights: 2,
+          nights: body.nights,
           demoAmountNgn: 5000,
         }),
       }),

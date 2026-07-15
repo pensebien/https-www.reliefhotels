@@ -18,11 +18,27 @@ import {
   RowTypeBadge,
 } from "@/components/staff/occupancy-category-icons";
 import { resolveBookingCategoryKey } from "@/lib/booking-category";
+import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-type InboxTab = "needsAction" | "confirmed" | "cancelled" | "paymentsLedger";
+type InboxTab =
+  | "needsAction"
+  | "confirmed"
+  | "cancelled"
+  | "messages"
+  | "paymentsLedger";
+
+export type DashboardGuestFeedbackRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  message: string;
+  createdAt: string;
+};
 
 function hasSuccessfulDeposit(
   reservationId: string,
@@ -37,10 +53,14 @@ function InboxCaseCard({
   reservation,
   successPayment,
   showActions,
+  dashboardKey,
+  onUpdated,
 }: {
   reservation: DashboardReservationRow;
   successPayment?: DashboardPaymentRow;
   showActions: boolean;
+  dashboardKey: string;
+  onUpdated: () => void;
 }) {
   const t = useTranslations("demo");
   const categoryKey = resolveBookingCategoryKey({
@@ -106,7 +126,16 @@ function InboxCaseCard({
           </div>
 
           {showActions ? (
-            <ContactActions email={reservation.email} phone={reservation.phone} />
+            <>
+              <ContactActions email={reservation.email} phone={reservation.phone} />
+              <StaffReservationActions
+                reservationId={reservation.id}
+                dashboardKey={dashboardKey}
+                source={reservation.source}
+                staffNotes={reservation.staffNotes}
+                onUpdated={onUpdated}
+              />
+            </>
           ) : (
             <p className="mt-2 text-[10px] text-muted">
               {formatDashboardDate(reservation.createdAt)} · {reservation.source}
@@ -118,18 +147,48 @@ function InboxCaseCard({
   );
 }
 
+function GuestMessageCard({ message }: { message: DashboardGuestFeedbackRow }) {
+  const t = useTranslations("demo");
+
+  return (
+    <article className="rounded-xl border border-border bg-card p-4 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-medium">
+            {message.firstName} {message.lastName}
+          </p>
+          <p className="text-xs text-muted">{t("inbox.messageBadge")}</p>
+        </div>
+        <p className="text-[10px] text-muted">
+          {formatDashboardDate(message.createdAt)}
+        </p>
+      </div>
+      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+        {message.message}
+      </p>
+      <ContactActions email={message.email} phone={message.phone} />
+    </article>
+  );
+}
+
 export function DashboardInboxView({
   reservations,
   payments,
+  guestFeedback = [],
   paymentsByReservation,
   reservationsById,
   pageSize,
+  dashboardKey,
+  onReservationUpdated,
 }: {
   reservations: DashboardReservationRow[];
   payments: DashboardPaymentRow[];
+  guestFeedback?: DashboardGuestFeedbackRow[];
   paymentsByReservation: Map<string, DashboardPaymentRow[]>;
   reservationsById: Map<string, DashboardReservationRow>;
   pageSize: number;
+  dashboardKey: string;
+  onReservationUpdated: () => void;
 }) {
   const t = useTranslations("demo");
   const sectionRef = useRef<HTMLElement>(null);
@@ -160,47 +219,93 @@ export function DashboardInboxView({
     [reservations],
   );
 
+  const messages = useMemo(
+    () =>
+      [...guestFeedback].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+    [guestFeedback],
+  );
+
   const tabCounts = useMemo(
     () => ({
       needsAction: needsAction.length,
       confirmed: confirmed.length,
       cancelled: cancelled.length,
+      messages: messages.length,
       paymentsLedger: payments.length,
     }),
-    [cancelled.length, confirmed.length, needsAction.length, payments.length],
+    [
+      cancelled.length,
+      confirmed.length,
+      messages.length,
+      needsAction.length,
+      payments.length,
+    ],
   );
 
-  const activeList = useMemo(() => {
+  const activeListLength = useMemo(() => {
     switch (inboxTab) {
       case "needsAction":
-        return needsAction;
+        return needsAction.length;
       case "confirmed":
-        return confirmed;
+        return confirmed.length;
       case "cancelled":
-        return cancelled;
+        return cancelled.length;
+      case "messages":
+        return messages.length;
       default:
-        return payments;
+        return payments.length;
     }
-  }, [cancelled, confirmed, inboxTab, needsAction, payments]);
+  }, [
+    cancelled.length,
+    confirmed.length,
+    inboxTab,
+    messages.length,
+    needsAction.length,
+    payments.length,
+  ]);
 
-  const pagination = getPaginationMeta(page, activeList.length, pageSize);
+  const pagination = getPaginationMeta(page, activeListLength, pageSize);
 
   useEffect(() => {
     setPage(1);
-  }, [inboxTab, pageSize, reservations, payments]);
+  }, [inboxTab, pageSize, reservations, payments, guestFeedback]);
 
   useEffect(() => {
     if (page > pagination.totalPages) setPage(pagination.totalPages);
   }, [page, pagination.totalPages]);
 
   const paginatedReservations = useMemo(() => {
-    if (inboxTab === "paymentsLedger") return [];
+    if (
+      inboxTab === "paymentsLedger" ||
+      inboxTab === "messages"
+    ) {
+      return [];
+    }
+    const list =
+      inboxTab === "needsAction"
+        ? needsAction
+        : inboxTab === "confirmed"
+          ? confirmed
+          : cancelled;
     const start = (pagination.safePage - 1) * pageSize;
-    return (activeList as DashboardReservationRow[]).slice(
-      start,
-      start + pageSize,
-    );
-  }, [activeList, inboxTab, pageSize, pagination.safePage]);
+    return list.slice(start, start + pageSize);
+  }, [
+    cancelled,
+    confirmed,
+    inboxTab,
+    needsAction,
+    pageSize,
+    pagination.safePage,
+  ]);
+
+  const paginatedMessages = useMemo(() => {
+    if (inboxTab !== "messages") return [];
+    const start = (pagination.safePage - 1) * pageSize;
+    return messages.slice(start, start + pageSize);
+  }, [inboxTab, messages, pageSize, pagination.safePage]);
 
   const paginatedPayments = useMemo(() => {
     if (inboxTab !== "paymentsLedger") return [];
@@ -216,9 +321,11 @@ export function DashboardInboxView({
   const emptyMessage =
     inboxTab === "needsAction"
       ? t("inbox.emptyNeedsAction")
-      : inboxTab === "paymentsLedger"
-        ? t("emptyPayments")
-        : t("emptyReservations");
+      : inboxTab === "messages"
+        ? t("inbox.emptyMessages")
+        : inboxTab === "paymentsLedger"
+          ? t("emptyPayments")
+          : t("emptyReservations");
 
   return (
     <section ref={sectionRef} className="scroll-mt-24 space-y-4">
@@ -248,6 +355,11 @@ export function DashboardInboxView({
             count: tabCounts.cancelled,
           },
           {
+            id: "messages" as const,
+            label: t("inbox.messages"),
+            count: tabCounts.messages,
+          },
+          {
             id: "paymentsLedger" as const,
             label: t("inbox.paymentsLedger"),
             count: tabCounts.paymentsLedger,
@@ -258,13 +370,13 @@ export function DashboardInboxView({
       <DashboardPagination
         placement="header"
         page={page}
-        totalItems={activeList.length}
+        totalItems={activeListLength}
         pageSize={pageSize}
         onPageChange={handlePageChange}
       />
 
       <div className="space-y-3">
-        {activeList.length === 0 ? (
+        {activeListLength === 0 ? (
           <p className="rounded-xl border border-dashed border-border bg-card/40 px-4 py-8 text-center text-sm text-muted">
             {emptyMessage}
           </p>
@@ -280,6 +392,10 @@ export function DashboardInboxView({
               }
             />
           ))
+        ) : inboxTab === "messages" ? (
+          paginatedMessages.map((m) => (
+            <GuestMessageCard key={m.id} message={m} />
+          ))
         ) : (
           paginatedReservations.map((r) => (
             <InboxCaseCard
@@ -287,6 +403,8 @@ export function DashboardInboxView({
               reservation={r}
               successPayment={hasSuccessfulDeposit(r.id, paymentsByReservation)}
               showActions={inboxTab === "needsAction"}
+              dashboardKey={dashboardKey}
+              onUpdated={onReservationUpdated}
             />
           ))
         )}
@@ -294,7 +412,7 @@ export function DashboardInboxView({
 
       <DashboardPagination
         page={page}
-        totalItems={activeList.length}
+        totalItems={activeListLength}
         pageSize={pageSize}
         onPageChange={handlePageChange}
       />
