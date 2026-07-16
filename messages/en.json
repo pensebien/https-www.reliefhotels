@@ -1073,5 +1073,20 @@
     "methodRequired": "Choose a payment method.",
     "reference": "Reference",
     "navLink": "Cashier"
+  },
+  "staffCalendar": {
+    "metaTitle": "Occupancy Calendar | Relief Hotels & Suites",
+    "eyebrow": "Front desk",
+    "title": "Occupancy calendar",
+    "subtitle": "A dedicated weekly view of room and event-space occupancy for staff — confirm availability at a glance.",
+    "backToPortal": "← Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load calendar",
+    "unauthorized": "Invalid dashboard key.",
+    "serverError": "Could not load occupancy data. Please try again.",
+    "refresh": "Refresh",
+    "loading": "Loading occupancy data…",
+    "emptyTitle": "No reservations yet",
+    "emptyHint": "Once bookings and event inquiries come in, they'll appear on the calendar below."
   }
 }
