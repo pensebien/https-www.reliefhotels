@@ -1073,5 +1073,22 @@
     "methodRequired": "Choose a payment method.",
     "reference": "Reference",
     "navLink": "Cashier"
+  },
+  "staffShell": {
+    "navLabel": "Staff navigation",
+    "roleLabel": "Role",
+    "readOnly": "view only",
+    "nav": {
+      "dashboard": "Dashboard",
+      "cashier": "Cashier",
+      "fnb": "F&B",
+      "calendar": "Calendar",
+      "accounting": "Accounting"
+    },
+    "roles": {
+      "front_desk": "Front Desk",
+      "manager": "Manager",
+      "accountant": "Accountant"
+    }
   }
 }
