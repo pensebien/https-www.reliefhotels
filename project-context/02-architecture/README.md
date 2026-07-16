@@ -22,6 +22,7 @@
 | [ADR-002](architecture-decision-records/ADR-002-api-design.md) | Route Handlers REST API | **Accepted** |
 | [ADR-003](architecture-decision-records/ADR-003-notification-channel.md) | SMS + WhatsApp at launch | **Accepted** |
 | [ADR-004](architecture-decision-records/ADR-004-hosting-render.md) | Render hosting | **Accepted** |
+| [ADR-005](architecture-decision-records/ADR-005-cashier-dual-pos.md) | Front-desk cashier dual POS (Paystack + Moniepoint) | **Accepted** |
 | [ADR-template](architecture-decision-records/ADR-template.md) | Template for future ADRs | — |
 
 ## Confirmed sponsor decisions

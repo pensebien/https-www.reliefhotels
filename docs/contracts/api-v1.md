@@ -113,6 +113,30 @@ Staff routes (key-gated):
 
 ---
 
+## Staff cashier settle (ADR-005)
+
+Key-gated with `DEMO_DASHBOARD_KEY` (query `key` or header `x-demo-key`).
+
+`POST /api/staff/cashier/settle`
+
+| Field | Type | Required |
+|-------|------|----------|
+| reservationId | uuid | yes |
+| amountNgn | number | yes |
+| paymentMethod | `cash` \| `paystack_terminal` \| `moniepoint_terminal` \| `moniepoint_transfer` | yes |
+| clientMutationId | string (uuid) | yes (idempotency) |
+| note | string | no |
+
+**Response:** `{ ok, paymentId, reference, status: "success"\|"pending", provider, demo? }`
+
+`GET /api/staff/cashier/settle/status?reference=&key=`
+
+Poll pending Paystack Terminal / Moniepoint payments until `success` or `failed`.
+
+On `success`, reservation status → `confirmed` and payment linked via `reservation_id`.
+
+---
+
 ## Notification payload (Agent F internal)
 
 ```typescript
