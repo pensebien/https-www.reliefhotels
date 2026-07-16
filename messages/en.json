@@ -1073,5 +1073,39 @@
     "methodRequired": "Choose a payment method.",
     "reference": "Reference",
     "navLink": "Cashier"
+  },
+  "accounting": {
+    "metaTitle": "Accounting | Relief Hotels & Suites",
+    "eyebrow": "Back office",
+    "title": "Staff accounting ledger",
+    "subtitle": "Review settled payments by channel and export the ledger for reconciliation.",
+    "keyPlaceholder": "Accounting key",
+    "unlock": "Load ledger",
+    "unauthorized": "Invalid accounting key.",
+    "serverError": "Could not load the ledger. Please try again.",
+    "notDeployed": "Activity API not deployed yet.",
+    "refresh": "Refresh",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "clearDates": "Clear dates",
+    "summary": {
+      "cash": "Cash",
+      "paystack": "Paystack",
+      "moniepoint": "Moniepoint",
+      "total": "Total (NGN)"
+    },
+    "tableTitle": "Payments",
+    "tableCaption": "Ledger of payments with date, reference, channel, status, and amount.",
+    "tableEmpty": "No payments in this date range.",
+    "tableEmptyHint": "Try widening the date filter or clearing it.",
+    "table": {
+      "date": "Date",
+      "reference": "Reference",
+      "description": "Description",
+      "channel": "Channel",
+      "status": "Status",
+      "amount": "Amount"
+    },
+    "downloadCsv": "Download CSV"
   }
 }
