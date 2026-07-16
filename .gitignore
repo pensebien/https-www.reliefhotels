@@ -41,6 +41,7 @@ yarn-error.log*
 # live demo submissions (local only)
 /data/demo-store.json
 /data/inquiries.json
+/data/folio-charges.json
 
 # bvdlc local scaffolding script
 /bvdlc.sh
