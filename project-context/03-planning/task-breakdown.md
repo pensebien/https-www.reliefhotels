@@ -112,6 +112,22 @@ See `cashier-module-plan.md`.
 
 ---
 
+## Phase 3c2 — HMS expansion (post-cashier)
+
+| ID | Task | Agent | Done? |
+|----|------|-------|-------|
+| K-01 | Minibar/F&B catalog + folio charges API/UI | K | [ ] |
+| L-01 | Staff roles shell (front_desk / manager / accountant) | L | [ ] |
+| M-01 | Accounting ledger + summaries | M | [ ] |
+| N-01 | Dedicated staff calendar page | N | [ ] |
+| LOY-01 | Loyalty backlog TODO only | — | [x] see `loyalty-todo.md` |
+
+**Merge order:** K → L → M → N  
+
+See `hms-expansion-roadmap.md`.
+
+---
+
 ## Phase 5 — Monitoring (post-launch)
 
 | ID | Task | Owner |
