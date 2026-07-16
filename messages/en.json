@@ -1026,5 +1026,52 @@
         "dining": "Reserve dining"
       }
     }
+  },
+  "cashier": {
+    "metaTitle": "Cashier | Relief Hotels & Suites",
+    "eyebrow": "Front desk",
+    "title": "Front desk cashier",
+    "subtitle": "Settle pending reservations with cash, Paystack Terminal, or Moniepoint.",
+    "keyPlaceholder": "Cashier key",
+    "unlock": "Load queue",
+    "unauthorized": "Invalid cashier key.",
+    "serverError": "Could not load the cashier queue. Please try again.",
+    "notDeployed": "Cashier API not deployed yet.",
+    "refresh": "Refresh",
+    "queueTitle": "Pending reservations",
+    "queueEmpty": "No pending or unpaid reservations — everyone is settled.",
+    "queueEmptyHint": "New walk-ins and unpaid online bookings will appear here.",
+    "selectPrompt": "Select a reservation to settle.",
+    "changeSelection": "Change reservation",
+    "guestLabel": "Guest",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "stayLabel": "Stay",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "nights": "{count, plural, one {# night} other {# nights}}",
+    "statusLabel": "Status",
+    "suggestedAmount": "Suggested amount: {amount}",
+    "amountLabel": "Amount to collect (NGN)",
+    "noteLabel": "Note (optional)",
+    "notePlaceholder": "e.g. partial deposit, room upgrade",
+    "paymentMethod": "Payment method",
+    "methods": {
+      "cash": "Cash",
+      "paystack_terminal": "Paystack Terminal",
+      "moniepoint_terminal": "Moniepoint Terminal",
+      "moniepoint_transfer": "Moniepoint Transfer"
+    },
+    "submit": "Settle payment",
+    "submitting": "Submitting…",
+    "polling": "Waiting for terminal confirmation…",
+    "success": "Payment settled — reservation confirmed.",
+    "failed": "Settlement failed.",
+    "tryAgain": "Try again",
+    "backToQueue": "Back to queue",
+    "amountRequired": "Enter an amount greater than zero.",
+    "methodRequired": "Choose a payment method.",
+    "reference": "Reference",
+    "navLink": "Cashier"
   }
 }

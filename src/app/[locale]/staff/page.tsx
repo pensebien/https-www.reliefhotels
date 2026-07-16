@@ -1,4 +1,5 @@
 import { DemoDashboard } from "@/components/demo-dashboard";
+import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -29,16 +30,30 @@ export async function generateMetadata({
 
 export default async function StaffPortalPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ key?: string }>;
 }) {
   const { locale } = await params;
+  const { key } = await searchParams;
   setRequestLocale(locale);
+  const t = await getTranslations({ locale, namespace: "cashier" });
 
   return (
-    <Suspense fallback={<DashboardFallback />}>
-      <DemoDashboard variant="portal" />
-    </Suspense>
+    <>
+      <div className="mx-auto max-w-6xl px-4 pt-8 lg:px-8">
+        <Link
+          href={{ pathname: "/staff/cashier", query: key ? { key } : undefined }}
+          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+        >
+          {t("navLink")} →
+        </Link>
+      </div>
+      <Suspense fallback={<DashboardFallback />}>
+        <DemoDashboard variant="portal" />
+      </Suspense>
+    </>
   );
 }
 
