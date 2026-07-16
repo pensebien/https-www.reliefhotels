@@ -137,6 +137,30 @@ On `success`, reservation status → `confirmed` and payment linked via `reserva
 
 ---
 
+## Staff folio / F&B (HMS Phase 2)
+
+Key-gated. Catalog: `src/content/fnb-catalog.ts` (minibar, snacks, laundry, misc).
+
+`GET /api/staff/folio/charges?reservationId=&key=`
+
+`POST /api/staff/folio/charges`
+
+| Field | Type | Required |
+|-------|------|----------|
+| reservationId | uuid | yes |
+| sku | string | yes (catalog id) |
+| qty | int | yes |
+
+`PATCH /api/staff/folio/charges/[id]`
+
+Body: `{ status: "posted" \| "paid" \| "void", key }`
+
+Charge lifecycle: `open` → `posted` → `paid` (or `void`).
+
+UI: `/[locale]/staff/fnb` · Roles shell: `/staff?role=front_desk|manager|accountant` · Accounting: `/staff/accounting` · Calendar: `/staff/calendar`
+
+---
+
 ## Notification payload (Agent F internal)
 
 ```typescript

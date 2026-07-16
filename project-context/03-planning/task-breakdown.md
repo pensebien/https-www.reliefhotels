@@ -116,10 +116,10 @@ See `cashier-module-plan.md`.
 
 | ID | Task | Agent | Done? |
 |----|------|-------|-------|
-| K-01 | Minibar/F&B catalog + folio charges API/UI | K | [ ] |
-| L-01 | Staff roles shell (front_desk / manager / accountant) | L | [ ] |
-| M-01 | Accounting ledger + summaries | M | [ ] |
-| N-01 | Dedicated staff calendar page | N | [ ] |
+| K-01 | Minibar/F&B catalog + folio charges API/UI | K | [x] |
+| L-01 | Staff roles shell (front_desk / manager / accountant) | L | [x] |
+| M-01 | Accounting ledger + summaries | M | [x] |
+| N-01 | Dedicated staff calendar page | N | [x] |
 | LOY-01 | Loyalty backlog TODO only | — | [x] see `loyalty-todo.md` |
 
 **Merge order:** K → L → M → N  

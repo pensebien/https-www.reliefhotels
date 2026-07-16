@@ -151,3 +151,22 @@ insert into room_inventory (room_id, total_units) values
   ('presidential-suite', 1),
   ('executive-spa', 3)
 on conflict (room_id) do nothing;
+
+-- HMS: guest folio (minibar / F&B) — see migration-009-folio.sql
+create table if not exists folio_charges (
+  id uuid primary key default gen_random_uuid(),
+  reservation_id uuid not null references reservations (id) on delete cascade,
+  sku text not null,
+  name text not null,
+  qty integer not null check (qty > 0),
+  unit_price_ngn integer not null check (unit_price_ngn >= 0),
+  status text not null default 'open'
+    check (status in ('open', 'posted', 'paid', 'void')),
+  created_at timestamptz not null default now(),
+  paid_at timestamptz
+);
+
+create index if not exists folio_charges_reservation_id_idx
+  on folio_charges (reservation_id);
+
+alter table folio_charges enable row level security;

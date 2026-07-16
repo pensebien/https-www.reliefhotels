@@ -1,9 +1,9 @@
 # HMS Expansion Roadmap (Post–Cashier ADR-005)
 
-**Status:** Active (2026-07-16)  
+**Status:** ✅ Merged to `main` (2026-07-16) — Agents K→N  
 **Business case:** `00-business-context/business-case.md` — convert stays, reduce missed ops, premium digital channel  
 **Prior wave:** Cashier dual POS G→J ✅  
-**This wave:** Light Hotel Management System surfaces on the staff portal
+**This wave:** Light Hotel Management System surfaces on the staff portal — **shipped**
 
 ## Goal
 
