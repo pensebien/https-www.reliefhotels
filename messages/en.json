@@ -1073,5 +1073,41 @@
     "methodRequired": "Choose a payment method.",
     "reference": "Reference",
     "navLink": "Cashier"
+  },
+  "fnb": {
+    "metaTitle": "Minibar & F&B Folio | Relief Hotels & Suites",
+    "eyebrow": "Room service",
+    "title": "Minibar & F&B folio",
+    "subtitle": "Post minibar, snacks, laundry, and other guest charges to a reservation's folio.",
+    "keyPlaceholder": "Staff key",
+    "unlock": "Load reservations",
+    "unauthorized": "Invalid staff key.",
+    "notDeployed": "Folio API not deployed yet.",
+    "refresh": "Refresh",
+    "reservationsTitle": "Reservations",
+    "reservationsEmpty": "No reservations found.",
+    "reservationsEmptyHint": "New bookings will appear here once submitted.",
+    "changeSelection": "Change reservation",
+    "guestLabel": "Guest",
+    "folioTitle": "Folio charges",
+    "folioEmpty": "No charges posted yet.",
+    "folioEmptyHint": "Add an item from the catalog below to start the folio.",
+    "loadingFolio": "Loading folio…",
+    "catalogTitle": "Add a charge",
+    "categories": {
+      "minibar": "Minibar",
+      "snacks": "Snacks",
+      "laundry": "Laundry",
+      "misc": "Other"
+    },
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity",
+    "addCharge": "Add",
+    "markPosted": "Mark posted",
+    "markPaid": "Mark paid",
+    "markVoid": "Void",
+    "openBalance": "Open balance",
+    "folioTotal": "Folio total",
+    "navLink": "F&B Folio"
   }
 }
