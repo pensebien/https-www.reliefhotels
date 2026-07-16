@@ -36,4 +36,5 @@ Build and operate a modern hotel platform with:
 
 - Initial budget target: **N400k** (rough estimate)
 - Delivery includes website, booking flow, and reservation notification capability
-- Future expansion can include deeper CRM, loyalty, and advanced analytics integrations
+- **Front-desk cashier (ADR-005):** hotelier settles existing reservations in-person via **cash, Paystack Terminal, and/or Moniepoint**, with offline-tolerant cash sync — supports conversion when guests do not complete web Paystack
+- Future expansion can include deeper CRM, loyalty, F&B/minibar POS lines, and advanced analytics integrations

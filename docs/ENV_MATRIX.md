@@ -78,6 +78,8 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `MANAGER_PHONE` | Operations manager |
 | `DEMO_DASHBOARD_KEY` | Keep for stakeholder demo; rotate quarterly |
 | `MONIEPOINT_*` | Front-desk walk-in (cash / terminal / transfer) — see `docs/deploy/MONIEPOINT.md` |
+| `PAYSTACK_TERMINAL_ID` | Front-desk Paystack Terminal push — see `docs/deploy/CASHIER.md` |
+| `CASHIER_ENABLED` | Staff cashier module (`true`/`false`) |
 | `DATABASE_URL` | Supabase connection string (server only) |
 | `WHATSAPP_*` | Provider keys when `NOTIFY_CHANNEL=both` |
 

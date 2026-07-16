@@ -21,7 +21,14 @@ Commit baseline on `main` first if you have uncommitted work.
 | **E V1** | `features/agent-e-prototype-v1-booking` | `agent-workspaces/agent-e-prototype-v1-booking/` | Book, rooms, payment |
 | **E V2** | `features/agent-e-prototype-v2-experiences` | `agent-workspaces/agent-e-prototype-v2-experiences/` | Events, dine-wine |
 | **F** | `features/agent-f-notifications` | `agent-workspaces/agent-f-notifications/` | SMS + WhatsApp (merge **last**) |
+| **G** | `features/agent-g-cashier-contracts` | `agent-workspaces/agent-g-cashier-contracts/` | Cashier ADR/docs (wave 2) |
+| **H** | `features/agent-h-cashier-api` | `agent-workspaces/agent-h-cashier-api/` | Cashier settle API |
+| **I** | `features/agent-i-cashier-ui` | `agent-workspaces/agent-i-cashier-ui/` | Cashier staff UI |
+| **J** | `features/agent-j-cashier-offline` | `agent-workspaces/agent-j-cashier-offline/` | Cashier offline outbox |
 | Coordinator | `main` | `agent-workspaces/base-main/` (optional) | Docs, merges |
+
+Cashier bootstrap: `./scripts/agent-bootstrap-cashier.sh` · PRs: `./scripts/agent-pr-create-cashier.sh` · Merge **G → H → I → J**.
+
 
 ## Rules
 
