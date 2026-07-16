@@ -101,10 +101,10 @@
 
 | ID | Task | Agent | Done? |
 |----|------|-------|-------|
-| G-01 | Contracts, ADR-005, migration-008, CASHIER.md | G | [ ] |
-| H-01 | Settle API + Paystack Terminal + Moniepoint adapters | H | [ ] |
-| I-01 | Staff cashier UI (pick reservation → pay) | I | [ ] |
-| J-01 | Offline cash outbox + flush | J | [ ] |
+| G-01 | Contracts, ADR-005, migration-008, CASHIER.md | G | [x] |
+| H-01 | Settle API + Paystack Terminal + Moniepoint adapters | H | [x] |
+| I-01 | Staff cashier UI (pick reservation → pay) | I | [x] |
+| J-01 | Offline cash outbox + flush | J | [x] |
 
 **Merge order:** G → H → I → J  
 

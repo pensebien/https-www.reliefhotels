@@ -70,6 +70,7 @@ export type CashierSettleResponse = {
   status?: CashierSettleStatus;
   provider?: string;
   demo?: boolean;
+  queuedOffline?: boolean;
   error?: string;
 };
 

@@ -94,6 +94,42 @@ export function useSettlePayment(key: string | null) {
           ? crypto.randomUUID()
           : `cm_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
+      // Offline cash: queue locally (Agent J outbox) and sync when back online.
+      if (
+        typeof navigator !== "undefined" &&
+        !navigator.onLine &&
+        payload.paymentMethod === "cash"
+      ) {
+        try {
+          const { enqueueSettle, flushOutbox } = await import(
+            "@/lib/cashier-offline"
+          );
+          await enqueueSettle({
+            reservationId: payload.reservationId,
+            amountNgn: payload.amountNgn,
+            paymentMethod: "cash",
+            clientMutationId,
+            note: payload.note,
+          });
+          setStage("success");
+          setResult({
+            ok: true,
+            status: "success",
+            reference: clientMutationId,
+            provider: "cash",
+            queuedOffline: true,
+          });
+          const onOnline = () => {
+            void flushOutbox(fetch, { key: key ?? undefined });
+            window.removeEventListener("online", onOnline);
+          };
+          window.addEventListener("online", onOnline);
+          return;
+        } catch {
+          // Fall through to online settle attempt
+        }
+      }
+
       const settleResult = await settleCashierPayment(
         { ...payload, clientMutationId },
         key,
