@@ -9,6 +9,7 @@ describe("reservationSchema", () => {
       firstName: "QA",
       lastName: "Tester",
       email: "qa@example.com",
+      phone: "+2348000000000",
       stayPreference: "signature-suite",
       message: "Automated test",
       itemType: "room",
@@ -26,6 +27,7 @@ describe("reservationSchema", () => {
       firstName: "QA",
       lastName: "Tester",
       email: "qa@example.com",
+      phone: "+2348000000000",
       stayPreference: "signature-suite",
       message: "Automated test",
       itemType: "room",
@@ -40,6 +42,7 @@ describe("reservationSchema", () => {
     const parsed = reservationSchema.safeParse({
       firstName: "QA",
       lastName: "Tester",
+      phone: "+2348000000000",
       stayPreference: "suite",
       message: "test",
     });
