@@ -13,7 +13,8 @@ import {
   paginateStaffReservations,
 } from "@/lib/staff-reservation-filter";
 import { cn } from "@/lib/utils";
-import { RefreshCw } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { CalendarDays, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -115,15 +116,27 @@ export function CashierClient() {
           <p className="mt-2 text-muted">{t("subtitle")}</p>
         </div>
         {hasData ? (
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center gap-2 self-start rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
-            {t("refresh")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            <Link
+              href={{
+                pathname: "/staff/calendar",
+                query: key ? { key } : undefined,
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+            >
+              <CalendarDays className="h-4 w-4" aria-hidden />
+              {t("calendarBookLink")}
+            </Link>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
+              {t("refresh")}
+            </button>
+          </div>
         ) : null}
       </div>
 

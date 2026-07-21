@@ -1,5 +1,6 @@
 "use client";
 
+import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import type { CalendarBooking } from "@/lib/inventory-calendar";
 import { toMailtoHref } from "@/lib/contact-links";
 import { cn, formatNaira } from "@/lib/utils";
@@ -12,10 +13,14 @@ export function BookingDetailSheet({
   booking,
   paymentAmountKobo,
   onClose,
+  dashboardKey,
+  onUpdated,
 }: {
   booking: CalendarBooking | null;
   paymentAmountKobo?: number;
   onClose: () => void;
+  dashboardKey?: string;
+  onUpdated?: () => void;
 }) {
   const t = useTranslations("demo");
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -38,6 +43,10 @@ export function BookingDetailSheet({
   if (!booking) return null;
 
   const isEvent = booking.kind === "event";
+  const canManageStay =
+    Boolean(dashboardKey) &&
+    booking.kind === "stay" &&
+    (booking.status === "pending" || booking.status === "confirmed");
 
   return (
     <div
@@ -122,11 +131,35 @@ export function BookingDetailSheet({
               value={booking.raw.stayPreference}
             />
           ) : null}
-          <DetailRow
-            label={t("reservationId")}
-            value={booking.id}
-            mono
-          />
+          <DetailRow label={t("reservationId")} value={booking.id} mono />
+
+          {canManageStay && dashboardKey ? (
+            <div className="rounded-xl border border-border bg-background/60 p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">
+                {t("calendar.staffActionsTitle")}
+              </p>
+              {booking.status === "pending" ? (
+                <p className="mt-1 text-xs text-muted">
+                  {t("calendar.confirmPendingHint")}
+                </p>
+              ) : null}
+              <StaffReservationActions
+                reservationId={booking.id}
+                dashboardKey={dashboardKey}
+                source={booking.source}
+                showConfirm={booking.status === "pending"}
+                staffNotes={
+                  "staffNotes" in booking.raw
+                    ? booking.raw.staffNotes
+                    : undefined
+                }
+                onUpdated={() => {
+                  onUpdated?.();
+                  onClose();
+                }}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

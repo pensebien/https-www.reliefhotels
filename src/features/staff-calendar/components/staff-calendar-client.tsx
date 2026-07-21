@@ -1,6 +1,7 @@
 "use client";
 
 import { InventoryCalendarView } from "@/components/staff/inventory-calendar-view";
+import type { StaffRoomOption } from "@/components/staff/staff-create-reservation-dialog";
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
 import { useStaffCalendarActivity } from "@/features/staff-calendar/hooks/use-staff-calendar-activity";
 import { rooms } from "@/content/site";
@@ -40,6 +41,7 @@ export function StaffCalendarClient() {
     reservations,
     eventInquiries,
     paymentsByReservation,
+    moniepoint,
     refresh,
   } = useStaffCalendarActivity(key);
 
@@ -51,6 +53,19 @@ export function StaffCalendarClient() {
     }
     setKey(nextKey);
   }
+
+  const roomOptions = useMemo<StaffRoomOption[]>(
+    () =>
+      rooms.map((room) => {
+        const path = room.nameKey.replace(/^rooms\./, "");
+        return {
+          id: room.id,
+          label: tRooms(path as "guest.name"),
+          priceFrom: room.priceFrom,
+        };
+      }),
+    [tRooms],
+  );
 
   const unitLabels = useMemo(() => {
     const labels: Record<string, string> = {};
@@ -119,19 +134,16 @@ export function StaffCalendarClient() {
         </p>
       ) : null}
 
-      {hasData && reservations.length === 0 && eventInquiries.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card/50 px-4 py-6 text-center">
-          <p className="font-medium">{t("emptyTitle")}</p>
-          <p className="mt-1 text-sm text-muted">{t("emptyHint")}</p>
-        </div>
-      ) : null}
-
-      {hasData && (reservations.length > 0 || eventInquiries.length > 0) ? (
+      {hasData ? (
         <InventoryCalendarView
           reservations={reservations}
           eventInquiries={eventInquiries}
           paymentsByReservation={paymentsByReservation}
           unitLabels={unitLabels}
+          dashboardKey={key ?? undefined}
+          roomOptions={roomOptions}
+          moniepointConfig={moniepoint}
+          onActivityChange={refresh}
         />
       ) : null}
     </div>

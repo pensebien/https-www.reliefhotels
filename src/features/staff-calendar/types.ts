@@ -22,6 +22,16 @@ export type StaffCalendarActivityResponse = {
   reservations: CalendarReservation[];
   payments: StaffCalendarPayment[];
   eventInquiries?: EventInquiry[];
+  moniepoint?: {
+    configured: boolean;
+    terminalConfigured: boolean;
+    demoMode: boolean;
+    transferAccount: {
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+    } | null;
+  };
 };
 
 /** Distinguishes "unauthorized key" from other failures. */

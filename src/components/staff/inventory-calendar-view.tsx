@@ -5,9 +5,11 @@ import {
   buildInventoryCalendar,
   summarizeWeekOccupancy,
   type CalendarBooking,
+  type CalendarCell,
   type CalendarReservation,
+  type CalendarRow,
 } from "@/lib/inventory-calendar";
-import { addDays, parseYmd } from "@/lib/reservation-dates";
+import { addDays, formatYmd, parseYmd } from "@/lib/reservation-dates";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -18,12 +20,20 @@ import {
   categoryFromUnit,
   type OccupancyCategory,
 } from "./occupancy-category-icons";
+import {
+  StaffCreateReservationDialog,
+  type MoniepointPublicConfig,
+  type StaffCreateReservationSeed,
+  type StaffRoomOption,
+} from "./staff-create-reservation-dialog";
 
 type PaymentLookup = {
   reference?: string;
   amountKobo?: number;
   reservationId?: string;
 };
+
+type OccupancyStatus = "free" | "occupied" | "pending";
 
 const CATEGORY_ORDER: OccupancyCategory[] = [
   "guestRoom",
@@ -40,11 +50,19 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   eventInquiries,
   paymentsByReservation,
   unitLabels,
+  dashboardKey,
+  roomOptions = [],
+  moniepointConfig,
+  onActivityChange,
 }: {
   reservations: CalendarReservation[];
   eventInquiries: EventInquiry[];
   paymentsByReservation: Map<string, PaymentLookup[]>;
   unitLabels: Record<string, string>;
+  dashboardKey?: string;
+  roomOptions?: StaffRoomOption[];
+  moniepointConfig?: MoniepointPublicConfig;
+  onActivityChange?: () => void;
 }) {
   const t = useTranslations("demo");
   const [weekAnchor, setWeekAnchor] = useState(() => new Date());
@@ -52,7 +70,16 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
     null,
   );
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<Set<OccupancyStatus>>(
+    () => new Set(),
+  );
   const [page, setPage] = useState(1);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createSeed, setCreateSeed] = useState<StaffCreateReservationSeed | null>(
+    null,
+  );
+
+  const canCreateBookings = Boolean(dashboardKey && roomOptions.length > 0);
 
   const calendar = useMemo(
     () =>
@@ -65,21 +92,28 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
     [eventInquiries, reservations, unitLabels, weekAnchor],
   );
 
-  const summary = useMemo(
-    () => summarizeWeekOccupancy(calendar.rows),
-    [calendar.rows],
-  );
-
-  const filteredRows = useMemo(() => {
+  const categoryRows = useMemo(() => {
     if (categoryFilter === "all") return calendar.rows;
     return calendar.rows.filter((row) => row.unit.category === categoryFilter);
   }, [calendar.rows, categoryFilter]);
+
+  const summary = useMemo(
+    () => summarizeWeekOccupancy(categoryRows),
+    [categoryRows],
+  );
+
+  const filteredRows = useMemo(() => {
+    if (statusFilter.size === 0) return categoryRows;
+    return categoryRows.filter((row) =>
+      row.cells.some((cell) => statusFilter.has(cell.status as OccupancyStatus)),
+    );
+  }, [categoryRows, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRows.length / ROWS_PER_PAGE));
 
   useEffect(() => {
     setPage(1);
-  }, [categoryFilter, weekAnchor]);
+  }, [categoryFilter, weekAnchor, statusFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -108,6 +142,31 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   const shiftWeek = useCallback((delta: number) => {
     setWeekAnchor((prev) => addDays(prev, delta * 7));
   }, []);
+
+  const toggleStatus = useCallback((status: OccupancyStatus) => {
+    setStatusFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status);
+      else next.add(status);
+      return next;
+    });
+  }, []);
+
+  function openCreateForCell(row: CalendarRow, cell: CalendarCell) {
+    if (!canCreateBookings) return;
+    if (row.unit.kind !== "room") return;
+    if (cell.status !== "free") return;
+    const checkIn = cell.ymd;
+    const checkOut = formatYmd(addDays(parseYmd(checkIn), 1));
+    setCreateSeed({
+      roomId: row.unit.roomId,
+      checkIn,
+      checkOut,
+      status: "confirmed",
+      paymentMethod: "cash",
+    });
+    setCreateOpen(true);
+  }
 
   const selectedPayment = selectedBooking
     ? paymentsByReservation
@@ -156,19 +215,29 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
 
       <div
         className="flex flex-wrap gap-3 text-xs"
-        role="status"
-        aria-live="polite"
+        role="group"
+        aria-label={t("calendar.legendFilterHint")}
       >
-        <LegendChip color="free" label={t("calendar.legendFree")} count={summary.free} />
+        <LegendChip
+          color="free"
+          label={t("calendar.legendFree")}
+          count={summary.free}
+          pressed={statusFilter.has("free")}
+          onClick={() => toggleStatus("free")}
+        />
         <LegendChip
           color="occupied"
           label={t("calendar.legendOccupied")}
           count={summary.occupied}
+          pressed={statusFilter.has("occupied")}
+          onClick={() => toggleStatus("occupied")}
         />
         <LegendChip
           color="pending"
           label={t("calendar.legendPending")}
           count={summary.pending}
+          pressed={statusFilter.has("pending")}
+          onClick={() => toggleStatus("pending")}
         />
       </div>
 
@@ -237,6 +306,13 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
                     const isStart =
                       cell.booking && cell.booking.checkIn === cell.ymd;
                     const showLabel = isStart && cell.booking;
+                    const statusActive =
+                      statusFilter.size === 0 ||
+                      statusFilter.has(cell.status as OccupancyStatus);
+                    const bookableFree =
+                      canCreateBookings &&
+                      cell.status === "free" &&
+                      row.unit.kind === "room";
 
                     return (
                       <td key={cell.ymd} className="p-0.5">
@@ -252,7 +328,9 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
                                 "bg-amber-500/20 text-amber-900 dark:text-amber-100",
                               cell.status === "inquiry" &&
                                 "bg-violet-500/20 text-violet-900 dark:text-violet-100",
-                              cell.status === "cancelled" && "bg-border text-muted",
+                              cell.status === "cancelled" &&
+                                "bg-border text-muted",
+                              !statusActive && "opacity-25",
                             )}
                             aria-label={t("calendar.openBooking", {
                               guest: cell.booking.guestName,
@@ -269,10 +347,30 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
                               </span>
                             )}
                           </button>
+                        ) : bookableFree ? (
+                          <button
+                            type="button"
+                            onClick={() => openCreateForCell(row, cell)}
+                            className={cn(
+                              "flex h-10 w-full cursor-pointer items-center justify-center rounded-md border border-dashed border-emerald-500/30 bg-emerald-500/5 text-emerald-700/70 transition-colors duration-200 hover:border-teal hover:bg-teal/10 hover:text-teal-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal dark:text-emerald-300/50",
+                              !statusActive && "opacity-25",
+                            )}
+                            aria-label={t("calendar.bookFreeCell", {
+                              unit: row.unitLabel,
+                              date: cell.ymd,
+                            })}
+                          >
+                            <span aria-hidden>+</span>
+                          </button>
                         ) : (
                           <div
-                            className="flex h-10 items-center justify-center rounded-md bg-emerald-500/5 text-emerald-700/40 dark:text-emerald-300/30"
-                            aria-label={t("calendar.cellFree", { date: cell.ymd })}
+                            className={cn(
+                              "flex h-10 items-center justify-center rounded-md bg-emerald-500/5 text-emerald-700/40 dark:text-emerald-300/30",
+                              !statusActive && "opacity-25",
+                            )}
+                            aria-label={t("calendar.cellFree", {
+                              date: cell.ymd,
+                            })}
                           >
                             <span aria-hidden>·</span>
                           </div>
@@ -313,7 +411,24 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
         booking={selectedBooking}
         paymentAmountKobo={selectedPayment?.amountKobo}
         onClose={() => setSelectedBooking(null)}
+        dashboardKey={dashboardKey}
+        onUpdated={() => onActivityChange?.()}
       />
+
+      {dashboardKey ? (
+        <StaffCreateReservationDialog
+          open={createOpen}
+          onClose={() => {
+            setCreateOpen(false);
+            setCreateSeed(null);
+          }}
+          dashboardKey={dashboardKey}
+          roomOptions={roomOptions}
+          moniepointConfig={moniepointConfig}
+          seed={createSeed}
+          onCreated={() => onActivityChange?.()}
+        />
+      ) : null}
     </section>
   );
 });
@@ -396,10 +511,14 @@ function LegendChip({
   color,
   label,
   count,
+  pressed,
+  onClick,
 }: {
-  color: "free" | "occupied" | "pending";
+  color: OccupancyStatus;
   label: string;
   count: number;
+  pressed: boolean;
+  onClick: () => void;
 }) {
   const swatch =
     color === "free"
@@ -409,15 +528,19 @@ function LegendChip({
         : "bg-amber-500/20 border-amber-500/40";
 
   return (
-    <span
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={pressed}
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-2.5 py-1",
+        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1 transition-shadow duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal",
         swatch,
+        pressed && "ring-2 ring-teal ring-offset-2 ring-offset-background",
       )}
     >
       {label}
       <span className="font-semibold tabular-nums">{count}</span>
-    </span>
+    </button>
   );
 }
 

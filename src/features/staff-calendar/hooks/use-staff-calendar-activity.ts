@@ -7,6 +7,7 @@ import {
 import type {
   CalendarReservation,
   EventInquiry,
+  StaffCalendarActivityResponse,
   StaffCalendarPayment,
 } from "@/features/staff-calendar/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +16,9 @@ export function useStaffCalendarActivity(key: string | null) {
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
   const [payments, setPayments] = useState<StaffCalendarPayment[]>([]);
   const [eventInquiries, setEventInquiries] = useState<EventInquiry[]>([]);
+  const [moniepoint, setMoniepoint] = useState<
+    StaffCalendarActivityResponse["moniepoint"]
+  >(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadedOnce, setLoadedOnce] = useState(false);
@@ -28,10 +32,12 @@ export function useStaffCalendarActivity(key: string | null) {
       setReservations([]);
       setPayments([]);
       setEventInquiries([]);
+      setMoniepoint(undefined);
     } else {
       setReservations(result.reservations ?? []);
       setPayments(result.payments ?? []);
       setEventInquiries(result.eventInquiries ?? []);
+      setMoniepoint(result.moniepoint);
     }
     setLoading(false);
     setLoadedOnce(true);
@@ -60,6 +66,7 @@ export function useStaffCalendarActivity(key: string | null) {
     reservations,
     eventInquiries,
     paymentsByReservation,
+    moniepoint,
     refresh: () => key && load(key),
   };
 }

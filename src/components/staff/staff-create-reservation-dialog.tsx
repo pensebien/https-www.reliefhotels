@@ -68,21 +68,34 @@ function defaultCheckOut(checkIn: string): string {
   }
 }
 
-function initialForm(roomId: string, today: string): FormState {
+function initialForm(
+  roomId: string,
+  checkIn: string,
+  overrides?: Partial<FormState>,
+): FormState {
   return {
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     roomId,
-    checkIn: today,
-    checkOut: defaultCheckOut(today),
+    checkIn,
+    checkOut: defaultCheckOut(checkIn),
     guests: "1",
     message: "",
     status: "confirmed",
     paymentMethod: "cash",
+    ...overrides,
   };
 }
+
+export type StaffCreateReservationSeed = {
+  roomId?: string;
+  checkIn?: string;
+  checkOut?: string;
+  status?: "pending" | "confirmed";
+  paymentMethod?: StaffPaymentOption;
+};
 
 export function StaffCreateReservationDialog({
   open,
@@ -91,6 +104,7 @@ export function StaffCreateReservationDialog({
   roomOptions,
   moniepointConfig,
   onCreated,
+  seed = null,
 }: {
   open: boolean;
   onClose: () => void;
@@ -98,6 +112,8 @@ export function StaffCreateReservationDialog({
   roomOptions: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
   onCreated: () => void;
+  /** Prefill when opening from an occupancy calendar free cell. */
+  seed?: StaffCreateReservationSeed | null;
 }) {
   const t = useTranslations("demo");
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -170,7 +186,24 @@ export function StaffCreateReservationDialog({
     setSubmitError(null);
     setWaitingPayment(null);
     setPaymentStatus(null);
-  }, [open]);
+    const checkIn = seed?.checkIn && isValidYmd(seed.checkIn) ? seed.checkIn : today;
+    const checkOut =
+      seed?.checkOut && isValidYmd(seed.checkOut)
+        ? seed.checkOut
+        : defaultCheckOut(checkIn);
+    const defaultRoom = seed?.roomId ?? roomOptions[0]?.id ?? "";
+    setForm(
+      initialForm(defaultRoom, checkIn, {
+        checkOut,
+        status: seed?.status ?? "confirmed",
+        paymentMethod:
+          seed?.paymentMethod ??
+          (seed?.status === "pending" ? "none" : "cash"),
+      }),
+    );
+    // Intentionally re-seed only when the dialog opens or calendar seed changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, seed?.roomId, seed?.checkIn, seed?.checkOut, seed?.status, seed?.paymentMethod, today]);
 
   useEffect(() => {
     if (!waitingPayment) return;

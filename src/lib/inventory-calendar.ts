@@ -30,6 +30,7 @@ export type CalendarReservation = {
   source: string;
   createdAt: string;
   emailSent?: boolean;
+  staffNotes?: string;
 };
 
 export type CalendarBookingKind = "stay" | "event" | "tour";
