@@ -16,6 +16,11 @@ export type FnbReservation = {
   guests: number;
   status: FnbReservationStatus;
   createdAt: string;
+  /** Optional fields used for staff search. */
+  roomId?: string;
+  stayPreference?: string;
+  paymentReference?: string;
+  source?: string;
 };
 
 export type FnbActivityResponse = {
