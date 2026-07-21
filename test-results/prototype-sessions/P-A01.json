@@ -3,14 +3,14 @@
   "profile": "local-luxury",
   "device": "mobile",
   "automated": true,
-  "startedAt": "2026-07-09T06:34:33.915Z",
-  "finishedAt": "2026-07-09T06:35:03.232Z",
+  "startedAt": "2026-07-21T19:21:03.090Z",
+  "finishedAt": "2026-07-21T19:21:24.625Z",
   "tasks": [
     {
       "id": "task-1",
       "name": "First impression",
       "pass": true,
-      "durationMs": 4528,
+      "durationMs": 2685,
       "notes": "Homepage conveys luxury hotel in Calabar"
     },
     {
@@ -24,26 +24,26 @@
       "id": "task-3",
       "name": "Booking / deposit",
       "pass": true,
-      "durationMs": 12151,
-      "notes": "Demo payment success for prototype.p-a01.mrd4t6ws@relief-test.example"
+      "durationMs": 8201,
+      "notes": "Demo payment success for prototype.p-a01.mrv1h4dv@relief-test.example"
     },
     {
       "id": "task-4",
       "name": "Dining inquiry",
       "pass": true,
-      "durationMs": 8879
+      "durationMs": 7566
     },
     {
       "id": "task-5",
       "name": "Concierge contact",
       "pass": true,
-      "durationMs": 818
+      "durationMs": 699
     },
     {
       "id": "task-6",
       "name": "Language & mobile",
       "pass": true,
-      "durationMs": 56,
+      "durationMs": 52,
       "notes": "FR rooms route on mobile viewport"
     },
     {
@@ -51,12 +51,12 @@
       "name": "Dashboard API visibility",
       "pass": true,
       "durationMs": 0,
-      "notes": "Reservation prototype.p-a01.mrd4t6ws@relief-test.example in activity feed"
+      "notes": "Reservation prototype.p-a01.mrv1h4dv@relief-test.example in activity feed"
     }
   ],
   "tasksPassed": 6,
   "usabilityScore": 5,
   "wouldBook": "yes",
-  "guestEmail": "prototype.p-a01.mrd4t6ws@relief-test.example",
+  "guestEmail": "prototype.p-a01.mrv1h4dv@relief-test.example",
   "guestName": "Ada Eze"
 }

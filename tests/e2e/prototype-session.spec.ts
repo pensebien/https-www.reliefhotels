@@ -9,9 +9,18 @@ import {
   type TaskResult,
 } from "./helpers/session-report";
 
-const CHECK_IN = "2026-09-10";
-const CHECK_OUT = "2026-09-12";
 const DEMO_KEY = process.env.DEMO_DASHBOARD_KEY ?? "relief-demo-2026";
+
+/** Unique far-future stay so inventory from prior runs / seed data does not block booking. */
+function stayDates() {
+  const offset = Math.floor(Date.now() / 1000) % 120;
+  const checkInDate = new Date(Date.UTC(2027, 10, 5 + offset));
+  const checkOutDate = new Date(checkInDate);
+  checkOutDate.setUTCDate(checkOutDate.getUTCDate() + 2);
+  const checkIn = checkInDate.toISOString().slice(0, 10);
+  const checkOut = checkOutDate.toISOString().slice(0, 10);
+  return { checkIn, checkOut };
+}
 
 function guestIdentity(personaId: string, profile: string) {
   const stamp = Date.now().toString(36);
@@ -42,6 +51,7 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
   const { personaId, personaProfile, personaDevice } = meta;
   const startedAt = new Date().toISOString();
   const guest = guestIdentity(personaId, personaProfile);
+  const { checkIn: CHECK_IN, checkOut: CHECK_OUT } = stayDates();
   const tasks: TaskResult[] = [];
 
   async function recordTask(
@@ -86,10 +96,13 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
   // ── Task 2: Room discovery ───────────────────────────────────────────────
   try {
     const { durationMs } = await runTimed(async () => {
-      await page.goto(`/en/rooms?category=suites&checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&guests=2`);
+      await page.goto(
+        `/en/rooms?category=suites&checkIn=${CHECK_IN}&checkOut=${CHECK_OUT}&guests=2&rooms=1`,
+      );
       await humanPause(page);
+      // Availability fetch populates the catalog before CTAs appear
       const payDeposit = page.getByRole("link", { name: /pay deposit/i }).first();
-      await expect(payDeposit).toBeVisible();
+      await expect(payDeposit).toBeVisible({ timeout: 30_000 });
       await humanClick(payDeposit);
       await expect(page).toHaveURL(/\/book/);
       await expect(page.locator("#res-firstName")).toBeVisible();
@@ -122,12 +135,17 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
       await humanType(page.locator("#res-phone"), "+234 803 000 0001");
       await humanClick(page.locator("#res-terms"));
 
-      const continueBtn = page.getByRole("button", { name: /^pay deposit$/i }).first();
+      // Step 1 CTA label is "Pay deposit" (booking.step2Title)
+      const continueBtn = page
+        .getByRole("button", { name: /pay deposit/i })
+        .first();
       await humanClick(continueBtn);
       await humanPause(page, 400, 900);
 
-      const payBtn = page.getByRole("button", { name: /pay deposit with paystack/i });
-      await expect(payBtn).toBeVisible();
+      const payBtn = page.getByRole("button", {
+        name: /pay deposit with paystack/i,
+      });
+      await expect(payBtn).toBeVisible({ timeout: 15_000 });
       const summary = await page.locator("body").innerText();
       expect(/deposit|₦/i.test(summary)).toBeTruthy();
 

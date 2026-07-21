@@ -3,41 +3,41 @@
   "profile": "international",
   "device": "mobile",
   "automated": true,
-  "startedAt": "2026-07-09T06:35:27.886Z",
-  "finishedAt": "2026-07-09T06:35:54.947Z",
+  "startedAt": "2026-07-21T19:21:51.633Z",
+  "finishedAt": "2026-07-21T19:22:14.201Z",
   "tasks": [
     {
       "id": "task-1",
       "name": "First impression",
       "pass": true,
-      "durationMs": 1681,
+      "durationMs": 2269,
       "notes": "Homepage conveys luxury hotel in Calabar"
     },
     {
       "id": "task-2",
       "name": "Room discovery",
       "pass": true,
-      "durationMs": 2496,
+      "durationMs": 2139,
       "notes": "Reached book page with deposit context"
     },
     {
       "id": "task-3",
       "name": "Booking / deposit",
       "pass": true,
-      "durationMs": 11388,
-      "notes": "Demo payment success for prototype.p-a04.mrd4ucjz@relief-test.example"
+      "durationMs": 8675,
+      "notes": "Demo payment success for prototype.p-a04.mrv1i5u9@relief-test.example"
     },
     {
       "id": "task-4",
       "name": "Dining inquiry",
       "pass": true,
-      "durationMs": 10161
+      "durationMs": 8837
     },
     {
       "id": "task-5",
       "name": "Concierge contact",
       "pass": true,
-      "durationMs": 593
+      "durationMs": 572
     },
     {
       "id": "task-6",
@@ -51,12 +51,12 @@
       "name": "Dashboard API visibility",
       "pass": true,
       "durationMs": 0,
-      "notes": "Reservation prototype.p-a04.mrd4ucjz@relief-test.example in activity feed"
+      "notes": "Reservation prototype.p-a04.mrv1i5u9@relief-test.example in activity feed"
     }
   ],
   "tasksPassed": 6,
   "usabilityScore": 5,
   "wouldBook": "yes",
-  "guestEmail": "prototype.p-a04.mrd4ucjz@relief-test.example",
+  "guestEmail": "prototype.p-a04.mrv1i5u9@relief-test.example",
   "guestName": "Sarah Mitchell"
 }
