@@ -1,3 +1,4 @@
+import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { rooms } from "@/content/site";
 import type { CashierReservation } from "@/features/cashier/types";
 
@@ -29,13 +30,16 @@ const roomsById = new Map<string, (typeof rooms)[number]>(
   rooms.map((room) => [room.id, room]),
 );
 
-/** Best-effort suggested settle amount from the catalog nightly rate. Cashier can override. */
+/**
+ * Suggested front-desk collect amount = 20% deposit (same as online Paystack),
+ * aligned with the primary KPI path (paid bookings). Cashier may override.
+ */
 export function suggestedDepositNgn(reservation: CashierReservation): number | null {
   if (!reservation.roomId) return null;
   const room = roomsById.get(reservation.roomId);
   if (!room) return null;
   const nights = computeNights(reservation) ?? 1;
-  return room.priceFrom * nights;
+  return calculateDepositNgn(room.priceFrom, nights);
 }
 
 export function guestFullName(reservation: CashierReservation): string {

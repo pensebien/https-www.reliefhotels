@@ -62,7 +62,7 @@ Add at minimum:
 |-----|--------|
 | `NEXT_PUBLIC_APP_URL` | `https://reliefhotelsandsuites.com` *(must match live domain)* |
 | `DEMO_DASHBOARD_KEY` | `relief-demo-2026` |
-| `DEMO_MODE` | `true` *(or `false` when Paystack test keys are set)* |
+| `DEMO_MODE` | `false` for real Paystack test/live checkout. Only `true` for simulated payments without keys. **Never leave `true` on production.** |
 | `NOTIFY_CHANNEL` | `console` |
 
 **Required for production bookings (Phase A — ADR-001):**

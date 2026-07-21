@@ -21,6 +21,7 @@ import {
 } from "@/lib/demo-store";
 import type { PaymentRecord } from "@/lib/demo-store";
 import { getProviderMeta, saveProviderMeta } from "@/lib/cashier/store";
+import { paystackFetch } from "@/lib/paystack-auth";
 
 function getPaystackTerminalEnv() {
   const secretKey = process.env.PAYSTACK_SECRET_KEY ?? "";
@@ -40,14 +41,10 @@ export function isPaystackTerminalConfigured(): boolean {
 
 async function resolveCustomerCode(email: string, name?: string): Promise<string> {
   const env = getPaystackTerminalEnv();
-  const headers = {
-    Authorization: `Bearer ${env.secretKey}`,
-    "Content-Type": "application/json",
-  };
 
-  const lookup = await fetch(
-    `https://api.paystack.co/customer/${encodeURIComponent(email)}`,
-    { headers },
+  const lookup = await paystackFetch(
+    env.secretKey,
+    `/customer/${encodeURIComponent(email)}`,
   );
   if (lookup.ok) {
     const found = (await lookup.json()) as {
@@ -60,9 +57,8 @@ async function resolveCustomerCode(email: string, name?: string): Promise<string
   }
 
   const [firstName, ...rest] = (name ?? "Guest").trim().split(/\s+/);
-  const created = await fetch("https://api.paystack.co/customer", {
+  const created = await paystackFetch(env.secretKey, "/customer", {
     method: "POST",
-    headers,
     body: JSON.stringify({
       email,
       first_name: firstName || "Guest",
@@ -100,12 +96,8 @@ export async function createPaymentRequestInvoice(input: {
 
   const customerCode = await resolveCustomerCode(input.email, input.name);
 
-  const res = await fetch("https://api.paystack.co/paymentrequest", {
+  const res = await paystackFetch(env.secretKey, "/paymentrequest", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.secretKey}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       customer: customerCode,
       amount: input.amountKobo,
@@ -138,14 +130,11 @@ export async function pushInvoiceToTerminal(input: {
   const env = getPaystackTerminalEnv();
   if (!env.configured) throw new Error("Paystack Terminal is not configured");
 
-  const res = await fetch(
-    `https://api.paystack.co/terminal/${encodeURIComponent(env.terminalId)}/event`,
+  const res = await paystackFetch(
+    env.secretKey,
+    `/terminal/${encodeURIComponent(env.terminalId)}/event`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.secretKey}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({
         type: "invoice",
         action: "process",
@@ -173,9 +162,9 @@ async function fetchPaymentRequestStatus(
   const env = getPaystackTerminalEnv();
   if (!env.configured) return "pending";
 
-  const res = await fetch(
-    `https://api.paystack.co/paymentrequest/${encodeURIComponent(invoiceId)}`,
-    { headers: { Authorization: `Bearer ${env.secretKey}` } },
+  const res = await paystackFetch(
+    env.secretKey,
+    `/paymentrequest/${encodeURIComponent(invoiceId)}`,
   );
 
   const data = (await res.json()) as {

@@ -39,6 +39,9 @@ export function PaymentCallback() {
           if (data.notified === true) {
             setManagerNotified(true);
           }
+        } else if (data.status === "pending") {
+          // In-progress Paystack charge — keep verifying UI rather than fail early
+          setState("loading");
         } else {
           setState("failed");
         }

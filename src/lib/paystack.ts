@@ -1,5 +1,6 @@
 import { getServerConfig } from "@/lib/config";
 import { addPayment, findPaymentByReference } from "@/lib/demo-store";
+import { paystackFetch } from "@/lib/paystack-auth";
 import { randomBytes } from "crypto";
 
 export type InitializePaymentInput = {
@@ -54,29 +55,30 @@ export async function initializePayment(
 
   const callbackUrl = `${config.appUrl}/payment/callback?reference=${reference}`;
 
-  const res = await fetch("https://api.paystack.co/transaction/initialize", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.paystack.secretKey}`,
-      "Content-Type": "application/json",
+  // Auth: Authorization: Bearer SECRET_KEY (https://paystack.com/docs/api/authentication/)
+  const res = await paystackFetch(
+    config.paystack.secretKey,
+    "/transaction/initialize",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email: input.email,
+        amount: input.amountKobo,
+        reference,
+        currency: "NGN",
+        callback_url: callbackUrl,
+        metadata: {
+          item_type: input.itemType,
+          item_id: input.itemId,
+          item_label: input.itemLabel,
+          ...(input.reservationId
+            ? { reservation_id: input.reservationId }
+            : {}),
+          ...input.metadata,
+        },
+      }),
     },
-    body: JSON.stringify({
-      email: input.email,
-      amount: input.amountKobo,
-      reference,
-      currency: "NGN",
-      callback_url: callbackUrl,
-      metadata: {
-        item_type: input.itemType,
-        item_id: input.itemId,
-        item_label: input.itemLabel,
-        ...(input.reservationId
-          ? { reservation_id: input.reservationId }
-          : {}),
-        ...input.metadata,
-      },
-    }),
-  });
+  );
 
   const data = (await res.json()) as {
     status: boolean;
@@ -114,7 +116,8 @@ export async function verifyPayment(
 ): Promise<VerifyPaymentResult> {
   const config = getServerConfig();
 
-  if (demoBypass || (config.demoMode && reference.startsWith("RH-"))) {
+  // Never honour demo bypass when real Paystack keys are configured
+  if (config.demoMode && demoBypass) {
     const pending = await findPaymentByReference(reference);
     return {
       status: "success",
@@ -135,13 +138,9 @@ export async function verifyPayment(
     };
   }
 
-  const res = await fetch(
-    `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
-    {
-      headers: {
-        Authorization: `Bearer ${config.paystack.secretKey}`,
-      },
-    },
+  const res = await paystackFetch(
+    config.paystack.secretKey,
+    `/transaction/verify/${encodeURIComponent(reference)}`,
   );
 
   const data = (await res.json()) as {
@@ -164,9 +163,19 @@ export async function verifyPayment(
     };
   }
 
-  const paid = data.data.status === "success";
+  const paystackStatus = data.data.status;
+  let status: VerifyPaymentResult["status"] = "pending";
+  if (paystackStatus === "success") status = "success";
+  else if (
+    paystackStatus === "failed" ||
+    paystackStatus === "abandoned" ||
+    paystackStatus === "reversed"
+  ) {
+    status = "failed";
+  }
+
   return {
-    status: paid ? "success" : "failed",
+    status,
     reference: data.data.reference,
     amountKobo: data.data.amount,
     email: data.data.customer?.email ?? "",

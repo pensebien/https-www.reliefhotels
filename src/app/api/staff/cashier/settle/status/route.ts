@@ -3,6 +3,7 @@ import {
   unauthorizedDashboardResponse,
 } from "@/lib/dashboard-auth";
 import { getCashierSettleStatus } from "@/lib/cashier/settle-service";
+import { getServerConfig } from "@/lib/config";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -18,7 +19,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "reference is required" }, { status: 400 });
   }
 
-  const demoOverride = searchParams.get("demo") === "1";
+  const demoOverride =
+    searchParams.get("demo") === "1" && getServerConfig().demoMode;
 
   try {
     const result = await getCashierSettleStatus(reference, { demoOverride });

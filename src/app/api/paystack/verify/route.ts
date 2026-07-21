@@ -21,12 +21,49 @@ export async function GET(request: Request) {
 
   try {
     const config = getServerConfig();
-    const isDemoFlow =
-      demo === true || (config.demoMode && searchParams.get("demo") !== "0");
+    // demo=1 only works when DEMO_MODE / missing keys — never with live/test keys alone
+    const allowDemoBypass = config.demoMode && demo;
 
-    const result = await verifyPayment(reference, isDemoFlow);
+    const existing = await findPaymentByReference(reference);
+    if (existing?.status === "success") {
+      return NextResponse.json({
+        ok: true,
+        status: "success",
+        reference,
+        amountKobo: existing.amountKobo,
+        reservationId: existing.reservationId,
+        notified: false,
+        alreadyConfirmed: true,
+        demo: config.demoMode,
+      });
+    }
 
-    const payment = await findPaymentByReference(reference);
+    const result = await verifyPayment(reference, allowDemoBypass);
+
+    if (
+      result.status === "success" &&
+      !result.demo &&
+      existing?.amountKobo &&
+      result.amountKobo > 0 &&
+      result.amountKobo !== existing.amountKobo
+    ) {
+      console.error("[paystack:verify] amount mismatch", {
+        reference,
+        expected: existing.amountKobo,
+        actual: result.amountKobo,
+      });
+      return NextResponse.json(
+        {
+          ok: false,
+          status: "failed",
+          reference,
+          error: "Payment amount does not match reservation deposit",
+        },
+        { status: 409 },
+      );
+    }
+
+    const payment = existing ?? (await findPaymentByReference(reference));
     let notified = false;
 
     if (result.status === "success") {

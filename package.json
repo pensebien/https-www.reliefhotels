@@ -8,6 +8,7 @@
     "start": "next start -p ${PORT:-3002}",
     "lint": "eslint",
     "test": "tsx --test tests/unit/*.test.ts tests/api/*.test.ts",
+    "test:paystack": "node scripts/test-paystack-booking.mjs",
     "test:qa": "node scripts/run-qa.mjs",
     "test:qa:live": "node scripts/run-qa.mjs --live",
     "test:prototype": "node scripts/run-prototype-sessions.mjs",
