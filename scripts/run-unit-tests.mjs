@@ -10,7 +10,13 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const child = spawn(
   "npx",
-  ["tsx", "--test", "tests/unit/*.test.ts", "tests/api/*.test.ts"],
+  [
+    "tsx",
+    "--test",
+    "--test-concurrency=1",
+    "tests/unit/*.test.ts",
+    "tests/api/*.test.ts",
+  ],
   {
     cwd: root,
     stdio: "inherit",
