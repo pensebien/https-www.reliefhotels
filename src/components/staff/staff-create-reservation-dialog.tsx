@@ -3,7 +3,7 @@
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
 import type { StaffPaymentOption } from "@/lib/payment-methods";
-import { isValidYmd, parseYmd, formatYmd } from "@/lib/reservation-dates";
+import { isValidYmd, parseYmd, formatYmd, addDays } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
 import { Loader2, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -242,7 +242,18 @@ export function StaffCreateReservationDialog({
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "checkIn" && typeof value === "string") {
-        next.checkOut = defaultCheckOut(value);
+        // Only bump check-out when it would become invalid; keep staff's chosen length when possible.
+        try {
+          const nextIn = parseYmd(value);
+          const currentOut = isValidYmd(prev.checkOut)
+            ? parseYmd(prev.checkOut)
+            : null;
+          if (!currentOut || currentOut <= nextIn) {
+            next.checkOut = defaultCheckOut(value);
+          }
+        } catch {
+          next.checkOut = defaultCheckOut(value);
+        }
       }
       if (key === "paymentMethod") {
         const method = value as StaffPaymentOption;
@@ -397,7 +408,9 @@ export function StaffCreateReservationDialog({
                 ? waitingPayment.method === "moniepoint_transfer"
                   ? t("createReservation.transferWaitingSubtitle")
                   : t("createReservation.terminalWaitingSubtitle")
-                : t("createReservation.subtitle")}
+                : seed
+                  ? t("createReservation.subtitleFromCalendar")
+                  : t("createReservation.subtitle")}
             </p>
           </div>
           {!waitingPayment ? (
@@ -535,10 +548,21 @@ export function StaffCreateReservationDialog({
                     type="date"
                     className={inputClassName}
                     value={form.checkOut}
+                    min={
+                      isValidYmd(form.checkIn)
+                        ? formatYmd(addDays(parseYmd(form.checkIn), 1))
+                        : undefined
+                    }
                     onChange={(e) => updateField("checkOut", e.target.value)}
                   />
                 </Field>
               </div>
+              <p className="text-xs text-muted">
+                {t("createReservation.stayDatesHint")}
+                {nights > 0
+                  ? ` ${t("createReservation.nightsCount", { count: nights })}`
+                  : null}
+              </p>
 
               <Field label={t("createReservation.guests")} error={fieldErrors.guests}>
                 <input
