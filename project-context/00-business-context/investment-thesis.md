@@ -6,7 +6,7 @@ A focused digital investment will unlock direct online bookings, reduce conversi
 
 ## Initial Budget Envelope
 
-- **Estimated Budget:** **N400,000** (rough estimate)
+- **Estimated Budget:** **N2,000,000** (rough estimate)
 
 ## Proposed Budget Allocation (Draft)
 

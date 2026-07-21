@@ -1,6 +1,6 @@
 # Technology Decisions
 
-**Principle:** Prefer proven, low-ops stack within ~N400k budget.  
+**Principle:** Prefer proven, low-ops stack within ~N2m budget.  
 **Traceability:** Phase 0 investment thesis · Phase 1 technical learnings
 
 ## 1. Decision summary

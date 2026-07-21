@@ -23,7 +23,7 @@ Deliver a **premium, multilingual marketing and booking website** for Relief Hot
 | Integrations | Paystack, Resend, Termii via server-side Route Handlers |
 | i18n | `next-intl` with locale-prefixed routes (`/en`, `/fr`, …) |
 
-No separate BFF or microservices for initial scope (~N400k); complexity stays in one repo with feature folders (`src/features/phase-*`).
+No separate BFF or microservices for initial scope (~N2m); complexity stays in one repo with feature folders (`src/features/phase-*`).
 
 ## 3. System context (C4 — Level 1)
 

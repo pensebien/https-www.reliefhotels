@@ -34,7 +34,7 @@ Build and operate a modern hotel platform with:
 
 ## Scope Notes
 
-- Initial budget target: **N400k** (rough estimate)
+- Initial budget target: **N2m** (rough estimate)
 - Delivery includes website, booking flow, and reservation notification capability
 - **Front-desk cashier (ADR-005):** hotelier settles existing reservations in-person via **cash, Paystack Terminal, and/or Moniepoint**, with offline-tolerant cash sync — supports conversion when guests do not complete web Paystack
 - **Light HMS (post-cashier):** minibar/F&B folio, role-scoped staff views, accounting ledger, occupancy calendar — see `03-planning/hms-expansion-roadmap.md`

@@ -1,6 +1,6 @@
 # Resource Allocation
 
-**Budget envelope:** ~N400,000 (Phase 0)  
+**Budget envelope:** ~N2,000,000 (Phase 0)  
 **Team model:** Startup / small team (BVDLC tailoring)  
 **Planning date:** 2026-06-02
 

@@ -34,7 +34,7 @@ This initiative supports:
 
 ## Investment Justification
 
-- **Estimated Investment:** ~**N400,000** (initial build and launch scope)
+- **Estimated Investment:** ~**N2,000,000** (initial build and launch scope)
 - **Expected Benefit:** More direct bookings, improved premium positioning, lower booking friction
 - **Payback Assumption:** Achievable with steady monthly paid bookings and event/reservation upsell
 

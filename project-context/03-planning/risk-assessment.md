@@ -11,7 +11,7 @@
 | Paystack callback URL wrong on Render | M | H | ENV_MATRIX checklist; one test live charge | Tech Lead |
 | Dual-channel notify duplicate noise | L | M | Concise templates; ops runbook | Ops |
 | Scope creep in agent sessions | M | M | `code-generation-prompts.md` out-of-scope lists | Tech Lead |
-| Budget overrun (>N400k) | L | M | `resource-allocation.md` contingency | Kalu |
+| Budget overrun (>N2m) | L | M | `resource-allocation.md` contingency | Kalu |
 | Low booking conversion | M | H | Phase 1 UX findings; iterate post-launch | Kalu |
 | Demo key leaked | L | M | Quarterly rotation; not in repo | Tech Lead |
 | BVDLC docs drift from code | M | M | Update `project-context/` on ADR/contract change | Tech Lead |

@@ -7,7 +7,7 @@
 
 ## Context
 
-Relief Hotels’ business case requires **secure booking and payment-ready reservation flow** and fewer **missed reservations** under a ~**N400k** envelope. Online guests already pay via **Paystack**. Front desk already supports **cash + Moniepoint** walk-ins.
+Relief Hotels’ business case requires **secure booking and payment-ready reservation flow** and fewer **missed reservations** under a ~**N2m** envelope. Online guests already pay via **Paystack**. Front desk already supports **cash + Moniepoint** walk-ins.
 
 Ops need a **cashier settle flow**: pick an existing reservation → collect deposit/balance → confirm — including **limited offline** operation when hotel Wi‑Fi drops (pattern proven in CravinsOS IndexedDB outbox).
 
@@ -31,7 +31,7 @@ Hoteliers may use **Paystack Terminal** and/or **Moniepoint** POS hardware. Lock
 | Moniepoint only | Already partially built | Blocks hotels on Paystack Terminal | Rejected |
 | Paystack only | Aligns with online channel | Drops existing Moniepoint walk-in | Rejected |
 | Dual adapter (this ADR) | Matches hardware reality; one UX | Two integrations to maintain | **Accepted** |
-| Bundle CravinsOS wholesale | Fast POS UI | Wrong framework/domain; N400k overkill | Rejected |
+| Bundle CravinsOS wholesale | Fast POS UI | Wrong framework/domain; N2m overkill | Rejected |
 
 ## Consequences
 

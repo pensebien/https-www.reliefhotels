@@ -31,7 +31,7 @@ Relief Hotels needs a premium web channel that converts interest into **secure o
 
 ## Budget envelope
 
-~**N400,000** (initial)
+~**N2,000,000** (initial)
 
 ## Non-negotiables for build agents
 

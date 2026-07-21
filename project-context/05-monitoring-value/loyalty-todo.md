@@ -6,7 +6,7 @@
 
 ## Why later
 
-Current wave delivers light HMS (F&B folio, roles, accounting, calendar). Loyalty needs identity, points ledger, and rate rules beyond the N400k launch envelope.
+Current wave delivers light HMS (F&B folio, roles, accounting, calendar). Loyalty needs identity, points ledger, and rate rules beyond the N2m launch envelope.
 
 ## TODO checklist (future sprint)
 

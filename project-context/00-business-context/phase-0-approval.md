@@ -22,7 +22,7 @@ The business objective is clear and time-sensitive: establish a premium digital 
 
 ## Budget Position
 
-- **Approved Working Estimate:** N400,000 (rough)
+- **Approved Working Estimate:** N2,000,000 (rough)
 - Final allocation to be refined during execution planning and vendor confirmation
 
 ## Entry Criteria for Next Phase
