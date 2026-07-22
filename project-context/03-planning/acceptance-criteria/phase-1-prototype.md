@@ -26,4 +26,4 @@
 - [ ] Tech Lead  
 - [ ] Date recorded in `go-no-go-decision.md`
 
-**When complete:** Clear agent HOLD (`docs/SCRUM_MASTER_CHECKLIST.md` §4) and begin waves per [phase-3-agent-delivery.md](phase-3-agent-delivery.md).
+**When complete:** Proceed to production launch criteria in [phase-4-production-launch.md](phase-4-production-launch.md).

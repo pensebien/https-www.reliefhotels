@@ -38,7 +38,7 @@ Generate 5 integration test scenarios for Agent D after Supabase migration:
 4. Local dev without DATABASE_URL falls back or fails clearly
 5. curl scripts for all four POST endpoints
 
-Append to docs/testing/agent-d-api-services-TESTS.md preserving existing sections.
+Append to docs/testing/reservation-qa-checklist.md preserving existing sections.
 ```
 
 ---
@@ -59,7 +59,7 @@ Include:
 
 Link to project-context/00-business-context/success-metrics.md § Manager Notification Delivery.
 
-Append to docs/testing/agent-f-notifications-TESTS.md.
+Append to docs/testing/reservation-qa-checklist.md.
 ```
 
 ---
@@ -68,7 +68,7 @@ Append to docs/testing/agent-f-notifications-TESTS.md.
 
 ```text
 From project-context/03-planning/acceptance-criteria/phase-4-production-launch.md,
-generate a 15-step smoke test script for Render production URL.
+generate a 15-step smoke test script for Netlify production URL.
 
 Include Paystack live test card caution, demo dashboard key check, and locale /en load.
 Output as numbered checklist suitable for 04-build-test-deploy/test-results/.

@@ -1,9 +1,9 @@
 # Rollback Procedures
 
-## Render (fast)
+## Netlify (fast)
 
-1. Open Render dashboard → Service → **Deploys**
-2. Select last known good deploy → **Rollback**
+1. Open Netlify dashboard → **Deploys**
+2. Select last known good deploy → **Publish deploy**
 3. Confirm site health (`/en`, `/api/reservations` health via smoke curl)
 
 ## Database (careful)
@@ -15,7 +15,7 @@
 ## Secrets compromise
 
 1. Rotate Paystack, Termii, Resend, Supabase service role keys
-2. Redeploy Render with new env
+2. Redeploy Netlify with new env
 3. Rotate `DEMO_DASHBOARD_KEY` if demo URL was exposed
 
 ## Payment incidents

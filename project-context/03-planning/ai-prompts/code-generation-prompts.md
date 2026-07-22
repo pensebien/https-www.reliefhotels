@@ -1,6 +1,7 @@
 # Code Generation Prompts (Phase 3)
 
-Use with `docs/prompts/agents/*.md` for branch-specific detail.  
+Historical agent starters. Current QA: `docs/testing/reservation-qa-checklist.md`. Ops: `docs/deploy/STAFF.md`.  
+
 **Always include** paths under `project-context/` — this is the structural source of truth per [BVDLC](https://bvdlc.ai/resources/context-folder-structure.html).
 
 ---
@@ -24,7 +25,7 @@ RULES:
 4. Complete the agent TEST doc in docs/testing/.
 5. No secrets in client bundles.
 
-Confirmed stack: Next.js 16, Render, Supabase Postgres, Paystack, Resend, Termii SMS+WhatsApp (NOTIFY_CHANNEL=both in prod).
+Confirmed stack: Next.js 16, Netlify, Supabase Postgres, Paystack, Resend, Termii SMS+WhatsApp (NOTIFY_CHANNEL=both in prod).
 ```
 
 ---
@@ -41,7 +42,7 @@ Align platform config with project-context/02-architecture/ and docs/ENV_MATRIX.
 
 DELIVER:
 - .env.example completeness (Supabase DATABASE_URL, WHATSAPP_* placeholders)
-- lib/config.ts handles Render URL + demo flags
+- lib/config.ts handles Netlify URL + demo flags
 - README or docs pointer to ENV_MATRIX
 - No feature UI changes
 

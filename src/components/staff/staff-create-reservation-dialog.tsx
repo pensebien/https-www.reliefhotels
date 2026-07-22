@@ -2,6 +2,7 @@
 
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
+import { celebrateSuccess } from "@/lib/celebrate";
 import type { StaffPaymentOption } from "@/lib/payment-methods";
 import { isValidYmd, parseYmd, formatYmd, addDays } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
@@ -215,6 +216,7 @@ export function StaffCreateReservationDialog({
 
       if (status === "success") {
         setPaymentStatus("success");
+        celebrateSuccess();
         onCreated();
         window.setTimeout(() => {
           if (!cancelled) {
@@ -366,6 +368,7 @@ export function StaffCreateReservationDialog({
         return;
       }
 
+      celebrateSuccess();
       onCreated();
       onClose();
       setForm(initialForm(roomOptions[0]?.id ?? "", today));
@@ -378,7 +381,7 @@ export function StaffCreateReservationDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 motion-safe:animate-in motion-safe:fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm motion-safe:animate-in motion-safe:fade-in sm:items-center sm:p-4"
       role="presentation"
       onClick={() => {
         if (!waitingPayment) onClose();

@@ -8,7 +8,7 @@
 | Agent merge conflicts | M | M | Order A→D→E→F; thin slices | Tech Lead |
 | Supabase migration data loss | M | H | Migration script + backup; TEST D-03 | Tech Lead |
 | WhatsApp launch delay | H | H | Early BSP signup; SMS satisfies partial KPI | Kalu |
-| Paystack callback URL wrong on Render | M | H | ENV_MATRIX checklist; one test live charge | Tech Lead |
+| Paystack callback URL wrong on Netlify | M | H | ENV_MATRIX checklist; one test live charge | Tech Lead |
 | Dual-channel notify duplicate noise | L | M | Concise templates; ops runbook | Ops |
 | Scope creep in agent sessions | M | M | `code-generation-prompts.md` out-of-scope lists | Tech Lead |
 | Budget overrun (>N2m) | L | M | `resource-allocation.md` contingency | Kalu |

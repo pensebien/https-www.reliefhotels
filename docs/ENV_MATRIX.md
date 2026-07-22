@@ -10,7 +10,7 @@ Use with `.env.example`. Never commit real secrets.
 | **Local** | `http://localhost:3000` | Test or `DEMO_MODE` | Console / Resend test | `console` | `data/*.json` local |
 | **ngrok demo** | `https://<id>.ngrok-free.app` | Test keys; callback = same URL | Resend test optional | `console` or Termii test | Local only |
 | **Preview** | Hosting preview URL | Test keys | Resend test | `console` recommended | ⚠️ ephemeral on serverless |
-| **Production** | `https://www.reliefhotelsandsuites.com` on **Render** | **Live** keys | Resend verified domain | `both` (SMS+WhatsApp) | **Supabase** Postgres |
+| **Production** | `https://www.reliefhotelsandsuites.com` on **Netlify** | **Live** keys | Resend verified domain | `both` (SMS+WhatsApp) | **Supabase** Postgres |
 
 ---
 
@@ -52,7 +52,7 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 
 ---
 
-## Preview (Netlify / Render)
+## Preview (Netlify deploy previews)
 
 | Variable | Notes |
 |----------|-------|
@@ -78,7 +78,7 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `MANAGER_PHONE` | Operations manager |
 | `DEMO_DASHBOARD_KEY` | Keep for stakeholder demo; rotate quarterly |
 | `MONIEPOINT_*` | Front-desk walk-in (cash / terminal / transfer) — see `docs/deploy/MONIEPOINT.md` |
-| `PAYSTACK_TERMINAL_ID` | Front-desk Paystack Terminal push — see `docs/deploy/CASHIER.md` |
+| `PAYSTACK_TERMINAL_ID` | Front-desk Paystack Terminal push — see `docs/deploy/STAFF.md` |
 | `CASHIER_ENABLED` | Staff cashier module (`true`/`false`) |
 | `DATABASE_URL` | Supabase connection string (server only) |
 | `WHATSAPP_*` | Provider keys when `NOTIFY_CHANNEL=both` |

@@ -11,7 +11,7 @@
 | [code-artifacts/](code-artifacts/) | PRs, branches, merge commits |
 | [test-results/](test-results/) | Manual QA evidence by agent |
 | [quality-reports/](quality-reports/) | Build, lint, debt |
-| [deployment-logs/](deployment-logs/) | Render deploy, rollback |
+| [deployment-logs/](deployment-logs/) | Netlify deploy, rollback |
 | [dev-notes/](dev-notes/) | Implementation decisions, known issues |
 
 ## Current build focus

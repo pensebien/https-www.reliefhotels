@@ -70,7 +70,7 @@
 |-------------|-------------|
 | Local | No external host; optional ngrok |
 | Demo | ngrok → dev server; update Paystack + `NEXT_PUBLIC_APP_URL` |
-| Production | **Render** → custom domain (Notigori DNS per stakeholder) |
+| Production | **Netlify** → custom domain (Notigori DNS per stakeholder) |
 
 **SSL:** Terminated at host edge; force HTTPS.
 
@@ -91,7 +91,7 @@ Not a separate service today — synchronous call from each Route Handler:
 API Handler → notifyManager(payload) → Termii | console
 ```
 
-Future: outbox table + worker or queue (Vercel/Render cron).
+Future: outbox table + worker or queue (Netlify scheduled functions / cron).
 
 ## 9. Error handling contract (cross-cutting)
 

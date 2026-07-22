@@ -19,7 +19,7 @@ Deliver a **premium, multilingual marketing and booking website** for Relief Hot
 |--------|--------|
 | Pattern | **Modular monolith** — single Next.js 16 App Router application |
 | Deployment unit | One deployable web app (SSR/SSG + Route Handlers) |
-| Data | **Phase 1:** JSON file stores (demo/local) · **Production:** Supabase PostgreSQL on Render (ADR-001) |
+| Data | **Phase 1:** JSON file stores (demo/local) · **Production:** Supabase PostgreSQL on Netlify (ADR-001) |
 | Integrations | Paystack, Resend, Termii via server-side Route Handlers |
 | i18n | `next-intl` with locale-prefixed routes (`/en`, `/fr`, …) |
 
@@ -85,7 +85,7 @@ See `docs/ENV_MATRIX.md`.
 |------|-------------|------|----------|
 | Local | localhost:3000 | File JSON | Test / DEMO_MODE |
 | Demo | ngrok-free.app | File JSON | Test |
-| Production | reliefhotelsandsuites.com (Render) | Supabase Postgres | Live Paystack |
+| Production | reliefhotelsandsuites.com (Netlify) | Supabase Postgres | Live Paystack |
 
 ## 7. Quality attributes (summary)
 
@@ -111,7 +111,7 @@ Detailed NFRs: [nfr-specifications.md](nfr-specifications.md).
 
 | # | Decision |
 |---|----------|
-| O-1 | **Render** — production host |
+| O-1 | **Netlify** — production host |
 | O-2 | **Supabase** — PostgreSQL |
 | O-3 | **SMS + WhatsApp** at launch (`NOTIFY_CHANNEL=both`) |
 | O-4 | **Keep `/demo`** on production with secret `DEMO_DASHBOARD_KEY` (rotate periodically) |

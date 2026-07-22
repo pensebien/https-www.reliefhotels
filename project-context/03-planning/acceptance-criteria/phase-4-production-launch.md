@@ -1,6 +1,6 @@
 # Acceptance Criteria — Phase 4 Production Launch
 
-**Target host:** Render (ADR-004)  
+**Target host:** Netlify (ADR-004)  
 **Database:** Supabase (ADR-001)  
 **Alerts:** SMS + WhatsApp (ADR-003)  
 **Traceability:** `../02-architecture/security-requirements.md` pre-production checklist
@@ -9,10 +9,10 @@
 
 ## Infrastructure
 
-- [ ] Render service deployed from `main`
-- [ ] Custom domain DNS points to Render (Notigori)
+- [ ] Netlify service deployed from `main`
+- [ ] Custom domain DNS points to Netlify (Notigori)
 - [ ] HTTPS enforced; `NEXT_PUBLIC_APP_URL` = production URL
-- [ ] `DATABASE_URL` (Supabase) set on Render
+- [ ] `DATABASE_URL` (Supabase) set on Netlify
 - [ ] All production env vars per `docs/ENV_MATRIX.md` production row
 
 ---

@@ -16,7 +16,7 @@
 | SMS + WhatsApp | **Termii** (+ WhatsApp BSP) | Dual manager alerts at launch | ADR-003 |
 | Data (prod) | **Supabase PostgreSQL** | Sponsor choice; dashboard + Postgres | ADR-001 |
 | Data (demo) | JSON files | Zero cost demos; **not for prod** | ADR-001 |
-| Hosting | **Render** | Node runtime + env secrets; sponsor confirmed | — |
+| Hosting | **Netlify** | Node runtime + env secrets; sponsor confirmed | — |
 | Repo | **GitHub** + feature branches | Agentic delivery workflow | — |
 | CI | Host-native build or GitHub Actions (TBD) | `npm run build` gate | — |
 
@@ -28,7 +28,7 @@
 | Separate Express API | Extra deploy surface; Next Route Handlers sufficient |
 | MongoDB | Relational booking/payment queries simpler in SQL |
 | Twilio SMS | Higher cost/complexity vs Termii for NG numbers |
-| Vercel (now) | Stakeholder preference for ngrok demos + Render/Netlify path |
+| Vercel (now) | Stakeholder preference for ngrok demos + Netlify path |
 | Full PMS integration | Budget/timeline; manual ops follow-up acceptable at 20 bookings/mo |
 
 ## 3. Stack version policy

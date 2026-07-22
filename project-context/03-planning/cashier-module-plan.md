@@ -20,7 +20,7 @@ Hotelier needs to **select a guest reservation** and **checkout** (deposit/balan
 
 | Phase | Agent | Branch | Worktree | **Owns exclusively** |
 |-------|-------|--------|----------|----------------------|
-| **G** Contracts | G | `features/agent-g-cashier-contracts` | `agent-workspaces/agent-g-cashier-contracts/` | `project-context/**` cashier docs, `docs/contracts`, `docs/deploy/CASHIER.md`, `docs/supabase/migration-008*`, ENV notes |
+| **G** Contracts | G | `features/agent-g-cashier-contracts` | `agent-workspaces/agent-g-cashier-contracts/` | `project-context/**` cashier docs, `docs/contracts`, `docs/deploy/STAFF.md`, `docs/supabase/migration-008*`, ENV notes |
 | **H** API | H | `features/agent-h-cashier-api` | `agent-workspaces/agent-h-cashier-api/` | `src/lib/cashier/**`, `src/lib/paystack-terminal.ts`, `src/app/api/staff/cashier/**`, `src/lib/schemas/cashier-*.ts`, `tests/api/cashier-*.ts` |
 | **I** UI | I | `features/agent-i-cashier-ui` | `agent-workspaces/agent-i-cashier-ui/` | `src/features/cashier/**`, `src/app/[locale]/staff/cashier/**`, `messages` key `"cashier"` only |
 | **J** Offline | J | `features/agent-j-cashier-offline` | `agent-workspaces/agent-j-cashier-offline/` | `src/lib/cashier-offline/**` only |
@@ -65,4 +65,4 @@ CravinsOS (`~/projects/cravinsos`): `src/lib/offline/*`, `PaymentCheckoutModal`,
 
 ## Deploy
 
-After each PR merge to `main`, Netlify/Render auto-deploy. Production requires Supabase + provider keys per `docs/deploy/CASHIER.md`.
+After each PR merge to `main`, Netlify auto-deploy. Production requires Supabase + provider keys per `docs/deploy/STAFF.md`.

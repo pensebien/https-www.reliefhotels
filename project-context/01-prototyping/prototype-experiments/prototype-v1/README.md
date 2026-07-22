@@ -4,7 +4,7 @@
 |-------|-------|
 | **Delivery agent** | E — `features/agent-e-prototype-v1-booking` |
 | **Wave** | 3 |
-| **QA doc** | `docs/testing/agent-e-prototype-v1-booking-TESTS.md` |
+| **QA doc** | `docs/testing/reservation-qa-checklist.md` · `docs/testing/prototype-automation.md` |
 | **Business context** | `project-context/00-business-context/success-metrics.md` KPI 1–3 |
 
 ## Objective

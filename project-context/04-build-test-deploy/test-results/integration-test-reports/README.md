@@ -8,4 +8,4 @@ Record Supabase + API curl runs here.
 |------|--------|-------|--------|-----|
 | 2026-06-02 | Tech Lead | reservations + Supabase | | |
 
-**Scripts:** `docs/testing/agent-d-api-services-TESTS.md`
+**Scripts:** `docs/testing/reservation-qa-checklist.md` · `npm run test:qa`

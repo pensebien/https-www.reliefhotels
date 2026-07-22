@@ -204,7 +204,7 @@
       },
       "share": {
         "title": "Sharing with service providers",
-        "body": "We share data only with trusted processors needed to operate the website — including hosting (Render), database (Supabase), email (Resend), and payment providers (Paystack, Moniepoint). If your hotel enables RAYZA Connect, confirmed booking details may be relayed to your property management system at your request."
+        "body": "We share data only with trusted processors needed to operate the website — including hosting (Netlify), database (Supabase), email (Resend), and payment providers (Paystack, Moniepoint). If your hotel enables RAYZA Connect, confirmed booking details may be relayed to your property management system at your request."
       },
       "retention": {
         "title": "Retention",

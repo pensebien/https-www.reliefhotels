@@ -23,28 +23,27 @@
 | [ai-prompts/test-generation-prompts.md](ai-prompts/test-generation-prompts.md) | Extending QA handoffs |
 | [ai-prompts/review-prompts.md](ai-prompts/review-prompts.md) | PR review before merge |
 
-**Operational prompts:** `docs/prompts/agents/*.md` · Index: `docs/DELIVERY_AGENT_PROMPTS.md`
+**Ops docs:** `docs/ENV_MATRIX.md` · `docs/deploy/STAFF.md` · `docs/testing/reservation-qa-checklist.md`
 
 ## Acceptance criteria
 
 | File | Gate |
 |------|------|
-| [acceptance-criteria/phase-1-prototype.md](acceptance-criteria/phase-1-prototype.md) | Prototype validation + agent launch |
-| [acceptance-criteria/phase-3-agent-delivery.md](acceptance-criteria/phase-3-agent-delivery.md) | Per-agent merge DoD |
-| [acceptance-criteria/phase-4-production-launch.md](acceptance-criteria/phase-4-production-launch.md) | Render + Supabase + live integrations |
+| [acceptance-criteria/phase-1-prototype.md](acceptance-criteria/phase-1-prototype.md) | Prototype validation |
+| [acceptance-criteria/phase-3-agent-delivery.md](acceptance-criteria/phase-3-agent-delivery.md) | Historical agent-wave DoD |
+| [acceptance-criteria/phase-4-production-launch.md](acceptance-criteria/phase-4-production-launch.md) | Netlify + Supabase + live integrations |
 
 ## Traceability
 
 | Upstream | Downstream |
 |----------|------------|
 | `../00-business-context/success-metrics.md` | Roadmap KPIs |
-| `../02-architecture/` (ADRs, NFRs) | Agent D/F scope |
-| `docs/DELIVERY_PHASED_BUILD_SPEC.md` | Waves & branches |
-| `docs/SCRUM_MASTER_CHECKLIST.md` | Agent HOLD gate |
-| `../04-build-test-deploy/` | Evidence after merge |
+| `../02-architecture/` (ADRs, NFRs) | Production scope |
+| `docs/deploy/` · `docs/testing/` | Ops + QA |
+| `../04-build-test-deploy/` | Evidence after ship |
 
 ## Current focus
 
-1. Complete Phase 1 validation (checklist §2–3)  
-2. Clear agent HOLD → execute waves per roadmap  
-3. Record results in `04-build-test-deploy/` as agents complete  
+1. Complete Phase 1 human validation sessions  
+2. Production launch checklist (phase-4)  
+3. Record results in `04-build-test-deploy/`  

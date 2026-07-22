@@ -4,7 +4,7 @@
 
 1. Create project at https://supabase.com  
 2. SQL Editor → paste `docs/supabase/schema.sql` → Run  
-3. Settings → API → copy URL + **service role** key to Render/local `.env.local`:
+3. Settings → API → copy URL + **service role** key to Netlify/local `.env.local`:
 
 ```env
 SUPABASE_URL=https://xxxx.supabase.co

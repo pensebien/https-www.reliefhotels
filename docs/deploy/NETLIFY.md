@@ -1,6 +1,6 @@
 # Netlify Deployment — Relief Hotels
 
-Get the site live on **`*.netlify.app` first**, then attach **`www.reliefhotelsandsuites.com`**.
+**Production host (ADR-004).** Get the site live on **`*.netlify.app` first**, then attach **`www.reliefhotelsandsuites.com`** and the staff subdomain (`reservation.…` — see [STAFF.md](./STAFF.md)).
 
 ---
 
@@ -116,7 +116,7 @@ curl -s -o /dev/null -w "%{http_code}" "$BASE/en"        # 200
 curl -s -o /dev/null -w "%{http_code}" "$BASE/en/rooms"  # 200
 ```
 
-Browser: homepage, rooms, staff portal (`docs/deploy/STAFF_PORTAL.md`)
+Browser: homepage, rooms, staff portal (`docs/deploy/STAFF.md`)
 
 ```bash
 # Staff portal (after DNS + STAFF_PORTAL_HOST)
@@ -147,17 +147,6 @@ open "https://reliefhotelsandsuites.com/en/demo?key=relief-demo-2026"
 - `npm ERR!` / `ENOENT` → build command or base directory wrong
 - `Plugin "@netlify/plugin-nextjs"` → should resolve automatically from `netlify.toml`
 - Copy the last 20 lines if you need help debugging
-
----
-
-## Netlify vs Render
-
-| | Netlify (this guide) | Render (production, ADR-004) |
-|--|----------------------|------------------------------|
-| Purpose | Show domain to Kalu early | Long-term production |
-| DNS | Point domain to Netlify now | Repoint to Render later |
-
-Use **one host per domain** at a time.
 
 ---
 

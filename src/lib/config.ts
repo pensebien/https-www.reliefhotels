@@ -24,11 +24,11 @@ export function getServerConfig() {
     process.env.DEMO_MODE === "true" || !paystackConfigured;
   const appUrl = (
     process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.RENDER_EXTERNAL_URL
-      ? process.env.RENDER_EXTERNAL_URL
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3002")
+    process.env.URL ?? // Netlify site URL
+    process.env.DEPLOY_PRIME_URL ?? // Netlify deploy URL
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3002")
   ).replace(/\/$/, "");
 
   const notifyChannel = (process.env.NOTIFY_CHANNEL ?? "console") as

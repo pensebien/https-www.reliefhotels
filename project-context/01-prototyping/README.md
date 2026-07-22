@@ -20,4 +20,4 @@
 
 ## Before Phase 2
 
-Complete checklist in `docs/SCRUM_MASTER_CHECKLIST.md` §2 and `03-planning/acceptance-criteria/phase-1-prototype.md`.
+Complete checklist in `03-planning/acceptance-criteria/phase-1-prototype.md` and `docs/testing/reservation-qa-checklist.md`.

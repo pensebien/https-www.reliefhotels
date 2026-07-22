@@ -4,15 +4,15 @@
 |------|-------------|-----|---------|----------|-------|
 | | Local | localhost:3000 | | | Dev |
 | | ngrok demo | | | | Client demos |
-| | Render staging | | | | |
-| | Render production | | | | |
+| | Netlify staging | | | | |
+| | Netlify production | | | | |
 
 ## Template (copy per deploy)
 
 ```markdown
 ### YYYY-MM-DD — [staging|production]
 - **Commit:** 
-- **Render deploy ID:** 
+- **Netlify deploy ID:** 
 - **Supabase migration:** docs/supabase/schema.sql v?
 - **Smoke:** PASS / FAIL
 - **Issues:** 

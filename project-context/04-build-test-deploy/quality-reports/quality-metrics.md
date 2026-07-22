@@ -16,4 +16,4 @@
 - **API:** Supabase row count vs API 200 responses (manual weekly)
 - **Notify:** Termii dashboard + `notification_log` table
 - **LCP:** Chrome Lighthouse on `/en` and `/en/rooms`
-- **Uptime:** Render status / external ping
+- **Uptime:** Netlify status / external ping
