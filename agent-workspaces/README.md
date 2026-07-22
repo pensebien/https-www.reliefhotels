@@ -1,6 +1,6 @@
 # Agent Workspaces (git worktrees)
 
-Per [AGENTIC_DELIVERY_TEMPLATE.md](../docs/prompts/AGENTIC_DELIVERY_TEMPLATE.md): **one agent = one folder = one branch**.
+Legacy git worktrees from the multi-agent delivery wave (**one agent = one folder = one branch**). Prefer working on feature branches in the main repo for production work.
 
 ## Bootstrap
 

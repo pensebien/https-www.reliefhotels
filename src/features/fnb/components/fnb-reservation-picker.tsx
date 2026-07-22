@@ -9,18 +9,24 @@ export function FnbReservationPicker({
   reservations,
   selectedId,
   onSelect,
+  emptyTitle,
+  emptyHint,
 }: {
   reservations: FnbReservation[];
   selectedId: string | null;
   onSelect: (reservation: FnbReservation) => void;
+  emptyTitle?: string;
+  emptyHint?: string;
 }) {
   const t = useTranslations("fnb");
 
   if (reservations.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-center">
-        <p className="font-medium">{t("reservationsEmpty")}</p>
-        <p className="mt-1 text-sm text-muted">{t("reservationsEmptyHint")}</p>
+        <p className="font-medium">{emptyTitle ?? t("reservationsEmpty")}</p>
+        <p className="mt-1 text-sm text-muted">
+          {emptyHint ?? t("reservationsEmptyHint")}
+        </p>
       </div>
     );
   }

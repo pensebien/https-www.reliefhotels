@@ -1,7 +1,7 @@
 # Task Breakdown
 
 **Planning structure:** [BVDLC Phase 3](https://bvdlc.ai/resources/context-folder-structure.html)  
-**Agents:** ON HOLD until `docs/SCRUM_MASTER_CHECKLIST.md` §4
+**Agents:** Historical wave complete — see `docs/deploy/STAFF.md` for ops
 
 ---
 
@@ -22,7 +22,7 @@
 | ID | Task | Owner | Done? |
 |----|------|-------|-------|
 | P2-01 | Solution + component + integration docs | Tech Lead | [x] |
-| P2-02 | ADR-001 Supabase, ADR-002 API, ADR-003 notify, ADR-004 Render | Tech Lead | [x] |
+| P2-02 | ADR-001 Supabase, ADR-002 API, ADR-003 notify, ADR-004 Netlify | Tech Lead | [x] |
 | P2-03 | Mermaid diagrams | Tech Lead | [x] |
 | P2-04 | Security + NFR specs | Tech Lead | [x] |
 
@@ -45,7 +45,7 @@
 
 | ID | Task | Done? |
 |----|------|-------|
-| A-01 | `.env.example` + config for Render/Supabase/WhatsApp | [ ] |
+| A-01 | `.env.example` + config for Netlify/Supabase/WhatsApp | [ ] |
 | A-02 | Document env in ENV_MATRIX if gaps | [ ] |
 | A-03 | TEST doc sign-off | [ ] |
 
@@ -89,7 +89,7 @@
 
 | ID | Task | Owner | Done? |
 |----|------|-------|-------|
-| P4-01 | Render deploy + DNS | Tech Lead | [ ] |
+| P4-01 | Netlify deploy + DNS | Tech Lead | [ ] |
 | P4-02 | Production env (ENV_MATRIX) | Tech Lead | [ ] |
 | P4-03 | Paystack live + smoke test | Kalu + Tech Lead | [ ] |
 | P4-04 | `phase-4-production-launch.md` sign-off | Kalu | [ ] |
@@ -101,7 +101,7 @@
 
 | ID | Task | Agent | Done? |
 |----|------|-------|-------|
-| G-01 | Contracts, ADR-005, migration-008, CASHIER.md | G | [x] |
+| G-01 | Contracts, ADR-005, migration-008, STAFF.md (cashier) | G | [x] |
 | H-01 | Settle API + Paystack Terminal + Moniepoint adapters | H | [x] |
 | I-01 | Staff cashier UI (pick reservation → pay) | I | [x] |
 | J-01 | Offline cash outbox + flush | J | [x] |

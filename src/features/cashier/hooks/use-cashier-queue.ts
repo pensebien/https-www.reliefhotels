@@ -63,12 +63,25 @@ export function useCashierQueue(key: string | null) {
       );
   }, [reservations, successfulPaymentReservationIds]);
 
+  /** Non-cancelled guests eligible for F&B folio charges (booked / confirmed / pending). */
+  const activeReservations = useMemo(() => {
+    return reservations
+      .filter((reservation) => reservation.status !== "cancelled")
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }, [reservations]);
+
   return {
     loading,
     error,
     notDeployed,
     loadedOnce,
     unsettledReservations,
+    activeReservations,
+    isSettled: (reservationId: string) =>
+      successfulPaymentReservationIds.has(reservationId),
     refresh: () => key && load(key),
   };
 }

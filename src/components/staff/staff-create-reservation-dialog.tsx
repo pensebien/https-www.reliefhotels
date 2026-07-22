@@ -2,8 +2,9 @@
 
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
+import { celebrateSuccess } from "@/lib/celebrate";
 import type { StaffPaymentOption } from "@/lib/payment-methods";
-import { isValidYmd, parseYmd, formatYmd } from "@/lib/reservation-dates";
+import { isValidYmd, parseYmd, formatYmd, addDays } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
 import { Loader2, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -68,21 +69,34 @@ function defaultCheckOut(checkIn: string): string {
   }
 }
 
-function initialForm(roomId: string, today: string): FormState {
+function initialForm(
+  roomId: string,
+  checkIn: string,
+  overrides?: Partial<FormState>,
+): FormState {
   return {
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
     roomId,
-    checkIn: today,
-    checkOut: defaultCheckOut(today),
+    checkIn,
+    checkOut: defaultCheckOut(checkIn),
     guests: "1",
     message: "",
     status: "confirmed",
     paymentMethod: "cash",
+    ...overrides,
   };
 }
+
+export type StaffCreateReservationSeed = {
+  roomId?: string;
+  checkIn?: string;
+  checkOut?: string;
+  status?: "pending" | "confirmed";
+  paymentMethod?: StaffPaymentOption;
+};
 
 export function StaffCreateReservationDialog({
   open,
@@ -91,6 +105,7 @@ export function StaffCreateReservationDialog({
   roomOptions,
   moniepointConfig,
   onCreated,
+  seed = null,
 }: {
   open: boolean;
   onClose: () => void;
@@ -98,6 +113,8 @@ export function StaffCreateReservationDialog({
   roomOptions: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
   onCreated: () => void;
+  /** Prefill when opening from an occupancy calendar free cell. */
+  seed?: StaffCreateReservationSeed | null;
 }) {
   const t = useTranslations("demo");
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -170,7 +187,24 @@ export function StaffCreateReservationDialog({
     setSubmitError(null);
     setWaitingPayment(null);
     setPaymentStatus(null);
-  }, [open]);
+    const checkIn = seed?.checkIn && isValidYmd(seed.checkIn) ? seed.checkIn : today;
+    const checkOut =
+      seed?.checkOut && isValidYmd(seed.checkOut)
+        ? seed.checkOut
+        : defaultCheckOut(checkIn);
+    const defaultRoom = seed?.roomId ?? roomOptions[0]?.id ?? "";
+    setForm(
+      initialForm(defaultRoom, checkIn, {
+        checkOut,
+        status: seed?.status ?? "confirmed",
+        paymentMethod:
+          seed?.paymentMethod ??
+          (seed?.status === "pending" ? "none" : "cash"),
+      }),
+    );
+    // Intentionally re-seed only when the dialog opens or calendar seed changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, seed?.roomId, seed?.checkIn, seed?.checkOut, seed?.status, seed?.paymentMethod, today]);
 
   useEffect(() => {
     if (!waitingPayment) return;
@@ -182,6 +216,7 @@ export function StaffCreateReservationDialog({
 
       if (status === "success") {
         setPaymentStatus("success");
+        celebrateSuccess();
         onCreated();
         window.setTimeout(() => {
           if (!cancelled) {
@@ -209,7 +244,18 @@ export function StaffCreateReservationDialog({
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       if (key === "checkIn" && typeof value === "string") {
-        next.checkOut = defaultCheckOut(value);
+        // Only bump check-out when it would become invalid; keep staff's chosen length when possible.
+        try {
+          const nextIn = parseYmd(value);
+          const currentOut = isValidYmd(prev.checkOut)
+            ? parseYmd(prev.checkOut)
+            : null;
+          if (!currentOut || currentOut <= nextIn) {
+            next.checkOut = defaultCheckOut(value);
+          }
+        } catch {
+          next.checkOut = defaultCheckOut(value);
+        }
       }
       if (key === "paymentMethod") {
         const method = value as StaffPaymentOption;
@@ -322,6 +368,7 @@ export function StaffCreateReservationDialog({
         return;
       }
 
+      celebrateSuccess();
       onCreated();
       onClose();
       setForm(initialForm(roomOptions[0]?.id ?? "", today));
@@ -334,7 +381,7 @@ export function StaffCreateReservationDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 motion-safe:animate-in motion-safe:fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-sm motion-safe:animate-in motion-safe:fade-in sm:items-center sm:p-4"
       role="presentation"
       onClick={() => {
         if (!waitingPayment) onClose();
@@ -364,7 +411,9 @@ export function StaffCreateReservationDialog({
                 ? waitingPayment.method === "moniepoint_transfer"
                   ? t("createReservation.transferWaitingSubtitle")
                   : t("createReservation.terminalWaitingSubtitle")
-                : t("createReservation.subtitle")}
+                : seed
+                  ? t("createReservation.subtitleFromCalendar")
+                  : t("createReservation.subtitle")}
             </p>
           </div>
           {!waitingPayment ? (
@@ -502,10 +551,21 @@ export function StaffCreateReservationDialog({
                     type="date"
                     className={inputClassName}
                     value={form.checkOut}
+                    min={
+                      isValidYmd(form.checkIn)
+                        ? formatYmd(addDays(parseYmd(form.checkIn), 1))
+                        : undefined
+                    }
                     onChange={(e) => updateField("checkOut", e.target.value)}
                   />
                 </Field>
               </div>
+              <p className="text-xs text-muted">
+                {t("createReservation.stayDatesHint")}
+                {nights > 0
+                  ? ` ${t("createReservation.nightsCount", { count: nights })}`
+                  : null}
+              </p>
 
               <Field label={t("createReservation.guests")} error={fieldErrors.guests}>
                 <input

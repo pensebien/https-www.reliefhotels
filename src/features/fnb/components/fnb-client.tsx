@@ -1,5 +1,7 @@
 "use client";
 
+import { StaffReservationPagination } from "@/components/staff-reservation-pagination";
+import { StaffReservationSearch } from "@/components/staff-reservation-search";
 import { FnbCatalogBrowser } from "@/features/fnb/components/fnb-catalog-browser";
 import { FnbFolioList } from "@/features/fnb/components/fnb-folio-list";
 import { FnbKeyForm } from "@/features/fnb/components/fnb-key-form";
@@ -8,10 +10,14 @@ import { useFnbReservations } from "@/features/fnb/hooks/use-fnb-reservations";
 import { useFolio } from "@/features/fnb/hooks/use-folio";
 import { guestFullName } from "@/features/fnb/lib/helpers";
 import type { FnbReservation } from "@/features/fnb/types";
+import {
+  filterStaffReservationsByQuery,
+  paginateStaffReservations,
+} from "@/lib/staff-reservation-filter";
 import { RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_KEY = "relief-demo-2026";
 const SESSION_STORAGE_KEY = "demo-dashboard-key";
@@ -23,6 +29,8 @@ export function FnbClient() {
 
   const [key, setKey] = useState<string | null>(null);
   const [selected, setSelected] = useState<FnbReservation | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const resolved =
@@ -54,15 +62,47 @@ export function FnbClient() {
     setStatus,
   } = useFolio(selected?.id ?? null, key);
 
+  const filteredReservations = useMemo(
+    () => filterStaffReservationsByQuery(activeReservations, searchQuery),
+    [activeReservations, searchQuery],
+  );
+
+  const { items: pagedReservations, totalPages, page: safePage } = useMemo(
+    () => paginateStaffReservations(filteredReservations, page),
+    [filteredReservations, page],
+  );
+
+  useEffect(() => {
+    if (safePage !== page) setPage(safePage);
+  }, [safePage, page]);
+
   const hasData = loadedOnce && !reservationsError;
+
+  function handleSearchChange(value: string) {
+    setSearchQuery(value);
+    setPage(1);
+  }
 
   function handleKeySubmit(nextKey: string) {
     if (typeof window !== "undefined") {
       window.sessionStorage.setItem(SESSION_STORAGE_KEY, nextKey);
     }
     setSelected(null);
+    setSearchQuery("");
+    setPage(1);
     setKey(nextKey);
   }
+
+  const searchHint = searchQuery.trim()
+    ? t("searchResultHint", {
+        shown: pagedReservations.length,
+        total: filteredReservations.length,
+        query: searchQuery.trim(),
+      })
+    : t("searchResultHintAll", {
+        shown: pagedReservations.length,
+        total: activeReservations.length,
+      });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 lg:px-8">
@@ -110,10 +150,40 @@ export function FnbClient() {
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">
             {t("reservationsTitle")}
           </h2>
+          <StaffReservationSearch
+            query={searchQuery}
+            onQueryChange={handleSearchChange}
+            placeholder={t("searchPlaceholder")}
+            clearLabel={t("searchClear")}
+            resultHint={
+              activeReservations.length > 0 || searchQuery.trim()
+                ? searchHint
+                : undefined
+            }
+          />
           <FnbReservationPicker
-            reservations={activeReservations}
+            reservations={pagedReservations}
             selectedId={null}
             onSelect={setSelected}
+            emptyTitle={
+              searchQuery.trim()
+                ? t("searchEmpty", { query: searchQuery.trim() })
+                : undefined
+            }
+            emptyHint={
+              searchQuery.trim() ? t("searchEmptyHint") : undefined
+            }
+          />
+          <StaffReservationPagination
+            page={safePage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            previousLabel={t("paginationPrevious")}
+            nextLabel={t("paginationNext")}
+            pageLabel={t("paginationPage", {
+              page: safePage,
+              total: totalPages,
+            })}
           />
         </>
       )}

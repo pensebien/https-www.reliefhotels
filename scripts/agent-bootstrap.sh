@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Relief Hotels — bootstrap agent branches + git worktrees (AGENTIC_DELIVERY_TEMPLATE)
+# Relief Hotels — bootstrap agent branches + git worktrees (legacy delivery wave)
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -86,6 +86,6 @@ git worktree list
 echo ""
 echo "Next:"
 echo "  1. Open each folder in Cursor (separate window) or cd agent-workspaces/<agent>"
-echo "  2. Run agent prompt from docs/prompts/agents/ + docs/DELIVERY_AGENT_PROMPTS.md"
+echo "  2. Work in the worktree; QA via docs/testing/reservation-qa-checklist.md"
 echo "  3. PR: ./scripts/agent-pr-create.sh"
 echo "  4. Merge order: ./scripts/agent-merge-queue.sh (after QA)"

@@ -4,7 +4,7 @@
 |-------|-------|
 | **Delivery agent** | E — `features/agent-e-prototype-v2-experiences` |
 | **Wave** | 3 (parallel with V1, F) |
-| **QA doc** | `docs/testing/agent-e-prototype-v2-experiences-TESTS.md` |
+| **QA doc** | `docs/testing/reservation-qa-checklist.md` |
 
 ## Objective
 

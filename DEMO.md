@@ -87,7 +87,14 @@ Paystack redirects to:
 
 The app verifies via `GET /api/paystack/verify` and shows success/failure.
 
-For production, set **NEXT_PUBLIC_APP_URL** to your Vercel domain.
+**Dashboard Test Callback URL:** `{NEXT_PUBLIC_APP_URL}/payment/callback`  
+Example: `https://www.reliefhotelsandsuites.com/payment/callback`  
+(Not the staff host `reservation.…`, and not the bare homepage.)
+
+Full cashier + customer QA: `docs/testing/paystack-test-booking.md`  
+Run: `npm run test:paystack` (add `-- --live` after keys validate).
+
+For production, set **NEXT_PUBLIC_APP_URL** to your live www domain.
 
 ---
 

@@ -45,9 +45,9 @@ EOF
   echo "Created PR for $head"
 }
 
-create_pr "features/agent-g-cashier-contracts" "Agent G: cashier contracts (ADR-005)" "docs/testing/agent-g-cashier-contracts-TESTS.md"
-create_pr "features/agent-h-cashier-api" "Agent H: cashier settle API (Paystack + Moniepoint)" "docs/testing/agent-h-cashier-api-TESTS.md"
-create_pr "features/agent-i-cashier-ui" "Agent I: cashier staff UI" "docs/testing/agent-i-cashier-ui-TESTS.md"
-create_pr "features/agent-j-cashier-offline" "Agent J: cashier offline outbox" "docs/testing/agent-j-cashier-offline-TESTS.md"
+create_pr "features/agent-g-cashier-contracts" "Agent G: cashier contracts (ADR-005)" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-h-cashier-api" "Agent H: cashier settle API (Paystack + Moniepoint)" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-i-cashier-ui" "Agent I: cashier staff UI" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-j-cashier-offline" "Agent J: cashier offline outbox" "docs/testing/reservation-qa-checklist.md"
 
 gh pr list --limit 15 2>/dev/null || true

@@ -11,6 +11,7 @@ export function StaffReservationActions({
   staffNotes,
   onUpdated,
   compact = false,
+  showConfirm = true,
 }: {
   reservationId: string;
   dashboardKey: string;
@@ -18,6 +19,8 @@ export function StaffReservationActions({
   staffNotes?: string;
   onUpdated: () => void;
   compact?: boolean;
+  /** Hide “Mark as booked” when the stay is already confirmed. */
+  showConfirm?: boolean;
 }) {
   const t = useTranslations("demo");
   const [busy, setBusy] = useState<"confirm" | "cancel" | "notes" | null>(null);
@@ -95,14 +98,16 @@ export function StaffReservationActions({
   return (
     <div className={cn("space-y-2", compact ? "mt-2" : "mt-3")}>
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={busy !== null}
-          className="inline-flex rounded-full bg-teal px-3 py-1.5 text-xs font-medium text-gray-950 hover:bg-teal-dark disabled:opacity-50"
-        >
-          {busy === "confirm" ? t("staffActions.working") : t("staffActions.confirm")}
-        </button>
+        {showConfirm ? (
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={busy !== null}
+            className="inline-flex rounded-full bg-teal px-3 py-1.5 text-xs font-medium text-gray-950 hover:bg-teal-dark disabled:opacity-50"
+          >
+            {busy === "confirm" ? t("staffActions.working") : t("staffActions.confirm")}
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={handleCancel}

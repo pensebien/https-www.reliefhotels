@@ -9,7 +9,7 @@
 | Role | Person | Responsibilities | % allocation (next 8 weeks) |
 |------|--------|------------------|----------------------------|
 | Executive Sponsor | Kalu | GO/NO-GO, budget, domain/DNS, stakeholder demos | 10% |
-| Tech Lead | Project owner | Architecture, agents, Supabase, Render, QA | 60% |
+| Tech Lead | Project owner | Architecture, agents, Supabase, Netlify, QA | 60% |
 | Operations / Reservations | Hotel manager | Prototype sessions, SMS/WhatsApp POC, response SLA | 15% |
 | Marketing (optional) | TBD | Copy, gallery assets, SEO review | 5% as needed |
 
@@ -30,7 +30,7 @@ No separate Product Owner — Tech Lead covers planning + delivery per combined 
 | Category | Est. (NGN) | Notes |
 |----------|------------|-------|
 | Build (labor) | 250,000–300,000 | Tech Lead / contractor |
-| Hosting (Render) | 0–15,000/mo | Free tier → starter |
+| Hosting (Netlify) | 0–15,000/mo | Free tier → starter |
 | Supabase | 0–10,000/mo | Free tier at launch volume |
 | Paystack fees | Variable | Per transaction |
 | Termii SMS + WhatsApp | 5,000–20,000/mo | Volume-dependent |
@@ -56,7 +56,7 @@ No separate Product Owner — Tech Lead covers planning + delivery per combined 
 | GitHub | Tech Lead | Free |
 | Cursor agents | Tech Lead | Existing license |
 | ngrok | Tech Lead | Free tier demos |
-| Render + Supabase | Tech Lead | SaaS above |
+| Netlify + Supabase | Tech Lead | SaaS above |
 | Paystack / Termii / Resend | Kalu + Tech Lead | Usage-based |
 
 ## Escalation

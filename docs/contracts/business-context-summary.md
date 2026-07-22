@@ -48,4 +48,4 @@ Relief Hotels needs a premium web channel that converts interest into **secure o
 | V2 Experiences & events | `agent-e-prototype-v2-experiences` | Conversion + corporate segment |
 | V3 Notifications | `agent-f-notifications` | KPI 5, 6 |
 
-See `docs/DELIVERY_PHASED_BUILD_SPEC.md` for waves and merge order.
+Ops: `docs/ENV_MATRIX.md` · `docs/deploy/STAFF.md` · `docs/testing/reservation-qa-checklist.md`

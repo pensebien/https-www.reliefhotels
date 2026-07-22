@@ -2,21 +2,34 @@
 
 import { isSupabaseEnabled } from "@/lib/db/client";
 import { getStorageMode } from "@/lib/demo-store";
+import {
+  isPaystackPublicKey,
+  isPaystackSecretKey,
+  paystackKeyMode,
+  type PaystackKeyMode,
+} from "@/lib/paystack-auth";
 
 export function getServerConfig() {
-  const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
-  const paystackPublic =
+  const paystackSecret = (process.env.PAYSTACK_SECRET_KEY ?? "").trim();
+  const paystackPublic = (
     process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ??
-    process.env.PAYSTACK_PUBLIC_KEY;
+    process.env.PAYSTACK_PUBLIC_KEY ??
+    ""
+  ).trim();
   const resendKey = process.env.RESEND_API_KEY;
-  const demoMode = process.env.DEMO_MODE === "true" || !paystackSecret;
-  const appUrl =
+  const paystackConfigured =
+    isPaystackSecretKey(paystackSecret) && isPaystackPublicKey(paystackPublic);
+  /** Simulated payments — never allow silent demo when keys are valid unless DEMO_MODE=true. */
+  const demoMode =
+    process.env.DEMO_MODE === "true" || !paystackConfigured;
+  const appUrl = (
     process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.RENDER_EXTERNAL_URL
-      ? process.env.RENDER_EXTERNAL_URL
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3002");
+    process.env.URL ?? // Netlify site URL
+    process.env.DEPLOY_PRIME_URL ?? // Netlify deploy URL
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3002")
+  ).replace(/\/$/, "");
 
   const notifyChannel = (process.env.NOTIFY_CHANNEL ?? "console") as
     | "sms"
@@ -24,6 +37,10 @@ export function getServerConfig() {
     | "both"
     | "console"
     | "none";
+
+  const keyMode: PaystackKeyMode = paystackConfigured
+    ? paystackKeyMode(paystackSecret)
+    : "unknown";
 
   return {
     appUrl,
@@ -33,9 +50,10 @@ export function getServerConfig() {
       supabaseConfigured: isSupabaseEnabled(),
     },
     paystack: {
-      configured: Boolean(paystackSecret && paystackPublic),
-      publicKey: paystackPublic ?? "",
-      secretKey: paystackSecret ?? "",
+      configured: paystackConfigured,
+      publicKey: paystackPublic,
+      secretKey: paystackSecret,
+      mode: keyMode,
     },
     email: {
       configured: Boolean(resendKey),
@@ -83,5 +101,5 @@ export function getPublicPaystackKey(): string {
     process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ??
     process.env.PAYSTACK_PUBLIC_KEY ??
     ""
-  );
+  ).trim();
 }

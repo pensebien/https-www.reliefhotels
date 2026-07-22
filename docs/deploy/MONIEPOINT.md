@@ -12,7 +12,7 @@ Walk-in reservations on the **staff portal** can record deposits via:
 **Online guest bookings** still use **Paystack only** — Moniepoint is for front-desk / walk-in.
 
 **Staff portal:** `https://reservation.reliefhotelsandsuites.com?key=YOUR_DEMO_DASHBOARD_KEY`  
-See also: [STAFF_PORTAL.md](./STAFF_PORTAL.md)
+See also: [STAFF.md](./STAFF.md)
 
 ---
 
@@ -205,7 +205,7 @@ All staff routes require the same `DEMO_DASHBOARD_KEY` as the dashboard.
 
 ## Related docs
 
-- [STAFF_PORTAL.md](./STAFF_PORTAL.md) — subdomain and dashboard access
+- [STAFF.md](./STAFF.md) — subdomain, HMS surfaces, cashier
 - [NETLIFY.md](./NETLIFY.md) — deploy and env vars
 - [ENV_MATRIX.md](../ENV_MATRIX.md) — full environment variable matrix
 - [reservation-qa-checklist.md](../testing/reservation-qa-checklist.md) — QA sign-off

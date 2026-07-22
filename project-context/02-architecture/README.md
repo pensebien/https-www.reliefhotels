@@ -9,7 +9,7 @@
 |------|-------------|
 | [solution-architecture.md](solution-architecture.md) | System context, capabilities, environments |
 | [component-design.md](component-design.md) | Next.js layers, modules, APIs, libs |
-| [integration-points.md](integration-points.md) | Paystack, Resend, Termii, Supabase, Render |
+| [integration-points.md](integration-points.md) | Paystack, Resend, Termii, Supabase, Netlify |
 | [nfr-specifications.md](nfr-specifications.md) | Availability, performance, operability |
 | [technology-decisions.md](technology-decisions.md) | Stack table and rejected alternatives |
 | [security-requirements.md](security-requirements.md) | Secrets, PII, payment, checklist |
@@ -21,7 +21,7 @@
 | [ADR-001](architecture-decision-records/ADR-001-database-choice.md) | Supabase PostgreSQL | **Accepted** |
 | [ADR-002](architecture-decision-records/ADR-002-api-design.md) | Route Handlers REST API | **Accepted** |
 | [ADR-003](architecture-decision-records/ADR-003-notification-channel.md) | SMS + WhatsApp at launch | **Accepted** |
-| [ADR-004](architecture-decision-records/ADR-004-hosting-render.md) | Render hosting | **Accepted** |
+| [ADR-004](architecture-decision-records/ADR-004-hosting-netlify.md) | Netlify hosting | **Accepted** |
 | [ADR-005](architecture-decision-records/ADR-005-cashier-dual-pos.md) | Front-desk cashier dual POS (Paystack + Moniepoint) | **Accepted** |
 | [ADR-template](architecture-decision-records/ADR-template.md) | Template for future ADRs | — |
 
@@ -29,7 +29,7 @@
 
 | Topic | Choice |
 |-------|--------|
-| Hosting | **Render** |
+| Hosting | **Netlify** |
 | Database | **Supabase Postgres** |
 | Manager alerts | **SMS + WhatsApp** (`NOTIFY_CHANNEL=both`) |
 | Production `/demo` | **Keep** with `DEMO_DASHBOARD_KEY` (rotate periodically) |
@@ -46,5 +46,5 @@
 
 1. Create Supabase project + schema migration (Agent D)  
 2. WhatsApp POC + `notifyManager()` dual channel (Agent F)  
-3. Render deploy + `docs/ENV_MATRIX.md` production row  
-4. Phase 1 validation still required before clearing agent HOLD (`SCRUM_MASTER_CHECKLIST.md` §4)
+3. Netlify deploy + `docs/ENV_MATRIX.md` production row  
+4. Phase 1 validation sessions still required before declaring prototype complete

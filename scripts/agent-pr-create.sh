@@ -34,10 +34,10 @@ create_pr() {
 
   gh pr create --base main --head "$head" --title "$title" --body "$(cat <<EOF
 ## Summary
-Relief Hotels agent branch per \`docs/DELIVERY_PHASED_BUILD_SPEC.md\`.
+Relief Hotels agent branch (legacy delivery wave).
 
 ## Test plan
-- [ ] \`$test_doc\` completed
+- [ ] \`docs/testing/reservation-qa-checklist.md\`
 - [ ] \`npm run build\` in worktree \`agent-workspaces/\`
 
 ## Merge order
@@ -51,11 +51,11 @@ EOF
   echo "Created PR for $head"
 }
 
-create_pr "features/agent-a-platform-env" "Agent A: platform & env" "docs/testing/agent-a-platform-env-TESTS.md"
-create_pr "features/agent-d-api-services" "Agent D: API services (Supabase)" "docs/testing/agent-d-api-services-TESTS.md"
-create_pr "features/agent-e-prototype-v1-booking" "Agent E: Prototype V1 booking" "docs/testing/agent-e-prototype-v1-booking-TESTS.md"
-create_pr "features/agent-e-prototype-v2-experiences" "Agent E: Prototype V2 experiences" "docs/testing/agent-e-prototype-v2-experiences-TESTS.md"
-create_pr "features/agent-f-notifications" "Agent F: Prototype V3 notifications" "docs/testing/agent-f-notifications-TESTS.md"
+create_pr "features/agent-a-platform-env" "Agent A: platform & env" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-d-api-services" "Agent D: API services (Supabase)" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-e-prototype-v1-booking" "Agent E: Prototype V1 booking" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-e-prototype-v2-experiences" "Agent E: Prototype V2 experiences" "docs/testing/reservation-qa-checklist.md"
+create_pr "features/agent-f-notifications" "Agent F: Prototype V3 notifications" "docs/testing/reservation-qa-checklist.md"
 
 echo ""
 gh pr list --limit 10 2>/dev/null || echo "Run: gh auth login"

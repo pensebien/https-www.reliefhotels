@@ -3,7 +3,7 @@
 **Status:** Phase 3 planning complete  
 **Structure:** [BVDLC Context Folder](https://bvdlc.ai/resources/context-folder-structure.html) — all work traces `project-context/` phases 0→5  
 
-**Links:** `docs/DELIVERY_PHASED_BUILD_SPEC.md` · `../02-architecture/` · `acceptance-criteria/`
+**Links:** `docs/deploy/STAFF.md` · `../02-architecture/` · `acceptance-criteria/`
 
 ---
 
@@ -15,7 +15,7 @@
 | **1** | After §4 clear | **A** | Platform env, ENV_MATRIX alignment |
 | **2** | After A merge | **D** | Supabase repos + stable API v1 |
 | **3** | After D merge | **E-v1**, **E-v2**, **F** (parallel) | Booking UX, experiences UX, SMS+WhatsApp |
-| **4** | After all merges | Human | Render deploy, Phase 4 acceptance |
+| **4** | After all merges | Human | Netlify deploy, Phase 4 acceptance |
 
 **Merge order:** `A → D → E-v1 → E-v2 → F → main`
 
@@ -36,7 +36,7 @@
 - [ ] `acceptance-criteria/phase-1-prototype.md` signed
 
 ### M3 — Architecture ✅
-- [x] Phase 2 docs + ADRs (Render, Supabase, SMS+WhatsApp)
+- [x] Phase 2 docs + ADRs (Netlify, Supabase, SMS+WhatsApp)
 - [x] Phase 3 planning (this folder)
 
 ### M3b — Agent delivery
@@ -46,7 +46,7 @@
 - [ ] Evidence in `../04-build-test-deploy/`
 
 ### M4 — Production launch
-- [ ] Render + custom domain
+- [ ] Netlify + custom domain
 - [ ] Supabase live
 - [ ] Paystack live + `NOTIFY_CHANNEL=both`
 - [ ] `acceptance-criteria/phase-4-production-launch.md` signed
@@ -64,13 +64,13 @@
 | W0 | Phase 1 sessions + clear agent HOLD |
 | W1 | Agents A + D |
 | W2 | Agents E-v1, E-v2, F → merge |
-| W3 | Render deploy + live POC |
+| W3 | Netlify deploy + live POC |
 | W4+ | Monitor KPIs, backlog from Phase 5 |
 
 ---
 
-## Coordinator commands
+## Ops / QA
 
-- Branches: `docs/DELIVERY_AGENT_BRANCH_COMMANDS.md`  
-- Prompts: `ai-prompts/code-generation-prompts.md` + `docs/prompts/agents/`  
-- Scrum gate: `docs/SCRUM_MASTER_CHECKLIST.md`  
+- Staff portal: `docs/deploy/STAFF.md`  
+- Env: `docs/ENV_MATRIX.md`  
+- QA: `docs/testing/reservation-qa-checklist.md`  

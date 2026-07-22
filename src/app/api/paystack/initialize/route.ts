@@ -1,4 +1,5 @@
 import { calculateDepositNgn } from "@/lib/booking-deposit";
+import { getServerConfig } from "@/lib/config";
 import { findReservationById, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
 import { paystackInitializeSchema } from "@/lib/schemas/payment";
@@ -24,6 +25,18 @@ export async function POST(request: Request) {
       nights = 1,
       demoAmountNgn,
     } = parsed.data;
+
+    const config = getServerConfig();
+
+    if (demoAmountNgn != null && !config.demoMode) {
+      return NextResponse.json(
+        {
+          error:
+            "demoAmountNgn is only allowed in DEMO_MODE (or when Paystack keys are not configured)",
+        },
+        { status: 400 },
+      );
+    }
 
     const reservation = await findReservationById(reservationId);
     if (!reservation) {

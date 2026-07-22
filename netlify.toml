@@ -1,6 +1,5 @@
-# Netlify — Relief Hotels (stakeholder demo / custom domain)
+# Netlify — Relief Hotels (production hosting, ADR-004)
 # Guide: docs/deploy/NETLIFY.md
-# Production target remains Render (ADR-004); Netlify is for early domain visibility.
 
 [build]
   command = "npm run build"

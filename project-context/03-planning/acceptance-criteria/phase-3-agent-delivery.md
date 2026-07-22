@@ -1,63 +1,21 @@
-# Acceptance Criteria — Phase 3 Agent Delivery
+# Acceptance Criteria — Phase 3 Agent Delivery (historical)
 
-**Gate:** Each agent branch merges only when its section is fully checked.  
-**Merge order:** A → D → E-v1 → E-v2 → F  
-**Reference:** `docs/DELIVERY_PHASED_BUILD_SPEC.md`
+**Status:** Delivery wave complete. Per-agent `docs/testing/agent-*-TESTS.md` checklists were removed in the production docs cleanup.
 
----
-
-## Agent A — Platform & environment
-
-- [ ] `.env.example` documents Supabase, WhatsApp, Render-related vars
-- [ ] `docs/ENV_MATRIX.md` consistent with `lib/config.ts`
-- [ ] `npm run build` passes
-- [ ] `docs/testing/agent-a-platform-env-TESTS.md` signed
+**Current QA:** `docs/testing/reservation-qa-checklist.md` · `docs/testing/paystack-test-booking.md`  
+**Ops:** `docs/deploy/STAFF.md` · `docs/ENV_MATRIX.md`  
+**Next gate:** [phase-4-production-launch.md](phase-4-production-launch.md)
 
 ---
 
-## Agent D — API services
+## Wave summary (A → D → E-v1 → E-v2 → F)
 
-- [ ] All `api-v1.md` endpoints return documented shapes
-- [ ] Supabase persistence per ADR-001 (not file-only in production config)
-- [ ] Paystack `reference` uniqueness enforced
-- [ ] Reservation/inquiry writes survive server restart (DB proof)
-- [ ] `npm run build` passes
-- [ ] `docs/testing/agent-d-api-services-TESTS.md` signed
+| Stream | Focus |
+|--------|--------|
+| A | Platform & env |
+| D | API + Supabase |
+| E v1 | Booking UX |
+| E v2 | Experiences / events |
+| F | Notifications |
 
----
-
-## Agent E — V1 booking
-
-- [ ] `/en/rooms` → `/en/book` → Paystack/demo payment → callback success path
-- [ ] Form validation errors shown inline
-- [ ] Mobile layout acceptable at 375px
-- [ ] `docs/testing/agent-e-prototype-v1-booking-TESTS.md` signed
-
----
-
-## Agent E — V2 experiences
-
-- [ ] Event + dining forms submit; records visible in demo dashboard or DB
-- [ ] `/events`, `/dine-wine` match brand quality
-- [ ] `docs/testing/agent-e-prototype-v2-experiences-TESTS.md` signed
-
----
-
-## Agent F — V3 notifications
-
-- [ ] All four `NotificationEvent` types trigger `notifyManager`
-- [ ] `NOTIFY_CHANNEL=both` attempts SMS and WhatsApp when keys set
-- [ ] Console fallback works without keys (demo)
-- [ ] Failed secondary channel does not block persistence
-- [ ] Delivery logged for KPI measurement
-- [ ] `docs/testing/agent-f-notifications-TESTS.md` signed
-
----
-
-## Wave 3 complete (all agents merged)
-
-- [ ] All sections above checked
-- [ ] `main` builds and runs locally
-- [ ] ngrok demo path rehearsed per `DEMO.md`
-- [ ] `04-build-test-deploy/code-artifacts/README.md` updated with PR links
-- [ ] Ready for Phase 4 production launch criteria
+Merge order for that wave was **A → D → E-v1 → E-v2 → F**. Cashier/HMS followed as G–N.

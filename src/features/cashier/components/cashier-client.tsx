@@ -1,17 +1,28 @@
 "use client";
 
+import { StaffReservationPagination } from "@/components/staff-reservation-pagination";
+import { StaffReservationSearch } from "@/components/staff-reservation-search";
+import { CashierFnbPanel } from "@/features/cashier/components/cashier-fnb-panel";
 import { CashierKeyForm } from "@/features/cashier/components/cashier-key-form";
 import { CashierQueueList } from "@/features/cashier/components/cashier-queue-list";
 import { CashierSettlePanel } from "@/features/cashier/components/cashier-settle-panel";
 import { useCashierQueue } from "@/features/cashier/hooks/use-cashier-queue";
 import type { CashierReservation } from "@/features/cashier/types";
-import { RefreshCw } from "lucide-react";
+import {
+  filterStaffReservationsByQuery,
+  paginateStaffReservations,
+} from "@/lib/staff-reservation-filter";
+import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
+import { CalendarDays, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const DEFAULT_KEY = "relief-demo-2026";
 const SESSION_STORAGE_KEY = "demo-dashboard-key";
+
+type CashierMode = "settle" | "fnb";
 
 export function CashierClient() {
   const t = useTranslations("cashier");
@@ -20,6 +31,9 @@ export function CashierClient() {
 
   const [key, setKey] = useState<string | null>(null);
   const [selected, setSelected] = useState<CashierReservation | null>(null);
+  const [mode, setMode] = useState<CashierMode>("settle");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const resolved =
@@ -31,8 +45,32 @@ export function CashierClient() {
     setKey(resolved);
   }, [keyFromUrl]);
 
-  const { loading, error, notDeployed, loadedOnce, unsettledReservations, refresh } =
-    useCashierQueue(key);
+  const {
+    loading,
+    error,
+    notDeployed,
+    loadedOnce,
+    unsettledReservations,
+    activeReservations,
+    refresh,
+  } = useCashierQueue(key);
+
+  const sourceList =
+    mode === "settle" ? unsettledReservations : activeReservations;
+
+  const filteredReservations = useMemo(
+    () => filterStaffReservationsByQuery(sourceList, searchQuery),
+    [sourceList, searchQuery],
+  );
+
+  const { items: pagedReservations, totalPages, page: safePage } = useMemo(
+    () => paginateStaffReservations(filteredReservations, page),
+    [filteredReservations, page],
+  );
+
+  useEffect(() => {
+    if (safePage !== page) setPage(safePage);
+  }, [safePage, page]);
 
   const hasData = loadedOnce && !error;
 
@@ -41,8 +79,33 @@ export function CashierClient() {
       window.sessionStorage.setItem(SESSION_STORAGE_KEY, nextKey);
     }
     setSelected(null);
+    setSearchQuery("");
+    setPage(1);
     setKey(nextKey);
   }
+
+  function handleModeChange(next: CashierMode) {
+    setMode(next);
+    setSelected(null);
+    setSearchQuery("");
+    setPage(1);
+  }
+
+  function handleSearchChange(value: string) {
+    setSearchQuery(value);
+    setPage(1);
+  }
+
+  const searchHint = searchQuery.trim()
+    ? t("searchResultHint", {
+        shown: pagedReservations.length,
+        total: filteredReservations.length,
+        query: searchQuery.trim(),
+      })
+    : t("searchResultHintAll", {
+        shown: pagedReservations.length,
+        total: sourceList.length,
+      });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 lg:px-8">
@@ -53,15 +116,27 @@ export function CashierClient() {
           <p className="mt-2 text-muted">{t("subtitle")}</p>
         </div>
         {hasData ? (
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading}
-            className="inline-flex items-center gap-2 self-start rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
-            {t("refresh")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 self-start">
+            <Link
+              href={{
+                pathname: "/staff/calendar",
+                query: key ? { key } : undefined,
+              }}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+            >
+              <CalendarDays className="h-4 w-4" aria-hidden />
+              {t("calendarBookLink")}
+            </Link>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-teal"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
+              {t("refresh")}
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -84,18 +159,81 @@ export function CashierClient() {
 
       {hasData && !selected && (
         <>
+          <div
+            className="mb-5 flex flex-wrap gap-2"
+            role="tablist"
+            aria-label={t("modeLabel")}
+          >
+            {(
+              [
+                ["settle", t("modeSettle")],
+                ["fnb", t("modeFnb")],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={mode === value}
+                onClick={() => handleModeChange(value)}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                  mode === value
+                    ? "bg-teal text-gray-950"
+                    : "border border-border bg-card text-muted hover:border-teal",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-muted">
-            {t("queueTitle")}
+            {mode === "settle" ? t("queueTitle") : t("fnbQueueTitle")}
           </h2>
+          <StaffReservationSearch
+            query={searchQuery}
+            onQueryChange={handleSearchChange}
+            placeholder={t("searchPlaceholder")}
+            clearLabel={t("searchClear")}
+            resultHint={
+              sourceList.length > 0 || searchQuery.trim() ? searchHint : undefined
+            }
+          />
           <CashierQueueList
-            reservations={unsettledReservations}
+            reservations={pagedReservations}
             selectedId={null}
             onSelect={setSelected}
+            emptyTitle={
+              searchQuery.trim()
+                ? t("searchEmpty", { query: searchQuery.trim() })
+                : mode === "fnb"
+                  ? t("fnbQueueEmpty")
+                  : undefined
+            }
+            emptyHint={
+              searchQuery.trim()
+                ? t("searchEmptyHint")
+                : mode === "fnb"
+                  ? t("fnbQueueEmptyHint")
+                  : undefined
+            }
+          />
+          <StaffReservationPagination
+            page={safePage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            previousLabel={t("paginationPrevious")}
+            nextLabel={t("paginationNext")}
+            pageLabel={t("paginationPage", {
+              page: safePage,
+              total: totalPages,
+            })}
           />
         </>
       )}
 
-      {hasData && selected && key && (
+      {hasData && selected && key && mode === "settle" && (
         <CashierSettlePanel
           reservation={selected}
           cashierKey={key}
@@ -104,6 +242,14 @@ export function CashierClient() {
             setSelected(null);
             refresh();
           }}
+        />
+      )}
+
+      {hasData && selected && key && mode === "fnb" && (
+        <CashierFnbPanel
+          reservation={selected}
+          cashierKey={key}
+          onBack={() => setSelected(null)}
         />
       )}
     </div>

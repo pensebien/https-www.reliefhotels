@@ -635,6 +635,10 @@ export function DemoDashboard({
               eventInquiries={data.eventInquiries ?? []}
               paymentsByReservation={paymentsByReservation}
               unitLabels={unitLabels}
+              dashboardKey={key}
+              roomOptions={roomOptions}
+              moniepointConfig={data?.moniepoint}
+              onActivityChange={() => load(key)}
             />
           ) : variant === "portal" ? (
             <DashboardListsView

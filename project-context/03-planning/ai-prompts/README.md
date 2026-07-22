@@ -4,20 +4,17 @@ Per [BVDLC context structure](https://bvdlc.ai/resources/context-folder-structur
 
 | File | Purpose |
 |------|---------|
-| [code-generation-prompts.md](code-generation-prompts.md) | Agent A, D, E, F session starters |
-| [test-generation-prompts.md](test-generation-prompts.md) | Extend `docs/testing/*-TESTS.md` |
+| [code-generation-prompts.md](code-generation-prompts.md) | Historical agent A/D/E/F starters |
+| [test-generation-prompts.md](test-generation-prompts.md) | Extend QA checklists |
 | [review-prompts.md](review-prompts.md) | PR / architecture / KPI review |
 
-## Agent launch
+## Current practice
 
-**Status:** ON HOLD — `docs/SCRUM_MASTER_CHECKLIST.md` §4
+Use feature branches in the main repo. Ops + QA live under:
 
-When cleared:
-
-1. Copy global preamble + agent section from `code-generation-prompts.md`  
-2. Paste into Cursor with matching `docs/prompts/agents/<agent>.md`  
-3. On PR, use `review-prompts.md` pre-merge checklist  
-4. Sign `../acceptance-criteria/phase-3-agent-delivery.md`  
+- `docs/ENV_MATRIX.md`
+- `docs/deploy/STAFF.md`
+- `docs/testing/reservation-qa-checklist.md`
 
 ## Structural rule
 

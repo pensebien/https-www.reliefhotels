@@ -7,7 +7,7 @@ flowchart LR
 
   subgraph prod [Production target]
     DNS[Custom domain\nreliefhotelsandsuites.com]
-    Host[Render\nNode runtime]
+    Host[Netlify\nNext.js runtime]
     App[Next.js build]
     DB[(Supabase Postgres)]
     DNS --> Host

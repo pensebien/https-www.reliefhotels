@@ -25,7 +25,7 @@ Code and agents must reference the phase folder for their work — not skip to i
 | Service | Purpose | Required for | Owner setup |
 |---------|---------|--------------|-------------|
 | GitHub | Source, branches | All agents | Tech Lead |
-| Render | Production host | Phase 4 | Tech Lead |
+| Netlify | Production host | Phase 4 | Tech Lead |
 | Supabase | Postgres | Agent D, production | Tech Lead |
 | Paystack | Payments | V1, production | Kalu |
 | Resend | Email | Reservations inbox | Tech Lead |
@@ -61,7 +61,7 @@ Phase 1 acceptance (phase-1-prototype.md)
 1. Prototype scorecard + POC  
 2. Agent D (Supabase) — blocks reliable production  
 3. Agent F (WhatsApp BSP approval) — may parallelize with E but merge last  
-4. Render DNS + Paystack live callback URL  
+4. Netlify DNS + Paystack live callback URL  
 
 ## Blockers log
 

@@ -12,18 +12,24 @@ export function CashierQueueList({
   reservations,
   selectedId,
   onSelect,
+  emptyTitle,
+  emptyHint,
 }: {
   reservations: CashierReservation[];
   selectedId: string | null;
   onSelect: (reservation: CashierReservation) => void;
+  emptyTitle?: string;
+  emptyHint?: string;
 }) {
   const t = useTranslations("cashier");
 
   if (reservations.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-6 text-center">
-        <p className="font-medium">{t("queueEmpty")}</p>
-        <p className="mt-1 text-sm text-muted">{t("queueEmptyHint")}</p>
+        <p className="font-medium">{emptyTitle ?? t("queueEmpty")}</p>
+        <p className="mt-1 text-sm text-muted">
+          {emptyHint ?? t("queueEmptyHint")}
+        </p>
       </div>
     );
   }

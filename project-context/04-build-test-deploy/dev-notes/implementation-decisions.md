@@ -6,7 +6,7 @@
 
 **Decision:** Use `@supabase/supabase-js` with service role when `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set; otherwise existing JSON files under `data/`.
 
-**Why:** Local/ngrok demos work without cloud DB; production on Render uses Supabase per ADR-001.
+**Why:** Local/ngrok demos work without cloud DB; production on Netlify uses Supabase per ADR-001.
 
 **Files:** `src/lib/db/`, `src/lib/demo-store.ts`, `src/lib/inquiry-store.ts`
 

@@ -15,7 +15,9 @@ export async function GET() {
     appUrl: config.appUrl,
     storage,
     productionReady,
+    demoMode: config.demoMode,
     paystackConfigured: config.paystack.configured,
+    paystackMode: config.paystack.mode,
     emailConfigured: config.email.configured,
   });
 }

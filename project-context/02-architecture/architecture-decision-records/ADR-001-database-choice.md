@@ -21,7 +21,7 @@ Implement a thin repository layer so Route Handlers call `ReservationRepository.
 ### Option 1: JSON files on disk
 
 **Pros:** Zero setup; already implemented  
-**Cons:** Unreliable on Render/Netlify serverless; no concurrent write safety; weak reporting  
+**Cons:** Unreliable on Netlify serverless; no concurrent write safety; weak reporting  
 **Complexity:** Low  
 **Cost:** N0
 
@@ -40,7 +40,7 @@ Implement a thin repository layer so Route Handlers call `ReservationRepository.
 
 ## Rationale
 
-File store validated prototyping only. Primary KPI and success metric #4 require **guaranteed persistence**. Supabase provides managed Postgres with `DATABASE_URL` on **Render**; server-only access from Route Handlers (Drizzle or `@supabase/supabase-js` server client optional).
+File store validated prototyping only. Primary KPI and success metric #4 require **guaranteed persistence**. Supabase provides managed Postgres with `DATABASE_URL` on **Netlify**; server-only access from Route Handlers (Drizzle or `@supabase/supabase-js` server client optional).
 
 ## How this serves Phase 0
 

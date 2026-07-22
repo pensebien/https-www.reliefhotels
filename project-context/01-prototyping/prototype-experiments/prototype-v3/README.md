@@ -4,7 +4,7 @@
 |-------|-------|
 | **Delivery agent** | F — `features/agent-f-notifications` |
 | **Wave** | 3 (merge **last**) |
-| **QA doc** | `docs/testing/agent-f-notifications-TESTS.md` |
+| **QA doc** | `docs/testing/reservation-qa-checklist.md` |
 | **POC plan** | `validation-reports/notification-poc-plan.md` |
 | **Business KPI** | Manager notification ≥95% · response ≤15 min |
 

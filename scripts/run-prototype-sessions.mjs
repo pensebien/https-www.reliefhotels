@@ -32,6 +32,9 @@ const testEnv = {
   PAYSTACK_PUBLIC_KEY: "",
   NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY: "",
   RESEND_API_KEY: "",
+  // File-backed inventory for deterministic customer booking simulation
+  SUPABASE_URL: "",
+  SUPABASE_SERVICE_ROLE_KEY: "",
 };
 
 function run(command, args, label) {
