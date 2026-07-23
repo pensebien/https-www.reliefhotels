@@ -15,3 +15,11 @@
 
 [context.deploy-preview.environment]
   NOTIFY_CHANNEL = "console"
+
+# Canonical guest host: apex → www (Primary domain must be www — see NETLIFY.md).
+# If Cloudflare ALSO redirects www → apex, you get ERR_TOO_MANY_REDIRECTS; fix CF.
+[[redirects]]
+  from = "https://reliefhotelsandsuites.com/*"
+  to = "https://www.reliefhotelsandsuites.com/:splat"
+  status = 301
+  force = true

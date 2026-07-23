@@ -139,6 +139,37 @@ open "https://reliefhotelsandsuites.com/en/demo?key=relief-demo-2026"
 | Deploy OK, blank/errors | Missing env | Set `NEXT_PUBLIC_APP_URL` to the live URL; redeploy |
 | Custom domain stuck | DNS not propagated | Wait 24–48h; confirm CNAME at registrar |
 | Paystack fails | Callback mismatch | Paystack callback = `{NEXT_PUBLIC_APP_URL}/payment/callback` |
+| **`ERR_TOO_MANY_REDIRECTS` on `/rooms` (or any path)** | **Apex ↔ www loop** | See [Canonical host (www)](#canonical-host-www) below |
+
+### Canonical host (`www`)
+
+Production canonical URL is **`https://www.reliefhotelsandsuites.com`**.
+
+A browser “too many redirects” error means apex and www keep bouncing:
+
+1. `reliefhotelsandsuites.com` → `www.…`
+2. `www.…` → `reliefhotelsandsuites.com`
+3. repeat until the browser stops
+
+**Confirm with curl (no browser):**
+
+```bash
+curl -sI https://reliefhotelsandsuites.com/rooms | grep -i location
+curl -sI https://www.reliefhotelsandsuites.com/rooms | grep -i location
+```
+
+If those `Location` headers point at each other, fix hosting — not the `/rooms` page.
+
+**Fix (do both):**
+
+1. **Netlify → Domain management** → set **Primary domain** to `www.reliefhotelsandsuites.com`  
+   (apex should redirect *to* www once, never the reverse)
+2. **Cloudflare** (if the domain is proxied) → remove any Page Rule / Redirect Rule that sends **www → apex**  
+   Keep at most one direction: apex → www (or let Netlify own it and disable CF host redirects)
+3. Set `NEXT_PUBLIC_APP_URL=https://www.reliefhotelsandsuites.com` and **redeploy**
+
+This repo’s `netlify.toml` also force-redirects apex → www so Netlify agrees with the primary domain.
+
 
 ### Read the deploy log
 
