@@ -113,6 +113,20 @@ export async function pushReservationToRayza(
   }
 }
 
+/**
+ * Fire-and-forget push for background/webhook confirmation paths (Paystack
+ * verify, Moniepoint, Paystack Terminal, cashier settle, walk-in) that have
+ * no staff UI waiting on the result — failures are logged, never thrown.
+ */
+export async function syncConfirmedReservationToRayza(
+  record: ReservationRecord,
+): Promise<void> {
+  const result = await pushReservationToRayza(record);
+  if (!result.ok) {
+    console.warn("[rayza] push failed for reservation", record.id, result.error);
+  }
+}
+
 export async function cancelReservationOnRayza(
   record: ReservationRecord,
 ): Promise<RayzaSyncResult> {
