@@ -1,3 +1,4 @@
+import { addRoomBlock, type RoomBlock } from "@/lib/db/inventory-store";
 import {
   findReservationById,
   updateReservationById,
@@ -6,9 +7,27 @@ import {
   cancelReservationOnRayza,
   pushReservationToRayza,
 } from "@/lib/integrations/rayza-connect";
+import { addDays, formatYmd } from "@/lib/reservation-dates";
 import { staffReservationPatchSchema } from "@/lib/schemas/staff-reservation-patch";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
+
+/**
+ * Checkout hands the room to housekeeping: block it for today so it can't
+ * be re-booked until the cleaner marks it clean (or picks a later
+ * checkOut when creating the block manually) — see /staff/housekeeping.
+ */
+async function blockRoomForHousekeeping(roomId: string): Promise<RoomBlock> {
+  const today = formatYmd(new Date());
+  const tomorrow = formatYmd(addDays(new Date(), 1));
+  return addRoomBlock({
+    roomId,
+    checkIn: today,
+    checkOut: tomorrow,
+    reason: "Housekeeping — guest checked out",
+    blockType: "housekeeping",
+  });
+}
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -50,6 +69,12 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (status === "cancelled" && existing.status === "cancelled") {
       return NextResponse.json({ ok: true, reservation: existing, rayza: null });
     }
+    if (status === "checked_out" && existing.status !== "confirmed") {
+      return NextResponse.json(
+        { error: "Only a confirmed reservation can be checked out" },
+        { status: 409 },
+      );
+    }
 
     const patch: Parameters<typeof updateReservationById>[1] = {};
     if (status) patch.status = status;
@@ -77,7 +102,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     }
 
-    return NextResponse.json({ ok: true, reservation: updated, rayza });
+    let housekeeping: RoomBlock | null = null;
+    if (status === "checked_out" && updated.roomId) {
+      housekeeping = await blockRoomForHousekeeping(updated.roomId);
+    }
+
+    return NextResponse.json({ ok: true, reservation: updated, rayza, housekeeping });
   } catch (error) {
     console.error("[demo/reservations/PATCH]", error);
     const message =

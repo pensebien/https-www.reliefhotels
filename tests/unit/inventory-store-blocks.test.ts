@@ -54,4 +54,23 @@ describe("room blocks already reduce bookable availability", () => {
     const match = result.available.find((r) => r.id === ROOM_ID);
     assert.equal(match, undefined, "the blocked unit must not appear as available");
   });
+
+  it("defaults blockType to maintenance, but honors an explicit housekeeping type", async () => {
+    const defaulted = await addRoomBlock({
+      roomId: ROOM_ID,
+      checkIn: "2031-04-01",
+      checkOut: "2031-04-02",
+    });
+    assert.equal(defaulted.blockType, "maintenance");
+    await deleteRoomBlock(defaulted.id);
+
+    const housekeeping = await addRoomBlock({
+      roomId: ROOM_ID,
+      checkIn: "2031-04-01",
+      checkOut: "2031-04-02",
+      blockType: "housekeeping",
+    });
+    assert.equal(housekeeping.blockType, "housekeeping");
+    await deleteRoomBlock(housekeeping.id);
+  });
 });

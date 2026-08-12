@@ -89,6 +89,7 @@ describe("inventory calendar", () => {
       checkIn: "2026-07-01",
       checkOut: "2026-07-03",
       reason: "HVAC maintenance",
+      blockType: "maintenance",
       createdAt: "2026-06-30T00:00:00Z",
     });
     assert.equal(booking?.kind, "block");
@@ -107,6 +108,7 @@ describe("inventory calendar", () => {
           checkIn: "2026-07-01",
           checkOut: "2026-07-03",
           reason: "HVAC maintenance",
+          blockType: "maintenance",
           createdAt: "2026-06-30T00:00:00Z",
         },
       ],
@@ -130,6 +132,7 @@ describe("inventory calendar", () => {
           roomId: "presidential-suite",
           checkIn: "2026-07-01",
           checkOut: "2026-07-03",
+          blockType: "housekeeping",
           createdAt: "2026-06-30T00:00:00Z",
         },
       ],

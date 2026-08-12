@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function DELETE(request: Request, context: RouteContext) {
-  const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
+  const access = await requireStaffAccess(request, ["cleaner_head"]);
   if (!access.ok) return access.response;
 
   const { id } = await context.params;
