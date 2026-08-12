@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   assignBookingsToUnits,
+  buildInventoryCalendar,
   buildWeekDays,
   reservationToBookings,
+  roomBlockToBookings,
   startOfWeek,
 } from "@/lib/inventory-calendar";
 import { buildInventoryUnits } from "@/lib/inventory-units";
@@ -78,5 +80,66 @@ describe("inventory calendar", () => {
   it("startOfWeek returns Monday for mid-week date", () => {
     const monday = startOfWeek(new Date(2026, 5, 18));
     assert.equal(monday.getDay(), 1);
+  });
+
+  it("maps a room block to a blocked calendar booking", () => {
+    const [booking] = roomBlockToBookings({
+      id: "block-1",
+      roomId: "guest-room",
+      checkIn: "2026-07-01",
+      checkOut: "2026-07-03",
+      reason: "HVAC maintenance",
+      createdAt: "2026-06-30T00:00:00Z",
+    });
+    assert.equal(booking?.kind, "block");
+    assert.equal(booking?.status, "blocked");
+    assert.equal(booking?.label, "HVAC maintenance");
+  });
+
+  it("surfaces a room block as a blocked cell on the calendar grid", () => {
+    const { rows } = buildInventoryCalendar({
+      reservations: [],
+      eventInquiries: [],
+      roomBlocks: [
+        {
+          id: "block-1",
+          roomId: "guest-room",
+          checkIn: "2026-07-01",
+          checkOut: "2026-07-03",
+          reason: "HVAC maintenance",
+          createdAt: "2026-06-30T00:00:00Z",
+        },
+      ],
+      weekAnchor: new Date(2026, 6, 1),
+      unitLabels: {},
+    });
+
+    const guestRoomRow = rows.find((r) => r.unit.roomId === "guest-room");
+    const blockedCell = guestRoomRow?.cells.find((c) => c.ymd === "2026-07-01");
+    assert.equal(blockedCell?.status, "blocked");
+    assert.equal(blockedCell?.booking?.label, "HVAC maintenance");
+  });
+
+  it("does not double-count a blocked unit as free", () => {
+    const { rows } = buildInventoryCalendar({
+      reservations: [],
+      eventInquiries: [],
+      roomBlocks: [
+        {
+          id: "block-1",
+          roomId: "presidential-suite",
+          checkIn: "2026-07-01",
+          checkOut: "2026-07-03",
+          createdAt: "2026-06-30T00:00:00Z",
+        },
+      ],
+      weekAnchor: new Date(2026, 6, 1),
+      unitLabels: {},
+    });
+
+    // presidential-suite has exactly 1 unit — it must show blocked, not free.
+    const suiteRow = rows.find((r) => r.unit.roomId === "presidential-suite");
+    const cell = suiteRow?.cells.find((c) => c.ymd === "2026-07-01");
+    assert.equal(cell?.status, "blocked");
   });
 });

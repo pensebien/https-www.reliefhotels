@@ -4,8 +4,9 @@
 // and src/lib/inquiry-store.ts, which we import directly rather than re-declaring.
 import type { CalendarReservation } from "@/lib/inventory-calendar";
 import type { EventInquiry } from "@/lib/inquiry-store";
+import type { RoomBlock } from "@/lib/db/inventory-store";
 
-export type { CalendarReservation, EventInquiry };
+export type { CalendarReservation, EventInquiry, RoomBlock };
 
 /** Mirrors the payment fields exposed by GET /api/demo/activity. */
 export type StaffCalendarPayment = {
@@ -22,6 +23,7 @@ export type StaffCalendarActivityResponse = {
   reservations: CalendarReservation[];
   payments: StaffCalendarPayment[];
   eventInquiries?: EventInquiry[];
+  roomBlocks?: RoomBlock[];
   moniepoint?: {
     configured: boolean;
     terminalConfigured: boolean;

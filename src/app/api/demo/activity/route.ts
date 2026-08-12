@@ -1,5 +1,6 @@
 import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
+import { listRoomBlocks } from "@/lib/db/inventory-store";
 import { getActivity } from "@/lib/demo-store";
 import { getEventInquiries, getGuestFeedback } from "@/lib/inquiry-store";
 import { getMoniepointPublicConfig } from "@/lib/moniepoint";
@@ -17,6 +18,7 @@ export async function GET(request: Request) {
     const eventInquiries = await getEventInquiries();
     const guestFeedback = await getGuestFeedback();
     const storageHealth = await checkStorageHealth();
+    const roomBlocks = await listRoomBlocks();
 
     return NextResponse.json({
       ok: true,
@@ -34,6 +36,7 @@ export async function GET(request: Request) {
       ...activity,
       eventInquiries,
       guestFeedback,
+      roomBlocks,
     });
   } catch (error) {
     const message =
