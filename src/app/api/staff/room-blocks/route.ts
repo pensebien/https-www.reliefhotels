@@ -1,8 +1,5 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { addRoomBlock, listRoomBlocks } from "@/lib/db/inventory-store";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 
@@ -14,10 +11,8 @@ const createBlockSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  if (!isValidDashboardKey(searchParams.get("key"))) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
+  if (!access.ok) return access.response;
 
   try {
     const blocks = await listRoomBlocks();
@@ -32,10 +27,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  if (!isValidDashboardKey(searchParams.get("key"))) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
+  if (!access.ok) return access.response;
 
   try {
     const body = await request.json();
