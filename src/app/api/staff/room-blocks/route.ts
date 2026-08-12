@@ -8,9 +8,12 @@ const createBlockSchema = z.object({
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   reason: z.string().max(500).optional(),
+  blockType: z.enum(["maintenance", "housekeeping"]).optional(),
 });
 
 export async function GET(request: Request) {
+  // Manager has read-only access per ACCESS_MATRIX (src/lib/staff-roles.ts) —
+  // write actions below are cleaner_head only.
   const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
   if (!access.ok) return access.response;
 
@@ -27,7 +30,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
+  const access = await requireStaffAccess(request, ["cleaner_head"]);
   if (!access.ok) return access.response;
 
   try {

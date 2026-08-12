@@ -25,7 +25,7 @@ export type CalendarReservation = {
   guests: number;
   roomId?: string;
   stayPreference: string;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "checked_out";
   paymentReference?: string;
   itemType?: "room" | "tour" | "inquiry";
   source: string;
@@ -46,7 +46,7 @@ export type CalendarBooking = {
   phone?: string;
   checkIn: string;
   checkOut: string;
-  status: "pending" | "confirmed" | "cancelled" | "inquiry" | "blocked";
+  status: "pending" | "confirmed" | "cancelled" | "inquiry" | "blocked" | "checked_out";
   guests: number;
   label: string;
   paymentReference?: string;
@@ -110,7 +110,7 @@ function stayOverlapsDay(checkIn: string, checkOut: string, ymd: string): boolea
 function bookingStatusToCell(
   status: CalendarBooking["status"],
 ): CalendarCell["status"] {
-  if (status === "confirmed") return "occupied";
+  if (status === "confirmed" || status === "checked_out") return "occupied";
   if (status === "pending") return "pending";
   if (status === "cancelled") return "cancelled";
   if (status === "blocked") return "blocked";

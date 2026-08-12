@@ -785,6 +785,8 @@
       "confirm": "Mark as booked",
       "cancel": "Cancel booking",
       "cancelConfirm": "Cancel this booking? This cannot be undone.",
+      "checkout": "Check out",
+      "checkoutConfirm": "Check out this guest? The room will be blocked for housekeeping until it's marked clean.",
       "notesLabel": "Staff notes",
       "notesPlaceholder": "VIP arrival, late check-in, etc.",
       "saveNotes": "Save notes",
@@ -1226,5 +1228,34 @@
     "loading": "Loading occupancy data…",
     "emptyTitle": "No reservations yet",
     "emptyHint": "Once bookings and event inquiries come in, they'll appear on the calendar below."
+  },
+  "staffHousekeeping": {
+    "metaTitle": "Housekeeping | Relief Hotels & Suites",
+    "eyebrow": "Housekeeping",
+    "title": "Room readiness",
+    "subtitle": "Block a room for cleaning or maintenance, and mark it clean the moment it's ready for the next guest.",
+    "backToPortal": "← Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load housekeeping",
+    "refresh": "Refresh",
+    "loading": "Loading room blocks…",
+    "empty": "No rooms are blocked right now — everything is ready for booking.",
+    "markClean": "Mark clean",
+    "blockedRange": "Blocked {from} → free from {to}",
+    "blockType": {
+      "housekeeping": "Housekeeping",
+      "maintenance": "Maintenance"
+    },
+    "form": {
+      "room": "Room",
+      "blockType": "Reason type",
+      "blockedFrom": "Blocked from",
+      "freeFrom": "Free for booking from",
+      "reason": "Note",
+      "reasonPlaceholder": "e.g. deep clean, AC repair",
+      "submit": "Block room",
+      "submitting": "Blocking…",
+      "roleHint": "Only the cleaner head can block or clear a room; managers have read-only access."
+    }
   }
 }
