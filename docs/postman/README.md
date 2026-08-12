@@ -42,15 +42,24 @@ Collection defaults are safe placeholders — replace before calling protected e
 
 Base URL: `https://cloud-relay-nu.vercel.app` (`rayza_base_url`)
 
+Verified live against the real API and its `/openapi.json` spec (2026-08-12):
+
+- **Auth:** `authorization: Bearer {{rayza_api_key}}` — the raw key with no `Bearer` prefix returns **401**. (Missing the header entirely returns **422**, since it's modeled as a required header parameter.)
+- **Room identifiers:** RAYZA has no catalog of Relief's rooms — whatever string you send as `room_identifier` is stored as-is (omit it and it defaults to `"default"`). The app and this collection reuse Relief's own room slugs (`guest-room`, `executive-room`, `signature-suite`, `presidential-suite`, `executive-spa`) rather than inventing a separate code.
+- **Booking amount:** field is `amount` (number, naira) — not `total_price`.
+- **Idempotency:** re-`POST`ing the same `booking_reference` returns `{"status": "already_received", ...}` (still 201), not a conflict. Cancelling an already-cancelled or unknown reference returns **404**.
+
 | Request | Notes |
 |---------|-------|
 | Create booking (test mode) | `is_test: true`; auto-generates `rayza_booking_reference` |
 | Create booking (live) | `is_test: false` |
 | List pending / cancelled bookings | Query `status=pending` or `status=cancelled` |
-| Cancel booking | Uses saved `rayza_booking_reference` |
+| Cancel booking | Uses saved `rayza_booking_reference`; 404 if already gone |
 | Negative: missing auth | Expect **422** |
 | Negative: missing required fields | Expect **422** |
 | GET OpenAPI spec / Swagger UI | `/openapi.json`, `/docs` |
+
+**Wider API surface (reference only — not wired into the app yet):** `GET /v1/rates`, `GET /v1/taxes`, `GET /v1/services`, `GET /v1/availability`, `PATCH /v1/bookings/{reference}`, `POST /v1/bookings/{reference}/ack`, `POST /v1/inventory/adjust`, and `POST /v1/rates|taxes|services` (push Relief's own rate plan into RAYZA). See `ADR-006-rayza-connect-channel.md` for why these are out of scope for now.
 
 **Chaining:** Create-booking requests run a pre-request script to generate a unique reference, then save it to the environment on `201` via:
 
@@ -102,9 +111,9 @@ Base URL: `relief_base_url` (production: `https://reliefhotelsandsuites.com`)
 | Variable | Default (collection) | Description |
 |----------|---------------------|-------------|
 | `rayza_base_url` | `https://cloud-relay-nu.vercel.app` | RAYZA relay host |
-| `rayza_api_key` | *(placeholder)* | API key in `authorization` header |
+| `rayza_api_key` | *(placeholder)* | API key sent as `authorization: Bearer {{rayza_api_key}}` |
 | `rayza_booking_reference` | `RH-RAYZA-TEST-001` | Set by create-booking scripts |
-| `rayza_room_identifier` | `SIGNATURE_SUITE` | Room code for RAYZA |
+| `rayza_room_identifier` | `signature-suite` | Relief's own room slug, reused as-is for RAYZA |
 | `relief_base_url` | `https://reliefhotelsandsuites.com` | Relief Hotels API host |
 | `dashboard_key` | `relief-demo-2026` | Staff dashboard query param |
 | `check_in` / `check_out` | `2026-09-10` / `2026-09-12` | Stay dates (`YYYY-MM-DD`) |
