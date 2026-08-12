@@ -1,8 +1,4 @@
 import {
-  unauthorizedDashboardResponse,
-  isValidDashboardKey,
-} from "@/lib/dashboard-auth";
-import {
   findReservationById,
   updateReservationById,
 } from "@/lib/demo-store";
@@ -11,17 +7,14 @@ import {
   pushReservationToRayza,
 } from "@/lib/integrations/rayza-connect";
 import { staffReservationPatchSchema } from "@/lib/schemas/staff-reservation-patch";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cashier", "manager"]);
+  if (!access.ok) return access.response;
 
   const { id } = await context.params;
 

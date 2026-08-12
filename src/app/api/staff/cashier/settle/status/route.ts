@@ -1,19 +1,13 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { getCashierSettleStatus } from "@/lib/cashier/settle-service";
 import { getServerConfig } from "@/lib/config";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  const access = await requireStaffAccess(request, ["cashier", "manager"]);
+  if (!access.ok) return access.response;
+
   const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
-
   const reference = searchParams.get("reference");
   if (!reference) {
     return NextResponse.json({ error: "reference is required" }, { status: 400 });

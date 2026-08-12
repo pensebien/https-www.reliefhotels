@@ -1146,18 +1146,35 @@
     "navLabel": "Staff navigation",
     "roleLabel": "Role",
     "readOnly": "view only",
+    "loggedInAs": "Signed in as {name} ({role})",
+    "logout": "Log out",
     "nav": {
       "dashboard": "Dashboard",
       "cashier": "Cashier",
       "fnb": "F&B",
       "calendar": "Calendar",
-      "accounting": "Accounting"
+      "housekeeping": "Housekeeping",
+      "accounting": "Accounting",
+      "taxSettings": "Tax settings"
     },
     "roles": {
-      "front_desk": "Front Desk",
+      "cashier": "Cashier",
       "manager": "Manager",
-      "accountant": "Accountant"
+      "restaurant_owner": "Restaurant Owner",
+      "cleaner_head": "Cleaner Head"
     }
+  },
+  "staffLogin": {
+    "metaTitle": "Staff Login | Relief Hotels & Suites",
+    "title": "Staff login",
+    "subtitle": "Enter your name and PIN to open the staff portal.",
+    "nameLabel": "Name",
+    "pinLabel": "PIN",
+    "submit": "Log in",
+    "submitting": "Logging in…",
+    "invalidCredentials": "Invalid name or PIN.",
+    "serverError": "Could not log in. Please try again.",
+    "disabled": "Staff login is not enabled on this deployment."
   },
   "accounting": {
     "metaTitle": "Accounting | Relief Hotels & Suites",
