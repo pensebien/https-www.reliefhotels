@@ -12,6 +12,7 @@
 | ngrok | Inbound tunnel | HTTPS | N/A | Demo only |
 | Supabase Postgres | Outbound | HTTPS/SQL | `DATABASE_URL` | Production |
 | WhatsApp (Termii or Meta) | Outbound | HTTPS REST | Provider keys | **Launch** |
+| RAYZA Connect (channel relay) | Outbound (best-effort) | HTTPS REST | Bearer API key | Pilot |
 
 ## 2. Paystack (payments)
 
@@ -64,6 +65,21 @@
 | Env | `NOTIFY_CHANNEL=both`; `WHATSAPP_*` provider keys TBD in POC |
 | KPI | ≥95% delivery on at least one channel; log both attempts |
 
+## 5a. RAYZA Connect (third-party channel relay)
+
+**Purpose:** Keep a partner channel-manager SaaS (RAYZA Connect, at `cloud-relay-nu.vercel.app`) aware of Relief's own bookings, so other channels it powers don't double-sell a room Relief already confirmed. See `ADR-006-rayza-connect-channel.md`.
+
+| Item | Detail |
+|------|--------|
+| Contract reference | Live `/openapi.json` on the relay — this is a third-party API we don't own; the local stub must track it, not the other way round |
+| Trigger | Staff confirms a reservation → `POST /v1/bookings`; staff cancels → `POST /v1/bookings/{ref}/cancel` |
+| Auth | `Authorization: Bearer {RAYZA_API_KEY}` |
+| Room identifier | Relief's own room `id` (e.g. `signature-suite`), sent as-is — RAYZA has no separate catalog to map against |
+| Amount | Naira amount from the matched successful `PaymentRecord`, omitted if unpaid |
+| Idempotency | Same `booking_reference` re-POSTed → `already_received` (not an error); cancelling an already-gone reference → 404, treated as success |
+| Feature flag | `RAYZA_CONNECT_ENABLED=true` + `RAYZA_API_KEY` (unset → sync silently skipped) |
+| Direction | **Outbound only.** Relief does not currently pull bookings created on other RAYZA-connected channels back into its own store — Relief's in-house HMS (separate `agent-*` workstream) is the intended system of record longer-term. |
+
 ## 6. Hosting & DNS
 
 | Environment | Integration |
@@ -101,6 +117,7 @@ Future: outbox table + worker or queue (Netlify scheduled functions / cron).
 | Paystack verify | 400/502; user sees callback error state |
 | Resend | Log; reservation still saved; `emailSent: false` |
 | Termii | Log; reservation still saved; `notifyResult.sent: false` |
+| RAYZA Connect | Log `{ok:false, error}`; reservation status change still succeeds — never blocks staff on a secondary channel |
 | File store (demo) | 500; rare on local disk |
 
 **Principle:** Never lose the booking record because a secondary channel failed.
