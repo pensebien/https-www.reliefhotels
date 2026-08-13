@@ -1143,6 +1143,9 @@
     "markPaid": "Mark paid",
     "markVoid": "Void",
     "openBalance": "Open balance",
+    "openBalanceWithVat": "Open balance (incl. VAT)",
+    "subtotal": "Subtotal",
+    "vat": "VAT ({rate}%)",
     "folioTotal": "Folio total",
     "navLink": "F&B Folio"
   },
@@ -1257,5 +1260,25 @@
       "submitting": "Blocking…",
       "roleHint": "Only the cleaner head can block or clear a room; managers have read-only access."
     }
+  },
+  "staffTaxSettings": {
+    "metaTitle": "Tax Settings | Relief Hotels & Suites",
+    "eyebrow": "Settings",
+    "title": "VAT settings",
+    "subtitle": "Set the VAT rate applied to F&B and room charges, and choose whether it's itemized to the guest or already included in your prices.",
+    "backToPortal": "← Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load settings",
+    "loading": "Loading tax settings…",
+    "vatLabel": "VAT rate",
+    "modeLabel": "Who bears the tax?",
+    "passThroughLabel": "Itemize on the guest's bill",
+    "passThroughHint": "VAT is added on top of your listed prices — the guest sees Subtotal + VAT = Total, like a receipt.",
+    "absorbedLabel": "Include it in your prices",
+    "absorbedHint": "Your listed prices already include VAT — the guest sees one price, and you remit VAT from your margin.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "roleHint": "Only manager and restaurant owner can change tax settings."
   }
 }
