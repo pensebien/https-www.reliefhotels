@@ -3,6 +3,7 @@
 import { AccountingCsvButton } from "@/features/accounting/components/accounting-csv-button";
 import { AccountingDateFilter } from "@/features/accounting/components/accounting-date-filter";
 import { AccountingKeyForm } from "@/features/accounting/components/accounting-key-form";
+import { AccountingReconcilePanel } from "@/features/accounting/components/accounting-reconcile-panel";
 import { AccountingSummaryCards } from "@/features/accounting/components/accounting-summary-cards";
 import { AccountingTable } from "@/features/accounting/components/accounting-table";
 import { useAccountingLedger } from "@/features/accounting/hooks/use-accounting-ledger";
@@ -106,6 +107,7 @@ export function AccountingClient() {
         <>
           <AccountingDateFilter dateRange={dateRange} onChange={setDateRange} />
           <AccountingSummaryCards summary={channelSummary} />
+          <AccountingReconcilePanel accountingKey={key} dateRange={dateRange} />
 
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-sm font-medium uppercase tracking-wide text-muted">

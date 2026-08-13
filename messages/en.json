@@ -1215,7 +1215,28 @@
       "status": "Status",
       "amount": "Amount"
     },
-    "downloadCsv": "Download CSV"
+    "downloadCsv": "Download CSV",
+    "reconcile": {
+      "title": "Reconcile with Paystack",
+      "hint": "Compares this date range's Paystack payments against Paystack's own transaction records. Read-only — never changes stored records.",
+      "run": "Run reconciliation",
+      "running": "Checking…",
+      "needsDateRange": "Pick a date range above first.",
+      "forbidden": "Only managers can run reconciliation.",
+      "demoMode": "Paystack isn't configured (demo mode) — nothing to reconcile against.",
+      "summary": "Checked {local} local payment(s) against {remote} Paystack transaction(s) — {found} discrepancy(ies) found.",
+      "clean": "No discrepancies found — everything matches.",
+      "localAmount": "Local",
+      "paystackAmount": "Paystack",
+      "localStatus": "Local status",
+      "paystackStatus": "Paystack status",
+      "type": {
+        "amount_mismatch": "Amount mismatch",
+        "status_mismatch": "Status mismatch",
+        "missing_on_paystack": "Missing on Paystack",
+        "missing_locally": "Missing locally"
+      }
+    }
   },
   "staffCalendar": {
     "metaTitle": "Occupancy Calendar | Relief Hotels & Suites",
