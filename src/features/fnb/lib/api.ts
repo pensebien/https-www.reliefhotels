@@ -4,6 +4,7 @@ import type {
   FnbApiError,
   FolioChargeStatus,
   FolioChargesResponse,
+  TaxSettingsResponse,
 } from "@/features/fnb/types";
 
 export const FNB_NOT_DEPLOYED_MESSAGE = "F&B folio API not deployed yet";
@@ -74,6 +75,20 @@ export async function fetchFolioCharges(
       { cache: "no-store" },
     );
     return handleResponse<FolioChargesResponse>(res);
+  } catch {
+    return { ok: false, error: "Could not reach the server. Check your connection." };
+  }
+}
+
+export async function fetchTaxSettings(
+  key: string,
+): Promise<FnbResult<TaxSettingsResponse>> {
+  try {
+    const res = await fetch(
+      `/api/staff/settings/tax?key=${encodeURIComponent(key)}`,
+      { cache: "no-store" },
+    );
+    return handleResponse<TaxSettingsResponse>(res);
   } catch {
     return { ok: false, error: "Could not reach the server. Check your connection." };
   }

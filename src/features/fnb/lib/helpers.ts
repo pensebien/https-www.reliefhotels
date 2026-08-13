@@ -28,3 +28,31 @@ export function folioOpenBalanceNgn(charges: FolioCharge[]): number {
     .filter((c) => c.status === "open" || c.status === "posted")
     .reduce((sum, c) => sum + folioChargeTotalNgn(c), 0);
 }
+
+export type FolioTaxBreakdown = {
+  subtotalNgn: number;
+  taxNgn: number;
+  totalNgn: number;
+};
+
+/**
+ * pass_through: unitPriceNgn is pre-tax, VAT is added on top (itemized).
+ * absorbed: unitPriceNgn already includes VAT — backed out for display only.
+ * Mirrors src/lib/folio/types.ts's folioChargeBreakdown (server-side) —
+ * kept as an independent copy per this feature folder's existing convention.
+ */
+export function folioChargeBreakdown(
+  charge: FolioCharge,
+  tax: { vatPercentage: number; collectionMode: "absorbed" | "pass_through" },
+): FolioTaxBreakdown {
+  const base = folioChargeTotalNgn(charge);
+  const rate = tax.vatPercentage / 100;
+
+  if (tax.collectionMode === "pass_through") {
+    const taxNgn = Math.round(base * rate);
+    return { subtotalNgn: base, taxNgn, totalNgn: base + taxNgn };
+  }
+
+  const subtotalNgn = Math.round(base / (1 + rate));
+  return { subtotalNgn, taxNgn: base - subtotalNgn, totalNgn: base };
+}
