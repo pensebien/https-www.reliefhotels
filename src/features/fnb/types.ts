@@ -52,6 +52,19 @@ export type CreateFolioChargeResponse = {
   charge: FolioCharge;
 };
 
+export type TaxCollectionMode = "absorbed" | "pass_through";
+
+export type TaxSettings = {
+  vatPercentage: number;
+  collectionMode: TaxCollectionMode;
+  updatedAt: string;
+};
+
+export type TaxSettingsResponse = {
+  ok?: boolean;
+  settings: TaxSettings;
+};
+
 /** Distinguishes "route not deployed on this branch yet" from other failures. */
 export type FnbApiError = {
   ok: false;

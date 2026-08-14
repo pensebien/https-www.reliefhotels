@@ -1,20 +1,17 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { FolioStoreError, updateFolioChargeStatus } from "@/lib/folio/store";
 import { patchFolioChargeSchema } from "@/lib/folio/schemas";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, [
+    "cashier",
+    "restaurant_owner",
+    "manager",
+  ]);
+  if (!access.ok) return access.response;
 
   const { id } = await context.params;
 

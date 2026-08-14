@@ -25,6 +25,7 @@ import {
   normalizeSearchQuery,
   type SearchScope,
 } from "@/lib/dashboard-search";
+import type { RoomBlock } from "@/lib/db/inventory-store";
 import { isBookingReservation } from "@/lib/is-booking-reservation";
 import { parseYmd } from "@/lib/reservation-dates";
 import {
@@ -94,6 +95,7 @@ type Activity = {
   payments: DashboardPaymentRow[];
   eventInquiries?: EventInquiryRow[];
   guestFeedback?: GuestFeedbackRow[];
+  roomBlocks?: RoomBlock[];
 };
 
 type DashboardView = "calendar" | "lists";
@@ -633,6 +635,7 @@ export function DemoDashboard({
             <InventoryCalendarView
               reservations={filteredReservations}
               eventInquiries={data.eventInquiries ?? []}
+              roomBlocks={data.roomBlocks ?? []}
               paymentsByReservation={paymentsByReservation}
               unitLabels={unitLabels}
               dashboardKey={key}

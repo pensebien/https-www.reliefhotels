@@ -4,12 +4,15 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 
+export type RoomBlockType = "maintenance" | "housekeeping";
+
 export type RoomBlock = {
   id: string;
   roomId: string;
   checkIn: string;
   checkOut: string;
   reason?: string;
+  blockType: RoomBlockType;
   createdAt: string;
 };
 
@@ -71,7 +74,8 @@ export async function getRoomInventory(): Promise<Record<string, number>> {
 export async function listRoomBlocks(): Promise<RoomBlock[]> {
   if (!isSupabaseEnabled()) {
     const file = await readBlocksFile();
-    return file.blocks;
+    // Older blocks predate blockType — treat them as maintenance holds.
+    return file.blocks.map((b) => ({ ...b, blockType: b.blockType ?? "maintenance" }));
   }
 
   const supabase = getSupabaseAdmin();
@@ -79,7 +83,7 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
 
   const { data, error } = await supabase
     .from("room_blocks")
-    .select("id, room_id, check_in, check_out, reason, created_at")
+    .select("id, room_id, check_in, check_out, reason, block_type, created_at")
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
@@ -90,6 +94,7 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
     checkIn: row.check_in as string,
     checkOut: row.check_out as string,
     reason: (row.reason as string | null) ?? undefined,
+    blockType: (row.block_type as RoomBlockType | null) ?? "maintenance",
     createdAt: row.created_at as string,
   }));
 }
@@ -99,10 +104,13 @@ export async function addRoomBlock(input: {
   checkIn: string;
   checkOut: string;
   reason?: string;
+  blockType?: RoomBlockType;
 }): Promise<RoomBlock> {
   if (input.checkOut <= input.checkIn) {
     throw new Error("checkOut must be after checkIn");
   }
+
+  const blockType = input.blockType ?? "maintenance";
 
   if (!isSupabaseEnabled()) {
     const file = await readBlocksFile();
@@ -112,6 +120,7 @@ export async function addRoomBlock(input: {
       checkIn: input.checkIn,
       checkOut: input.checkOut,
       reason: input.reason,
+      blockType,
       createdAt: new Date().toISOString(),
     };
     file.blocks.unshift(block);
@@ -129,8 +138,9 @@ export async function addRoomBlock(input: {
       check_in: input.checkIn,
       check_out: input.checkOut,
       reason: input.reason ?? null,
+      block_type: blockType,
     })
-    .select("id, room_id, check_in, check_out, reason, created_at")
+    .select("id, room_id, check_in, check_out, reason, block_type, created_at")
     .single();
 
   if (error || !data) throw new Error(error?.message ?? "Insert block failed");
@@ -141,6 +151,7 @@ export async function addRoomBlock(input: {
     checkIn: data.check_in as string,
     checkOut: data.check_out as string,
     reason: (data.reason as string | null) ?? undefined,
+    blockType: (data.block_type as RoomBlockType | null) ?? "maintenance",
     createdAt: data.created_at as string,
   };
 }

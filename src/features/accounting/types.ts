@@ -29,5 +29,30 @@ export type AccountingApiError = {
   ok: false;
   notDeployed?: boolean;
   unauthorized?: boolean;
+  forbidden?: boolean;
   error: string;
+};
+
+export type ReconcileDiscrepancyType =
+  | "amount_mismatch"
+  | "status_mismatch"
+  | "missing_on_paystack"
+  | "missing_locally";
+
+export type ReconcileDiscrepancy = {
+  reference: string;
+  type: ReconcileDiscrepancyType;
+  localAmountKobo?: number;
+  paystackAmountKobo?: number;
+  localStatus?: string;
+  paystackStatus?: string;
+};
+
+export type ReconcileResponse = {
+  ok?: boolean;
+  demo: boolean;
+  range: { from: string; to: string };
+  checkedLocalCount: number;
+  checkedRemoteCount: number;
+  discrepancies: ReconcileDiscrepancy[];
 };

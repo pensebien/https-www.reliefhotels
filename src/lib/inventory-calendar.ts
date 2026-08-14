@@ -1,3 +1,4 @@
+import type { RoomBlock } from "@/lib/db/inventory-store";
 import type { EventInquiry } from "@/lib/inquiry-store";
 import {
   addDays,
@@ -24,7 +25,7 @@ export type CalendarReservation = {
   guests: number;
   roomId?: string;
   stayPreference: string;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "checked_out";
   paymentReference?: string;
   itemType?: "room" | "tour" | "inquiry";
   source: string;
@@ -33,7 +34,7 @@ export type CalendarReservation = {
   staffNotes?: string;
 };
 
-export type CalendarBookingKind = "stay" | "event" | "tour";
+export type CalendarBookingKind = "stay" | "event" | "tour" | "block";
 
 export type CalendarBooking = {
   id: string;
@@ -45,13 +46,13 @@ export type CalendarBooking = {
   phone?: string;
   checkIn: string;
   checkOut: string;
-  status: "pending" | "confirmed" | "cancelled" | "inquiry";
+  status: "pending" | "confirmed" | "cancelled" | "inquiry" | "blocked" | "checked_out";
   guests: number;
   label: string;
   paymentReference?: string;
   source: string;
   createdAt: string;
-  raw: CalendarReservation | EventInquiry;
+  raw: CalendarReservation | EventInquiry | RoomBlock;
 };
 
 export type CalendarDay = {
@@ -64,7 +65,7 @@ export type CalendarCell = {
   unitId: string;
   ymd: string;
   booking: CalendarBooking | null;
-  status: "free" | "occupied" | "pending" | "cancelled" | "inquiry";
+  status: "free" | "occupied" | "pending" | "cancelled" | "inquiry" | "blocked";
 };
 
 export type CalendarRow = {
@@ -109,10 +110,39 @@ function stayOverlapsDay(checkIn: string, checkOut: string, ymd: string): boolea
 function bookingStatusToCell(
   status: CalendarBooking["status"],
 ): CalendarCell["status"] {
-  if (status === "confirmed") return "occupied";
+  if (status === "confirmed" || status === "checked_out") return "occupied";
   if (status === "pending") return "pending";
   if (status === "cancelled") return "cancelled";
+  if (status === "blocked") return "blocked";
   return "inquiry";
+}
+
+/**
+ * Room blocks (maintenance/housekeeping holds — `src/lib/db/inventory-store.ts`)
+ * already reduce bookable inventory in `countOccupiedUnits`/`getRoomAvailability`;
+ * this just makes them visible on the calendar grid, which previously showed
+ * a blocked room as plain "free."
+ */
+export function roomBlockToBookings(
+  block: RoomBlock,
+): Omit<CalendarBooking, "unitId">[] {
+  return [
+    {
+      id: block.id,
+      kind: "block",
+      roomId: block.roomId,
+      guestName: block.reason ?? "Blocked",
+      email: "",
+      checkIn: block.checkIn,
+      checkOut: block.checkOut,
+      status: "blocked",
+      guests: 0,
+      label: block.reason ?? "Blocked",
+      source: "block",
+      createdAt: block.createdAt,
+      raw: block,
+    },
+  ];
 }
 
 export function reservationToBookings(
@@ -269,6 +299,7 @@ function rangesOverlap(
 export function buildInventoryCalendar(input: {
   reservations: CalendarReservation[];
   eventInquiries: EventInquiry[];
+  roomBlocks?: RoomBlock[];
   weekAnchor: Date;
   unitLabels: Record<string, string>;
 }): { days: CalendarDay[]; rows: CalendarRow[]; bookings: CalendarBooking[] } {
@@ -281,6 +312,7 @@ export function buildInventoryCalendar(input: {
     ...input.eventInquiries.flatMap((e) =>
       eventInquiryToBookings(e, spaceIds),
     ),
+    ...(input.roomBlocks ?? []).flatMap(roomBlockToBookings),
   ];
 
   const bookings = assignBookingsToUnits(unassigned, units);
@@ -318,14 +350,16 @@ export function summarizeWeekOccupancy(rows: CalendarRow[]) {
   let free = 0;
   let occupied = 0;
   let pending = 0;
+  let blocked = 0;
 
   for (const row of rows) {
     for (const cell of row.cells) {
       if (cell.status === "free") free += 1;
       else if (cell.status === "occupied") occupied += 1;
       else if (cell.status === "pending") pending += 1;
+      else if (cell.status === "blocked") blocked += 1;
     }
   }
 
-  return { free, occupied, pending, total: free + occupied + pending };
+  return { free, occupied, pending, blocked, total: free + occupied + pending + blocked };
 }

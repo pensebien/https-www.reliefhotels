@@ -93,6 +93,11 @@ export function getServerConfig() {
       baseUrl:
         process.env.RAYZA_BASE_URL ?? "https://cloud-relay-nu.vercel.app",
     },
+    staffAuth: {
+      enabled:
+        process.env.STAFF_AUTH_ENABLED === "true" &&
+        Boolean(process.env.STAFF_SESSION_SECRET?.trim()),
+    },
   };
 }
 

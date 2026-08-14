@@ -3,15 +3,25 @@
  *
  * This module is intentionally UI-agnostic: it only knows about roles,
  * nav items, and which role can reach which `/staff/*` href. Feature
- * teams (cashier, F&B, calendar, accounting) own what actually renders
- * at each href.
+ * teams (cashier, F&B, calendar, accounting, housekeeping) own what
+ * actually renders at each href.
+ *
+ * Note: this matrix used to be nav-filtering only (no server enforcement).
+ * `src/lib/staff-auth-guard.ts` (Agent O) is the actual enforcement point —
+ * every `/api/staff/*` route must call `requireStaffAccess()`, this matrix
+ * alone does not protect anything.
  */
 
-export type StaffRole = "front_desk" | "manager" | "accountant";
+export type StaffRole = "cashier" | "manager" | "restaurant_owner" | "cleaner_head";
 
-export const STAFF_ROLES: StaffRole[] = ["front_desk", "manager", "accountant"];
+export const STAFF_ROLES: StaffRole[] = [
+  "cashier",
+  "manager",
+  "restaurant_owner",
+  "cleaner_head",
+];
 
-export const DEFAULT_STAFF_ROLE: StaffRole = "front_desk";
+export const DEFAULT_STAFF_ROLE: StaffRole = "cashier";
 
 /** Access level for a given role/href pair. "read" renders but is marked view-only. */
 export type StaffAccessLevel = "full" | "read";
@@ -28,16 +38,18 @@ export const NAV_ITEMS: StaffNavItem[] = [
   { href: "/staff/cashier", labelKey: "cashier" },
   { href: "/staff/fnb", labelKey: "fnb" },
   { href: "/staff/calendar", labelKey: "calendar" },
+  { href: "/staff/housekeeping", labelKey: "housekeeping" },
   { href: "/staff/accounting", labelKey: "accounting" },
+  { href: "/staff/settings/tax", labelKey: "taxSettings" },
 ];
 
 /**
  * Per-role map of href -> access level. Absence of a key means the role
- * cannot reach that href at all (it is hidden from nav and should be
- * treated as unauthorized by any page-level guard).
+ * cannot reach that href at all (it is hidden from nav and is rejected by
+ * `requireStaffAccess()` for the matching API routes).
  */
 const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>> = {
-  front_desk: {
+  cashier: {
     "/staff": "full",
     "/staff/cashier": "full",
     "/staff/fnb": "full",
@@ -48,11 +60,18 @@ const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>
     "/staff/cashier": "full",
     "/staff/fnb": "full",
     "/staff/calendar": "full",
+    "/staff/housekeeping": "read",
     "/staff/accounting": "full",
+    "/staff/settings/tax": "full",
   },
-  accountant: {
+  restaurant_owner: {
     "/staff": "full",
-    "/staff/accounting": "full",
+    "/staff/fnb": "full",
+    "/staff/settings/tax": "full",
+  },
+  cleaner_head: {
+    "/staff": "full",
+    "/staff/housekeeping": "full",
     "/staff/calendar": "read",
   },
 };
@@ -66,7 +85,12 @@ export function canAccess(role: StaffRole, href: string): boolean {
 }
 
 export function isStaffRole(value: string | null | undefined): value is StaffRole {
-  return value === "front_desk" || value === "manager" || value === "accountant";
+  return (
+    value === "cashier" ||
+    value === "manager" ||
+    value === "restaurant_owner" ||
+    value === "cleaner_head"
+  );
 }
 
 export function parseStaffRole(value: string | null | undefined): StaffRole {

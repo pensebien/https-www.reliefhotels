@@ -12,7 +12,7 @@ import {
 } from "@/lib/staff-roles";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 function findActiveHref(pathname: string): string | undefined {
   return [...NAV_ITEMS]
@@ -20,26 +20,84 @@ function findActiveHref(pathname: string): string | undefined {
     .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.href;
 }
 
+type SessionState =
+  | { status: "checking" }
+  | { status: "disabled" }
+  | { status: "unauthenticated" }
+  | { status: "authenticated"; name: string; role: StaffRole };
+
 export function StaffShell({ children }: { children: ReactNode }) {
   const t = useTranslations("staffShell");
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [session, setSession] = useState<SessionState>({ status: "checking" });
 
-  const key = searchParams.get("key");
-  const role = parseStaffRole(searchParams.get("role"));
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/staff/auth/me")
+      .then(async (res) => {
+        const body = (await res.json().catch(() => null)) as {
+          enabled?: boolean;
+          authenticated?: boolean;
+          name?: string;
+          role?: StaffRole;
+        } | null;
+        if (cancelled || !body) return;
+
+        if (!body.enabled) {
+          setSession({ status: "disabled" });
+        } else if (body.authenticated && body.name && body.role) {
+          setSession({ status: "authenticated", name: body.name, role: body.role });
+        } else {
+          setSession({ status: "unauthenticated" });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSession({ status: "disabled" });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (session.status === "unauthenticated" && pathname !== "/staff/login") {
+      router.push("/staff/login");
+    }
+  }, [session.status, pathname, router]);
+
+  if (pathname === "/staff/login") {
+    return <>{children}</>;
+  }
+
+  if (session.status === "checking" || session.status === "unauthenticated") {
+    return null;
+  }
+
+  const legacyMode = session.status === "disabled";
+  const key = legacyMode ? searchParams.get("key") : null;
+  const role =
+    session.status === "authenticated" ? session.role : parseStaffRole(searchParams.get("role"));
   const activeHref = findActiveHref(pathname);
   const visibleItems = getAccessibleNavItems(role);
 
   function buildQuery(nextRole: StaffRole = role) {
     const query: Record<string, string> = {};
     if (key) query.key = key;
-    if (nextRole !== DEFAULT_STAFF_ROLE) query.role = nextRole;
+    if (legacyMode && nextRole !== DEFAULT_STAFF_ROLE) query.role = nextRole;
     return query;
   }
 
   function handleRoleChange(nextRole: StaffRole) {
     router.push({ pathname, query: buildQuery(nextRole) });
+  }
+
+  async function handleLogout() {
+    await fetch("/api/staff/auth/logout", { method: "POST" });
+    router.push("/staff/login");
   }
 
   return (
@@ -70,20 +128,38 @@ export function StaffShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <label className="flex items-center gap-2 text-sm text-muted">
-            {t("roleLabel")}
-            <select
-              value={role}
-              onChange={(e) => handleRoleChange(e.target.value as StaffRole)}
-              className="h-9 rounded-lg border border-border bg-card px-2 text-sm text-foreground"
-            >
-              {STAFF_ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {t(`roles.${r}`)}
-                </option>
-              ))}
-            </select>
-          </label>
+          {legacyMode ? (
+            <label className="flex items-center gap-2 text-sm text-muted">
+              {t("roleLabel")}
+              <select
+                value={role}
+                onChange={(e) => handleRoleChange(e.target.value as StaffRole)}
+                className="h-9 rounded-lg border border-border bg-card px-2 text-sm text-foreground"
+              >
+                {STAFF_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {t(`roles.${r}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <div className="flex items-center gap-3 text-sm text-muted">
+              <span>
+                {t("loggedInAs", {
+                  name: session.status === "authenticated" ? session.name : "",
+                  role: t(`roles.${role}`),
+                })}
+              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-full border border-border px-3 py-1.5 text-sm hover:border-teal"
+              >
+                {t("logout")}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

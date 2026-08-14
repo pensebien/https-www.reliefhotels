@@ -1,8 +1,4 @@
 import { rooms } from "@/content/site";
-import {
-  unauthorizedDashboardResponse,
-  isValidDashboardKey,
-} from "@/lib/dashboard-auth";
 import { addPayment, addReservation, updateReservationById } from "@/lib/demo-store";
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
@@ -10,6 +6,7 @@ import { sendReservationEmail } from "@/lib/email";
 import { pushTerminalPayment, pushTransferPayment } from "@/lib/moniepoint";
 import { paymentChannelForMethod } from "@/lib/payment-methods";
 import { staffReservationSchema } from "@/lib/schemas/staff-reservation";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import {
   frontDeskPaymentReference,
   paymentItemLabel,
@@ -17,12 +14,8 @@ import {
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cashier", "manager"]);
+  if (!access.ok) return access.response;
 
   try {
     const body = await request.json();

@@ -42,6 +42,7 @@ yarn-error.log*
 /data/demo-store.json
 /data/inquiries.json
 /data/folio-charges.json
+/data/staff-accounts.json
 
 # bvdlc local scaffolding script
 /bvdlc.sh

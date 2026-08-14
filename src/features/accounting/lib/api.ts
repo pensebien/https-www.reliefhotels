@@ -1,6 +1,7 @@
 import type {
   AccountingActivityResponse,
   AccountingApiError,
+  ReconcileResponse,
 } from "@/features/accounting/types";
 
 export const ACCOUNTING_NOT_DEPLOYED_MESSAGE = "Activity API not deployed yet";
@@ -41,6 +42,9 @@ async function handleResponse<T>(
   if (res.status === 401) {
     return { ok: false, unauthorized: true, error: "Invalid accounting key." };
   }
+  if (res.status === 403) {
+    return { ok: false, forbidden: true, error: "Your role cannot do this." };
+  }
   if (!res.ok) {
     const body = await parseJsonSafe(res);
     const message =
@@ -64,6 +68,28 @@ export async function fetchAccountingActivity(
       { cache: "no-store" },
     );
     return handleResponse<AccountingActivityResponse>(res);
+  } catch {
+    return {
+      ok: false,
+      error: "Could not reach the server. Check your connection.",
+    };
+  }
+}
+
+export async function fetchReconciliation(
+  key: string,
+  range: { from: string; to: string },
+): Promise<AccountingResult<ReconcileResponse>> {
+  try {
+    const params = new URLSearchParams({
+      key,
+      from: range.from,
+      to: range.to,
+    });
+    const res = await fetch(`/api/staff/accounting/reconcile?${params}`, {
+      cache: "no-store",
+    });
+    return handleResponse<ReconcileResponse>(res);
   } catch {
     return {
       ok: false,

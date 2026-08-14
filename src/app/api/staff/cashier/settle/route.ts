@@ -1,18 +1,11 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { settleCashierPayment } from "@/lib/cashier/settle-service";
 import { cashierSettleSchema } from "@/lib/schemas/cashier-settle";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cashier", "manager"]);
+  if (!access.ok) return access.response;
 
   try {
     const body = await request.json();

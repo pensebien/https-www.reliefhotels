@@ -1,20 +1,13 @@
-import {
-  unauthorizedDashboardResponse,
-  isValidDashboardKey,
-} from "@/lib/dashboard-auth";
 import { syncMoniepointPushPayment } from "@/lib/moniepoint-sync";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ reference: string }> },
 ) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cashier", "manager"]);
+  if (!access.ok) return access.response;
 
   const { reference } = await context.params;
 

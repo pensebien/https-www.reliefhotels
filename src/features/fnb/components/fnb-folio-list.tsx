@@ -1,7 +1,11 @@
 "use client";
 
-import { folioChargeTotalNgn, formatFnbDate } from "@/features/fnb/lib/helpers";
-import type { FolioCharge, FolioChargeStatus } from "@/features/fnb/types";
+import {
+  folioChargeBreakdown,
+  folioChargeTotalNgn,
+  formatFnbDate,
+} from "@/features/fnb/lib/helpers";
+import type { FolioCharge, FolioChargeStatus, TaxSettings } from "@/features/fnb/types";
 import { cn, formatNaira } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -16,17 +20,31 @@ export function FnbFolioList({
   charges,
   disabled,
   onSetStatus,
+  taxSettings,
 }: {
   charges: FolioCharge[];
   disabled: boolean;
   onSetStatus: (id: string, status: FolioChargeStatus) => void;
+  taxSettings: TaxSettings;
 }) {
   const t = useTranslations("fnb");
 
   const total = charges.reduce((sum, c) => sum + folioChargeTotalNgn(c), 0);
-  const openBalance = charges
-    .filter((c) => c.status === "open" || c.status === "posted")
-    .reduce((sum, c) => sum + folioChargeTotalNgn(c), 0);
+  const openCharges = charges.filter(
+    (c) => c.status === "open" || c.status === "posted",
+  );
+  const openBalance = openCharges.reduce((sum, c) => sum + folioChargeTotalNgn(c), 0);
+  const openBreakdown = openCharges.reduce(
+    (acc, c) => {
+      const b = folioChargeBreakdown(c, taxSettings);
+      return {
+        subtotalNgn: acc.subtotalNgn + b.subtotalNgn,
+        taxNgn: acc.taxNgn + b.taxNgn,
+        totalNgn: acc.totalNgn + b.totalNgn,
+      };
+    },
+    { subtotalNgn: 0, taxNgn: 0, totalNgn: 0 },
+  );
 
   if (charges.length === 0) {
     return (
@@ -101,10 +119,31 @@ export function FnbFolioList({
           </li>
         ))}
       </ul>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-4 text-sm">
-        <span className="text-muted">{t("openBalance")}</span>
-        <span className="font-medium">{formatNaira(openBalance)}</span>
-      </div>
+      {openCharges.length > 0 ? (
+        <div className="space-y-1 border-t border-border p-4 text-sm">
+          <div className="flex items-center justify-between gap-2 text-muted">
+            <span>{t("subtotal")}</span>
+            <span>{formatNaira(openBreakdown.subtotalNgn)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 text-muted">
+            <span>{t("vat", { rate: taxSettings.vatPercentage })}</span>
+            <span>{formatNaira(openBreakdown.taxNgn)}</span>
+          </div>
+          <div className="flex items-center justify-between gap-2 font-medium">
+            <span>
+              {taxSettings.collectionMode === "absorbed"
+                ? t("openBalance")
+                : t("openBalanceWithVat")}
+            </span>
+            <span>{formatNaira(openBreakdown.totalNgn)}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-4 text-sm">
+          <span className="text-muted">{t("openBalance")}</span>
+          <span className="font-medium">{formatNaira(openBalance)}</span>
+        </div>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-4 text-sm">
         <span className="text-muted">{t("folioTotal")}</span>
         <span className="font-medium">{formatNaira(total)}</span>
