@@ -1,24 +1,24 @@
 import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
+import { listRoomBlocks } from "@/lib/db/inventory-store";
 import { getActivity } from "@/lib/demo-store";
 import { getEventInquiries, getGuestFeedback } from "@/lib/inquiry-store";
 import { getMoniepointPublicConfig } from "@/lib/moniepoint";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key");
-  const config = getServerConfig();
+  const access = await requireStaffAccess(request);
+  if (!access.ok) return access.response;
 
-  if (key !== config.demoDashboardKey) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const config = getServerConfig();
 
   try {
     const activity = await getActivity();
     const eventInquiries = await getEventInquiries();
     const guestFeedback = await getGuestFeedback();
     const storageHealth = await checkStorageHealth();
+    const roomBlocks = await listRoomBlocks();
 
     return NextResponse.json({
       ok: true,
@@ -36,6 +36,7 @@ export async function GET(request: Request) {
       ...activity,
       eventInquiries,
       guestFeedback,
+      roomBlocks,
     });
   } catch (error) {
     const message =

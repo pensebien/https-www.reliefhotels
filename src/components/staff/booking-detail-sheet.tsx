@@ -148,6 +148,7 @@ export function BookingDetailSheet({
                 dashboardKey={dashboardKey}
                 source={booking.source}
                 showConfirm={booking.status === "pending"}
+                showCheckout={booking.status === "confirmed"}
                 staffNotes={
                   "staffNotes" in booking.raw
                     ? booking.raw.staffNotes

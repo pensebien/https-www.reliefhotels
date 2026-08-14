@@ -3,14 +3,22 @@
 import {
   createFolioCharge,
   fetchFolioCharges,
+  fetchTaxSettings,
   isFnbError,
   updateFolioChargeStatus,
 } from "@/features/fnb/lib/api";
-import type { FolioCharge, FolioChargeStatus } from "@/features/fnb/types";
+import type { FolioCharge, FolioChargeStatus, TaxSettings } from "@/features/fnb/types";
 import { useCallback, useEffect, useState } from "react";
+
+const FALLBACK_TAX_SETTINGS: TaxSettings = {
+  vatPercentage: 7.5,
+  collectionMode: "pass_through",
+  updatedAt: new Date(0).toISOString(),
+};
 
 export function useFolio(reservationId: string | null, key: string | null) {
   const [charges, setCharges] = useState<FolioCharge[]>([]);
+  const [taxSettings, setTaxSettings] = useState<TaxSettings>(FALLBACK_TAX_SETTINGS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mutating, setMutating] = useState(false);
@@ -19,12 +27,18 @@ export function useFolio(reservationId: string | null, key: string | null) {
     if (!reservationId || !key) return;
     setLoading(true);
     setError(null);
-    const result = await fetchFolioCharges(reservationId, key);
-    if (isFnbError(result)) {
-      setError(result.error);
+    const [chargesResult, taxResult] = await Promise.all([
+      fetchFolioCharges(reservationId, key),
+      fetchTaxSettings(key),
+    ]);
+    if (isFnbError(chargesResult)) {
+      setError(chargesResult.error);
       setCharges([]);
     } else {
-      setCharges(result.charges ?? []);
+      setCharges(chargesResult.charges ?? []);
+    }
+    if (!isFnbError(taxResult) && taxResult.settings) {
+      setTaxSettings(taxResult.settings);
     }
     setLoading(false);
   }, [reservationId, key]);
@@ -69,5 +83,14 @@ export function useFolio(reservationId: string | null, key: string | null) {
     [key, load],
   );
 
-  return { charges, loading, mutating, error, refresh: load, addCharge, setStatus };
+  return {
+    charges,
+    taxSettings,
+    loading,
+    mutating,
+    error,
+    refresh: load,
+    addCharge,
+    setStatus,
+  };
 }

@@ -7,6 +7,7 @@ import {
 import type {
   CalendarReservation,
   EventInquiry,
+  RoomBlock,
   StaffCalendarActivityResponse,
   StaffCalendarPayment,
 } from "@/features/staff-calendar/types";
@@ -16,6 +17,7 @@ export function useStaffCalendarActivity(key: string | null) {
   const [reservations, setReservations] = useState<CalendarReservation[]>([]);
   const [payments, setPayments] = useState<StaffCalendarPayment[]>([]);
   const [eventInquiries, setEventInquiries] = useState<EventInquiry[]>([]);
+  const [roomBlocks, setRoomBlocks] = useState<RoomBlock[]>([]);
   const [moniepoint, setMoniepoint] = useState<
     StaffCalendarActivityResponse["moniepoint"]
   >(undefined);
@@ -32,11 +34,13 @@ export function useStaffCalendarActivity(key: string | null) {
       setReservations([]);
       setPayments([]);
       setEventInquiries([]);
+      setRoomBlocks([]);
       setMoniepoint(undefined);
     } else {
       setReservations(result.reservations ?? []);
       setPayments(result.payments ?? []);
       setEventInquiries(result.eventInquiries ?? []);
+      setRoomBlocks(result.roomBlocks ?? []);
       setMoniepoint(result.moniepoint);
     }
     setLoading(false);
@@ -65,6 +69,7 @@ export function useStaffCalendarActivity(key: string | null) {
     loadedOnce,
     reservations,
     eventInquiries,
+    roomBlocks,
     paymentsByReservation,
     moniepoint,
     refresh: () => key && load(key),

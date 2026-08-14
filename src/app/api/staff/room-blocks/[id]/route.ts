@@ -1,17 +1,12 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { deleteRoomBlock } from "@/lib/db/inventory-store";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function DELETE(request: Request, context: RouteContext) {
-  const { searchParams } = new URL(request.url);
-  if (!isValidDashboardKey(searchParams.get("key"))) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cleaner_head"]);
+  if (!access.ok) return access.response;
 
   const { id } = await context.params;
 

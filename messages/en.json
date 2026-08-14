@@ -621,13 +621,14 @@
     "viewLists": "Lists",
     "calendar": {
       "title": "Room & event occupancy",
-      "subtitle": "Green = available · Teal = confirmed stay · Amber = pending · Violet = event inquiry. Tap a free cell to book; tap a booking to manage.",
+      "subtitle": "Green = available · Teal = confirmed stay · Amber = pending · Violet = event inquiry · Slate = blocked (maintenance/housekeeping). Tap a free cell to book; tap a booking to manage.",
       "prevWeek": "Previous week",
       "nextWeek": "Next week",
       "today": "This week",
       "legendFree": "Available",
       "legendOccupied": "Occupied",
       "legendPending": "Pending",
+      "legendBlocked": "Blocked",
       "legendFilterHint": "Filter units for this week (works with category chips)",
       "bookFreeCell": "Book {unit} starting {date}",
       "staffActionsTitle": "Front desk actions",
@@ -635,6 +636,7 @@
       "unitColumn": "Unit",
       "tableCaption": "Weekly occupancy by room and event space",
       "cellFree": "Available on {date}",
+      "cellBlocked": "Blocked on {date}: {reason}",
       "openBooking": "View booking for {guest} on {date}",
       "closeDetail": "Close booking details",
       "hint": "Tap an empty (green) cell to start a walk-in booking. Tap amber/teal cells to view details and mark pending stays as booked.",
@@ -783,6 +785,8 @@
       "confirm": "Mark as booked",
       "cancel": "Cancel booking",
       "cancelConfirm": "Cancel this booking? This cannot be undone.",
+      "checkout": "Check out",
+      "checkoutConfirm": "Check out this guest? The room will be blocked for housekeeping until it's marked clean.",
       "notesLabel": "Staff notes",
       "notesPlaceholder": "VIP arrival, late check-in, etc.",
       "saveNotes": "Save notes",
@@ -1139,6 +1143,9 @@
     "markPaid": "Mark paid",
     "markVoid": "Void",
     "openBalance": "Open balance",
+    "openBalanceWithVat": "Open balance (incl. VAT)",
+    "subtotal": "Subtotal",
+    "vat": "VAT ({rate}%)",
     "folioTotal": "Folio total",
     "navLink": "F&B Folio"
   },
@@ -1146,18 +1153,35 @@
     "navLabel": "Staff navigation",
     "roleLabel": "Role",
     "readOnly": "view only",
+    "loggedInAs": "Signed in as {name} ({role})",
+    "logout": "Log out",
     "nav": {
       "dashboard": "Dashboard",
       "cashier": "Cashier",
       "fnb": "F&B",
       "calendar": "Calendar",
-      "accounting": "Accounting"
+      "housekeeping": "Housekeeping",
+      "accounting": "Accounting",
+      "taxSettings": "Tax settings"
     },
     "roles": {
-      "front_desk": "Front Desk",
+      "cashier": "Cashier",
       "manager": "Manager",
-      "accountant": "Accountant"
+      "restaurant_owner": "Restaurant Owner",
+      "cleaner_head": "Cleaner Head"
     }
+  },
+  "staffLogin": {
+    "metaTitle": "Staff Login | Relief Hotels & Suites",
+    "title": "Staff login",
+    "subtitle": "Enter your name and PIN to open the staff portal.",
+    "nameLabel": "Name",
+    "pinLabel": "PIN",
+    "submit": "Log in",
+    "submitting": "Logging in…",
+    "invalidCredentials": "Invalid name or PIN.",
+    "serverError": "Could not log in. Please try again.",
+    "disabled": "Staff login is not enabled on this deployment."
   },
   "accounting": {
     "metaTitle": "Accounting | Relief Hotels & Suites",
@@ -1191,7 +1215,28 @@
       "status": "Status",
       "amount": "Amount"
     },
-    "downloadCsv": "Download CSV"
+    "downloadCsv": "Download CSV",
+    "reconcile": {
+      "title": "Reconcile with Paystack",
+      "hint": "Compares this date range's Paystack payments against Paystack's own transaction records. Read-only — never changes stored records.",
+      "run": "Run reconciliation",
+      "running": "Checking…",
+      "needsDateRange": "Pick a date range above first.",
+      "forbidden": "Only managers can run reconciliation.",
+      "demoMode": "Paystack isn't configured (demo mode) — nothing to reconcile against.",
+      "summary": "Checked {local} local payment(s) against {remote} Paystack transaction(s) — {found} discrepancy(ies) found.",
+      "clean": "No discrepancies found — everything matches.",
+      "localAmount": "Local",
+      "paystackAmount": "Paystack",
+      "localStatus": "Local status",
+      "paystackStatus": "Paystack status",
+      "type": {
+        "amount_mismatch": "Amount mismatch",
+        "status_mismatch": "Status mismatch",
+        "missing_on_paystack": "Missing on Paystack",
+        "missing_locally": "Missing locally"
+      }
+    }
   },
   "staffCalendar": {
     "metaTitle": "Occupancy Calendar | Relief Hotels & Suites",
@@ -1207,5 +1252,54 @@
     "loading": "Loading occupancy data…",
     "emptyTitle": "No reservations yet",
     "emptyHint": "Once bookings and event inquiries come in, they'll appear on the calendar below."
+  },
+  "staffHousekeeping": {
+    "metaTitle": "Housekeeping | Relief Hotels & Suites",
+    "eyebrow": "Housekeeping",
+    "title": "Room readiness",
+    "subtitle": "Block a room for cleaning or maintenance, and mark it clean the moment it's ready for the next guest.",
+    "backToPortal": "← Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load housekeeping",
+    "refresh": "Refresh",
+    "loading": "Loading room blocks…",
+    "empty": "No rooms are blocked right now — everything is ready for booking.",
+    "markClean": "Mark clean",
+    "blockedRange": "Blocked {from} → free from {to}",
+    "blockType": {
+      "housekeeping": "Housekeeping",
+      "maintenance": "Maintenance"
+    },
+    "form": {
+      "room": "Room",
+      "blockType": "Reason type",
+      "blockedFrom": "Blocked from",
+      "freeFrom": "Free for booking from",
+      "reason": "Note",
+      "reasonPlaceholder": "e.g. deep clean, AC repair",
+      "submit": "Block room",
+      "submitting": "Blocking…",
+      "roleHint": "Only the cleaner head can block or clear a room; managers have read-only access."
+    }
+  },
+  "staffTaxSettings": {
+    "metaTitle": "Tax Settings | Relief Hotels & Suites",
+    "eyebrow": "Settings",
+    "title": "VAT settings",
+    "subtitle": "Set the VAT rate applied to F&B and room charges, and choose whether it's itemized to the guest or already included in your prices.",
+    "backToPortal": "← Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Load settings",
+    "loading": "Loading tax settings…",
+    "vatLabel": "VAT rate",
+    "modeLabel": "Who bears the tax?",
+    "passThroughLabel": "Itemize on the guest's bill",
+    "passThroughHint": "VAT is added on top of your listed prices — the guest sees Subtotal + VAT = Total, like a receipt.",
+    "absorbedLabel": "Include it in your prices",
+    "absorbedHint": "Your listed prices already include VAT — the guest sees one price, and you remit VAT from your margin.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "roleHint": "Only manager and restaurant owner can change tax settings."
   }
 }

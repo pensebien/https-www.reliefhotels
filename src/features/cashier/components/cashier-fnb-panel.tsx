@@ -21,10 +21,8 @@ export function CashierFnbPanel({
 }) {
   const t = useTranslations("cashier");
   const tFnb = useTranslations("fnb");
-  const { charges, loading, mutating, error, addCharge, setStatus } = useFolio(
-    reservation.id,
-    cashierKey,
-  );
+  const { charges, taxSettings, loading, mutating, error, addCharge, setStatus } =
+    useFolio(reservation.id, cashierKey);
 
   return (
     <div>
@@ -64,6 +62,7 @@ export function CashierFnbPanel({
             charges={charges}
             disabled={mutating}
             onSetStatus={(id, status) => setStatus(id, status)}
+            taxSettings={taxSettings}
           />
         </div>
       )}

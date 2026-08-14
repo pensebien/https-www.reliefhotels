@@ -1,5 +1,6 @@
 "use client";
 
+import type { RoomBlock } from "@/lib/db/inventory-store";
 import type { EventInquiry } from "@/lib/inquiry-store";
 import {
   buildInventoryCalendar,
@@ -33,7 +34,7 @@ type PaymentLookup = {
   reservationId?: string;
 };
 
-type OccupancyStatus = "free" | "occupied" | "pending";
+type OccupancyStatus = "free" | "occupied" | "pending" | "blocked";
 
 const CATEGORY_ORDER: OccupancyCategory[] = [
   "guestRoom",
@@ -48,6 +49,7 @@ const ROWS_PER_PAGE = 8;
 export const InventoryCalendarView = memo(function InventoryCalendarView({
   reservations,
   eventInquiries,
+  roomBlocks = [],
   paymentsByReservation,
   unitLabels,
   dashboardKey,
@@ -57,6 +59,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
 }: {
   reservations: CalendarReservation[];
   eventInquiries: EventInquiry[];
+  roomBlocks?: RoomBlock[];
   paymentsByReservation: Map<string, PaymentLookup[]>;
   unitLabels: Record<string, string>;
   dashboardKey?: string;
@@ -86,10 +89,11 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
       buildInventoryCalendar({
         reservations,
         eventInquiries,
+        roomBlocks,
         weekAnchor,
         unitLabels,
       }),
-    [eventInquiries, reservations, unitLabels, weekAnchor],
+    [eventInquiries, reservations, roomBlocks, unitLabels, weekAnchor],
   );
 
   const categoryRows = useMemo(() => {
@@ -239,6 +243,13 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
           pressed={statusFilter.has("pending")}
           onClick={() => toggleStatus("pending")}
         />
+        <LegendChip
+          color="blocked"
+          label={t("calendar.legendBlocked")}
+          count={summary.blocked}
+          pressed={statusFilter.has("blocked")}
+          onClick={() => toggleStatus("blocked")}
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -316,7 +327,25 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
 
                     return (
                       <td key={cell.ymd} className="p-0.5">
-                        {cell.booking ? (
+                        {cell.status === "blocked" ? (
+                          <div
+                            title={cell.booking?.label}
+                            className={cn(
+                              "flex h-10 items-center justify-center rounded-md bg-slate-500/15 px-1 text-center text-[10px] leading-tight text-slate-700 dark:text-slate-300",
+                              !statusActive && "opacity-25",
+                            )}
+                            aria-label={t("calendar.cellBlocked", {
+                              reason: cell.booking?.label ?? "",
+                              date: cell.ymd,
+                            })}
+                          >
+                            {showLabel ? (
+                              <span className="line-clamp-2">{cell.booking?.label}</span>
+                            ) : (
+                              <span aria-hidden>×</span>
+                            )}
+                          </div>
+                        ) : cell.booking ? (
                           <button
                             type="button"
                             onClick={() => setSelectedBooking(cell.booking)}
@@ -525,7 +554,9 @@ function LegendChip({
       ? "bg-emerald-500/15 border-emerald-500/30"
       : color === "occupied"
         ? "bg-teal/25 border-teal/40"
-        : "bg-amber-500/20 border-amber-500/40";
+        : color === "blocked"
+          ? "bg-slate-500/20 border-slate-500/40"
+          : "bg-amber-500/20 border-amber-500/40";
 
   return (
     <button

@@ -55,6 +55,7 @@ export function FnbClient() {
 
   const {
     charges,
+    taxSettings,
     loading: loadingFolio,
     mutating,
     error: folioError,
@@ -218,6 +219,7 @@ export function FnbClient() {
                 charges={charges}
                 disabled={mutating}
                 onSetStatus={(id, status) => setStatus(id, status)}
+                taxSettings={taxSettings}
               />
             </div>
           )}

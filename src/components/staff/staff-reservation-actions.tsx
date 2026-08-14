@@ -12,6 +12,7 @@ export function StaffReservationActions({
   onUpdated,
   compact = false,
   showConfirm = true,
+  showCheckout = false,
 }: {
   reservationId: string;
   dashboardKey: string;
@@ -21,9 +22,13 @@ export function StaffReservationActions({
   compact?: boolean;
   /** Hide “Mark as booked” when the stay is already confirmed. */
   showConfirm?: boolean;
+  /** Show “Check out” — only valid from a confirmed stay. */
+  showCheckout?: boolean;
 }) {
   const t = useTranslations("demo");
-  const [busy, setBusy] = useState<"confirm" | "cancel" | "notes" | null>(null);
+  const [busy, setBusy] = useState<"confirm" | "cancel" | "checkout" | "notes" | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState(staffNotes ?? "");
   const readOnly = source === "demo";
@@ -54,6 +59,20 @@ export function StaffReservationActions({
     setError(null);
     try {
       await patch({ status: "confirmed" });
+      onUpdated();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t("staffActions.error"));
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleCheckout() {
+    if (!window.confirm(t("staffActions.checkoutConfirm"))) return;
+    setBusy("checkout");
+    setError(null);
+    try {
+      await patch({ status: "checked_out" });
       onUpdated();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("staffActions.error"));
@@ -106,6 +125,16 @@ export function StaffReservationActions({
             className="inline-flex rounded-full bg-teal px-3 py-1.5 text-xs font-medium text-gray-950 hover:bg-teal-dark disabled:opacity-50"
           >
             {busy === "confirm" ? t("staffActions.working") : t("staffActions.confirm")}
+          </button>
+        ) : null}
+        {showCheckout ? (
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={busy !== null}
+            className="inline-flex rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:border-teal disabled:opacity-50"
+          >
+            {busy === "checkout" ? t("staffActions.working") : t("staffActions.checkout")}
           </button>
         ) : null}
         <button

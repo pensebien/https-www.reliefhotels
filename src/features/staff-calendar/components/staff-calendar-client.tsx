@@ -40,6 +40,7 @@ export function StaffCalendarClient() {
     loadedOnce,
     reservations,
     eventInquiries,
+    roomBlocks,
     paymentsByReservation,
     moniepoint,
     refresh,
@@ -138,6 +139,7 @@ export function StaffCalendarClient() {
         <InventoryCalendarView
           reservations={reservations}
           eventInquiries={eventInquiries}
+          roomBlocks={roomBlocks}
           paymentsByReservation={paymentsByReservation}
           unitLabels={unitLabels}
           dashboardKey={key ?? undefined}

@@ -1,23 +1,21 @@
 import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
-import {
   addFolioCharge,
   FolioStoreError,
   listFolioCharges,
 } from "@/lib/folio/store";
 import { createFolioChargeSchema } from "@/lib/folio/schemas";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  const access = await requireStaffAccess(request, [
+    "cashier",
+    "restaurant_owner",
+    "manager",
+  ]);
+  if (!access.ok) return access.response;
+
   const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
-
   const reservationId = searchParams.get("reservationId") ?? undefined;
 
   try {
@@ -33,12 +31,12 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
-
-  if (!isValidDashboardKey(key)) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, [
+    "cashier",
+    "restaurant_owner",
+    "manager",
+  ]);
+  if (!access.ok) return access.response;
 
   try {
     const body = await request.json();

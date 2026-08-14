@@ -31,7 +31,7 @@ export type ReservationRecord = {
   guests: number;
   stayPreference: string;
   message: string;
-  status: "pending" | "confirmed" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "checked_out";
   paymentReference?: string;
   staffNotes?: string;
   source: "live" | "demo";

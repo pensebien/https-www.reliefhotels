@@ -29,3 +29,31 @@ export type FolioCharge = {
 export function folioChargeTotalNgn(charge: FolioCharge): number {
   return charge.qty * charge.unitPriceNgn;
 }
+
+export type TaxBreakdown = {
+  subtotalNgn: number;
+  taxNgn: number;
+  totalNgn: number;
+};
+
+/**
+ * `pass_through`: charge.unitPriceNgn is the pre-tax price — VAT is added
+ * on top, itemized (the guest sees Subtotal + VAT = Total).
+ * `absorbed`: charge.unitPriceNgn already includes VAT — back it out for
+ * display only; the guest still sees one price, the hotel remits from margin.
+ */
+export function folioChargeBreakdown(
+  charge: FolioCharge,
+  tax: { vatPercentage: number; collectionMode: "absorbed" | "pass_through" },
+): TaxBreakdown {
+  const base = folioChargeTotalNgn(charge);
+  const rate = tax.vatPercentage / 100;
+
+  if (tax.collectionMode === "pass_through") {
+    const taxNgn = Math.round(base * rate);
+    return { subtotalNgn: base, taxNgn, totalNgn: base + taxNgn };
+  }
+
+  const subtotalNgn = Math.round(base / (1 + rate));
+  return { subtotalNgn, taxNgn: base - subtotalNgn, totalNgn: base };
+}

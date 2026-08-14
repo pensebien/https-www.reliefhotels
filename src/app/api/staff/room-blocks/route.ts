@@ -1,8 +1,5 @@
-import {
-  isValidDashboardKey,
-  unauthorizedDashboardResponse,
-} from "@/lib/dashboard-auth";
 import { addRoomBlock, listRoomBlocks } from "@/lib/db/inventory-store";
+import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 
@@ -11,13 +8,14 @@ const createBlockSchema = z.object({
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   reason: z.string().max(500).optional(),
+  blockType: z.enum(["maintenance", "housekeeping"]).optional(),
 });
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  if (!isValidDashboardKey(searchParams.get("key"))) {
-    return unauthorizedDashboardResponse();
-  }
+  // Manager has read-only access per ACCESS_MATRIX (src/lib/staff-roles.ts) —
+  // write actions below are cleaner_head only.
+  const access = await requireStaffAccess(request, ["cleaner_head", "manager"]);
+  if (!access.ok) return access.response;
 
   try {
     const blocks = await listRoomBlocks();
@@ -32,10 +30,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { searchParams } = new URL(request.url);
-  if (!isValidDashboardKey(searchParams.get("key"))) {
-    return unauthorizedDashboardResponse();
-  }
+  const access = await requireStaffAccess(request, ["cleaner_head"]);
+  if (!access.ok) return access.response;
 
   try {
     const body = await request.json();
