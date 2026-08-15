@@ -2,6 +2,10 @@ import createIntlMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import {
+  canonicalHostRedirectTarget,
+  getPublicSiteOrigin,
+} from "./lib/public-site";
+import {
   isStaffPortalHost,
   isStaffPortalPath,
   STAFF_PORTAL_HEADER,
@@ -23,8 +27,16 @@ export default function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const onStaffHost = isStaffPortalHost(host);
   const onStaffPath = isStaffPortalPath(pathname);
-  const mainSiteUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com";
+  const mainSiteUrl = getPublicSiteOrigin();
+
+  // One-way host canonicalization (apex → www when APP_URL is www).
+  // Prevents guest links from landing on a non-primary host.
+  const canonicalHost = canonicalHostRedirectTarget(host);
+  if (canonicalHost) {
+    const target = new URL(pathname + request.nextUrl.search, mainSiteUrl);
+    target.host = canonicalHost;
+    return NextResponse.redirect(target, 308);
+  }
 
   if (onStaffHost) {
     if (pathname === "/" || pathname === "") {
