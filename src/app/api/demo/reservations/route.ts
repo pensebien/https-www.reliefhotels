@@ -3,6 +3,7 @@ import { addPayment, addReservation, updateReservationById } from "@/lib/demo-st
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
 import { sendReservationEmail } from "@/lib/email";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { pushTerminalPayment, pushTransferPayment } from "@/lib/moniepoint";
 import { paymentChannelForMethod } from "@/lib/payment-methods";
 import { staffReservationSchema } from "@/lib/schemas/staff-reservation";
@@ -133,6 +134,10 @@ export async function POST(request: Request) {
         });
         if (updated) record = updated;
       }
+    }
+
+    if (record.status === "confirmed") {
+      await syncConfirmedReservationToRayza(record);
     }
 
     const emailSent = await sendReservationEmail(record);

@@ -6,6 +6,7 @@ import {
   updateReservationById,
 } from "@/lib/demo-store";
 import { sendPaymentConfirmationEmail } from "@/lib/email";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { notifyManager } from "@/lib/notifications";
 import { verifyPayment } from "@/lib/paystack";
 import { NextResponse } from "next/server";
@@ -72,10 +73,11 @@ export async function GET(request: Request) {
       });
 
       if (updated?.reservationId) {
-        await updateReservationById(updated.reservationId, {
+        const confirmed = await updateReservationById(updated.reservationId, {
           status: "confirmed",
           paymentReference: reference,
         });
+        if (confirmed) await syncConfirmedReservationToRayza(confirmed);
       }
 
       const email = result.email || updated?.email;

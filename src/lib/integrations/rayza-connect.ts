@@ -1,14 +1,7 @@
 import { rooms } from "@/content/site";
-import type { ReservationRecord } from "@/lib/demo-store";
+import { findPaymentByReference, type ReservationRecord } from "@/lib/demo-store";
 
 const DEFAULT_BASE_URL = "https://cloud-relay-nu.vercel.app";
-
-function rayzaRoomIdentifier(roomId: string | undefined): string {
-  if (!roomId) return "UNKNOWN";
-  const room = rooms.find((r) => r.id === roomId);
-  if (!room) return roomId.toUpperCase().replace(/-/g, "_");
-  return room.id.toUpperCase().replace(/-/g, "_");
-}
 
 function isRayzaEnabled(): boolean {
   return (
@@ -20,12 +13,54 @@ function isRayzaEnabled(): boolean {
 function rayzaHeaders(): HeadersInit {
   return {
     "Content-Type": "application/json",
-    authorization: process.env.RAYZA_API_KEY!.trim(),
+    // RAYZA's gateway requires the standard Bearer scheme, not a raw key.
+    Authorization: `Bearer ${process.env.RAYZA_API_KEY!.trim()}`,
   };
 }
 
 function rayzaBaseUrl(): string {
   return (process.env.RAYZA_BASE_URL ?? DEFAULT_BASE_URL).replace(/\/$/, "");
+}
+
+/**
+ * RAYZA has no separate catalog of Relief's rooms — Relief's own slug
+ * (e.g. "signature-suite") doubles as the RAYZA room identifier so both
+ * sides agree without a mapping table to keep in sync.
+ */
+export function rayzaRoomIdentifier(roomId: string | undefined): string | undefined {
+  if (!roomId) return undefined;
+  return rooms.some((room) => room.id === roomId) ? roomId : undefined;
+}
+
+export function bookingReferenceFor(record: ReservationRecord): string {
+  return record.paymentReference ?? `RH-${record.id.slice(0, 8).toUpperCase()}`;
+}
+
+/** Unwraps FastAPI's `{"detail": "..."}` / `{"detail": [{"msg": "..."}]}` error shapes. */
+export function parseRayzaErrorBody(body: string, fallback: string): string {
+  if (!body.trim()) return fallback;
+  try {
+    const parsed = JSON.parse(body) as {
+      detail?: string | { msg?: string }[];
+    };
+    if (typeof parsed.detail === "string") return parsed.detail;
+    if (Array.isArray(parsed.detail)) {
+      const messages = parsed.detail.map((d) => d.msg).filter(Boolean);
+      if (messages.length) return messages.join("; ");
+    }
+  } catch {
+    // Not JSON — fall through to the raw body.
+  }
+  return body || fallback;
+}
+
+async function resolveAmountNaira(
+  record: ReservationRecord,
+): Promise<number | undefined> {
+  if (!record.paymentReference) return undefined;
+  const payment = await findPaymentByReference(record.paymentReference);
+  if (!payment || payment.status !== "success") return undefined;
+  return payment.amountKobo / 100;
 }
 
 export type RayzaSyncResult =
@@ -41,21 +76,23 @@ export async function pushReservationToRayza(
     return { ok: true, skipped: true };
   }
 
-  const bookingReference =
-    record.paymentReference ?? `RH-${record.id.slice(0, 8).toUpperCase()}`;
+  const roomIdentifier = rayzaRoomIdentifier(record.roomId);
+  const amount = await resolveAmountNaira(record);
 
   try {
     const res = await fetch(`${rayzaBaseUrl()}/v1/bookings`, {
       method: "POST",
       headers: rayzaHeaders(),
       body: JSON.stringify({
-        booking_reference: bookingReference,
+        booking_reference: bookingReferenceFor(record),
         guest_name: `${record.firstName} ${record.lastName}`.trim(),
-        room_identifier: rayzaRoomIdentifier(record.roomId),
-        check_in: record.checkIn,
-        check_out: record.checkOut,
         guest_phone: record.phone,
         guest_email: record.email,
+        room_identifier: roomIdentifier,
+        room_type: roomIdentifier,
+        check_in: record.checkIn,
+        check_out: record.checkOut,
+        amount,
         source_platform: "relief-hotels",
         is_test: process.env.DEMO_MODE === "true",
       }),
@@ -63,7 +100,10 @@ export async function pushReservationToRayza(
 
     if (!res.ok) {
       const body = await res.text();
-      return { ok: false, error: body || `RAYZA create failed (${res.status})` };
+      return {
+        ok: false,
+        error: parseRayzaErrorBody(body, `RAYZA create failed (${res.status})`),
+      };
     }
 
     return { ok: true };
@@ -73,13 +113,26 @@ export async function pushReservationToRayza(
   }
 }
 
+/**
+ * Fire-and-forget push for background/webhook confirmation paths (Paystack
+ * verify, Moniepoint, Paystack Terminal, cashier settle, walk-in) that have
+ * no staff UI waiting on the result — failures are logged, never thrown.
+ */
+export async function syncConfirmedReservationToRayza(
+  record: ReservationRecord,
+): Promise<void> {
+  const result = await pushReservationToRayza(record);
+  if (!result.ok) {
+    console.warn("[rayza] push failed for reservation", record.id, result.error);
+  }
+}
+
 export async function cancelReservationOnRayza(
   record: ReservationRecord,
 ): Promise<RayzaSyncResult> {
   if (!isRayzaEnabled()) return { ok: true, skipped: true };
 
-  const bookingReference =
-    record.paymentReference ?? `RH-${record.id.slice(0, 8).toUpperCase()}`;
+  const bookingReference = bookingReferenceFor(record);
 
   try {
     const res = await fetch(
@@ -90,9 +143,16 @@ export async function cancelReservationOnRayza(
       },
     );
 
+    // RAYZA returns 404 once a reference is already cancelled/gone — treat
+    // that as success so double-cancels and retries stay idempotent.
+    if (res.status === 404) return { ok: true };
+
     if (!res.ok) {
       const body = await res.text();
-      return { ok: false, error: body || `RAYZA cancel failed (${res.status})` };
+      return {
+        ok: false,
+        error: parseRayzaErrorBody(body, `RAYZA cancel failed (${res.status})`),
+      };
     }
 
     return { ok: true };
