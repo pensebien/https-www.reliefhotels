@@ -1,4 +1,5 @@
 import { site } from "@/content/site";
+import { getPublicSiteOrigin } from "@/lib/public-site";
 import { getStaffPortalPublicUrl } from "@/lib/staff-portal";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
@@ -11,8 +12,7 @@ export async function StaffPortalShell({
 }) {
   const t = await getTranslations("staffPortal");
   const portalUrl = getStaffPortalPublicUrl();
-  const publicSiteUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://reliefhotelsandsuites.com";
+  const publicSiteUrl = getPublicSiteOrigin();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
