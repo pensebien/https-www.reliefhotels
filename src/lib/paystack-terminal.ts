@@ -21,6 +21,7 @@ import {
 } from "@/lib/demo-store";
 import type { PaymentRecord } from "@/lib/demo-store";
 import { getProviderMeta, saveProviderMeta } from "@/lib/cashier/store";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { paystackFetch } from "@/lib/paystack-auth";
 
 function getPaystackTerminalEnv() {
@@ -250,10 +251,11 @@ export async function syncPaystackTerminalPayment(
       status: "success",
     });
     if (updated?.reservationId) {
-      await updateReservationById(updated.reservationId, {
+      const confirmed = await updateReservationById(updated.reservationId, {
         status: "confirmed",
         paymentReference: reference,
       });
+      if (confirmed) await syncConfirmedReservationToRayza(confirmed);
     }
     return updated ?? payment;
   }
@@ -269,10 +271,11 @@ export async function syncPaystackTerminalPayment(
       externalReference: meta.offlineReference,
     });
     if (updated?.reservationId) {
-      await updateReservationById(updated.reservationId, {
+      const confirmed = await updateReservationById(updated.reservationId, {
         status: "confirmed",
         paymentReference: reference,
       });
+      if (confirmed) await syncConfirmedReservationToRayza(confirmed);
     }
     return updated ?? payment;
   }

@@ -4,6 +4,7 @@ import {
   updatePaymentByReference,
   updateReservationById,
 } from "@/lib/demo-store";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import type { MoniepointTransactionStatus } from "@/lib/moniepoint";
 import {
   getTerminalTransactionStatus,
@@ -34,10 +35,11 @@ export async function confirmMoniepointPayment(
   });
 
   if (payment.reservationId) {
-    await updateReservationById(payment.reservationId, {
+    const confirmed = await updateReservationById(payment.reservationId, {
       status: "confirmed",
       paymentReference: reference,
     });
+    if (confirmed) await syncConfirmedReservationToRayza(confirmed);
   }
 
   return {

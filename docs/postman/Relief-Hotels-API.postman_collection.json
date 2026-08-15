@@ -20,7 +20,7 @@
     },
     {
       "key": "rayza_room_identifier",
-      "value": "SIGNATURE_SUITE"
+      "value": "signature-suite"
     },
     {
       "key": "relief_base_url",
@@ -62,7 +62,7 @@
   "item": [
     {
       "name": "RAYZA Connect (SaaS relay)",
-      "description": "RAYZA Connect relay API at `{{rayza_base_url}}`. Authenticate with the `authorization` header (API key). OpenAPI: `/openapi.json`, Swagger UI: `/docs`.",
+      "description": "RAYZA Connect relay API at `{{rayza_base_url}}`. Authenticate with `authorization: Bearer <api_key>` (the raw key alone returns 401). OpenAPI: `/openapi.json`, Swagger UI: `/docs`.",
       "item": [
         {
           "name": "Create booking (test mode)",
@@ -71,7 +71,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               },
               {
@@ -132,7 +132,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               },
               {
@@ -193,7 +193,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               }
             ],
@@ -234,7 +234,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               }
             ],
@@ -275,7 +275,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               }
             ],
@@ -338,7 +338,7 @@
             "header": [
               {
                 "key": "authorization",
-                "value": "{{rayza_api_key}}",
+                "value": "Bearer {{rayza_api_key}}",
                 "type": "text"
               },
               {
