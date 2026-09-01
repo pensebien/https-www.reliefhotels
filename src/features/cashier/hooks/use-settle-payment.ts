@@ -22,6 +22,9 @@ export type SettleStage =
 const POLL_INTERVAL_MS = 2500;
 const MAX_POLL_ATTEMPTS = 24; // ~1 minute
 
+/** How long a Card/Transfer settle polls before giving up — keep any countdown UI in sync with this. */
+export const SETTLE_POLL_TIMEOUT_SECONDS = (MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS) / 1000;
+
 export function useSettlePayment(key: string | null) {
   const [stage, setStage] = useState<SettleStage>("idle");
   const [error, setError] = useState<string | null>(null);

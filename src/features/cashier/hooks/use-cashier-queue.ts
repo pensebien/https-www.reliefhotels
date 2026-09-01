@@ -3,7 +3,9 @@
 import { fetchCashierQueue, isCashierError } from "@/features/cashier/lib/api";
 import { isUnsettledReservation } from "@/features/cashier/lib/helpers";
 import type {
+  CashierMoniepointConfig,
   CashierPayment,
+  CashierPaystackTerminalConfig,
   CashierReservation,
 } from "@/features/cashier/types";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -11,6 +13,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 export function useCashierQueue(key: string | null) {
   const [reservations, setReservations] = useState<CashierReservation[]>([]);
   const [payments, setPayments] = useState<CashierPayment[]>([]);
+  const [moniepointConfig, setMoniepointConfig] =
+    useState<CashierMoniepointConfig | undefined>(undefined);
+  const [paystackTerminalConfig, setPaystackTerminalConfig] =
+    useState<CashierPaystackTerminalConfig | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notDeployed, setNotDeployed] = useState(false);
@@ -29,6 +35,8 @@ export function useCashierQueue(key: string | null) {
     } else {
       setReservations(result.reservations ?? []);
       setPayments(result.payments ?? []);
+      setMoniepointConfig(result.moniepoint);
+      setPaystackTerminalConfig(result.paystackTerminal);
     }
     setLoading(false);
     setLoadedOnce(true);
@@ -80,6 +88,8 @@ export function useCashierQueue(key: string | null) {
     loadedOnce,
     unsettledReservations,
     activeReservations,
+    moniepointConfig,
+    paystackTerminalConfig,
     isSettled: (reservationId: string) =>
       successfulPaymentReservationIds.has(reservationId),
     refresh: () => key && load(key),

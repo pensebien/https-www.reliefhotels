@@ -47,7 +47,12 @@ export type DashboardPaymentRow = {
   itemType?: "room" | "tour";
   itemId?: string;
   itemLabel: string;
-  paymentMethod?: "cash" | "moniepoint_terminal" | "moniepoint_transfer" | "paystack";
+  paymentMethod?:
+    | "cash"
+    | "moniepoint_terminal"
+    | "moniepoint_transfer"
+    | "paystack_terminal"
+    | "paystack";
   source: string;
   createdAt: string;
 };

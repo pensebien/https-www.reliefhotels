@@ -3,7 +3,9 @@
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
 import { celebrateSuccess } from "@/lib/celebrate";
+import { resolveCardTerminalMethod } from "@/lib/payment-methods";
 import type { StaffPaymentOption } from "@/lib/payment-methods";
+import { formatCountdown, useCountdown } from "@/lib/use-countdown";
 import { isValidYmd, parseYmd, formatYmd, addDays } from "@/lib/reservation-dates";
 import { cn, formatNaira } from "@/lib/utils";
 import { Loader2, Plus, X } from "lucide-react";
@@ -35,6 +37,26 @@ export type MoniepointPublicConfig = {
   } | null;
 };
 
+export type PaystackTerminalPublicConfig = {
+  configured: boolean;
+  demoMode: boolean;
+};
+
+/** Front-desk payment options grouped the way staff pick them: Card / Transfer / Cash. */
+type UiPaymentGroup = "none" | "cash" | "card" | "transfer";
+
+const UI_PAYMENT_GROUPS: UiPaymentGroup[] = ["none", "cash", "card", "transfer"];
+
+function uiGroupForMethod(method: StaffPaymentOption): UiPaymentGroup {
+  if (method === "none") return "none";
+  if (method === "cash") return "cash";
+  if (method === "moniepoint_transfer") return "transfer";
+  return "card"; // moniepoint_terminal | paystack_terminal
+}
+
+/** How long staff have to complete a bank transfer before the wait screen flags it as expired. */
+const TRANSFER_WINDOW_SECONDS = 30 * 60;
+
 type FormState = {
   firstName: string;
   lastName: string;
@@ -51,13 +73,6 @@ type FormState = {
 
 const inputClassName =
   "h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-teal focus:ring-2 focus:ring-teal/20";
-
-const PAYMENT_OPTIONS: StaffPaymentOption[] = [
-  "none",
-  "cash",
-  "moniepoint_terminal",
-  "moniepoint_transfer",
-];
 
 function defaultCheckOut(checkIn: string): string {
   try {
@@ -104,6 +119,7 @@ export function StaffCreateReservationDialog({
   dashboardKey,
   roomOptions,
   moniepointConfig,
+  paystackTerminalConfig,
   onCreated,
   seed = null,
 }: {
@@ -112,6 +128,7 @@ export function StaffCreateReservationDialog({
   dashboardKey: string;
   roomOptions: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
+  paystackTerminalConfig?: PaystackTerminalPublicConfig;
   onCreated: () => void;
   /** Prefill when opening from an occupancy calendar free cell. */
   seed?: StaffCreateReservationSeed | null;
@@ -119,6 +136,11 @@ export function StaffCreateReservationDialog({
   const t = useTranslations("demo");
   const closeRef = useRef<HTMLButtonElement>(null);
   const today = formatYmd(new Date());
+
+  const cardMethod = resolveCardTerminalMethod({
+    paystackTerminalConfigured: paystackTerminalConfig?.configured ?? false,
+    moniepointTerminalConfigured: moniepointConfig?.terminalConfigured ?? false,
+  });
 
   const [form, setForm] = useState<FormState>(() =>
     initialForm(roomOptions[0]?.id ?? "", today),
@@ -130,7 +152,7 @@ export function StaffCreateReservationDialog({
   const [submitting, setSubmitting] = useState(false);
   const [waitingPayment, setWaitingPayment] = useState<{
     reference: string;
-    method: "moniepoint_terminal" | "moniepoint_transfer";
+    method: "moniepoint_terminal" | "moniepoint_transfer" | "paystack_terminal";
   } | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<
     "pending" | "success" | "failed" | null
@@ -138,6 +160,13 @@ export function StaffCreateReservationDialog({
 
   const selectedRoom = roomOptions.find((room) => room.id === form.roomId);
   const collectsDeposit = form.paymentMethod !== "none";
+  const transferSecondsRemaining = useCountdown(
+    waitingPayment?.method === "moniepoint_transfer",
+    TRANSFER_WINDOW_SECONDS,
+  );
+  const transferExpired =
+    waitingPayment?.method === "moniepoint_transfer" &&
+    transferSecondsRemaining <= 0;
 
   const nights = useMemo(() => {
     if (!isValidYmd(form.checkIn) || !isValidYmd(form.checkOut)) return 0;
@@ -261,7 +290,7 @@ export function StaffCreateReservationDialog({
         const method = value as StaffPaymentOption;
         if (method === "none") {
           next.status = "pending";
-        } else if (method === "moniepoint_terminal") {
+        } else if (method === "moniepoint_terminal" || method === "paystack_terminal") {
           next.status = "pending";
         } else {
           next.status = "confirmed";
@@ -303,6 +332,7 @@ export function StaffCreateReservationDialog({
     if (
       form.paymentMethod !== "none" &&
       form.paymentMethod !== "moniepoint_terminal" &&
+      form.paymentMethod !== "paystack_terminal" &&
       form.status !== "confirmed"
     ) {
       errors.status = t("createReservation.errors.depositNeedsConfirmed");
@@ -358,7 +388,8 @@ export function StaffCreateReservationDialog({
         body?.paymentPending &&
         body.paymentReference &&
         (body.paymentMethod === "moniepoint_terminal" ||
-          body.paymentMethod === "moniepoint_transfer")
+          body.paymentMethod === "moniepoint_transfer" ||
+          body.paymentMethod === "paystack_terminal")
       ) {
         setWaitingPayment({
           reference: body.paymentReference,
@@ -448,8 +479,22 @@ export function StaffCreateReservationDialog({
                 </p>
               </div>
             ) : null}
+            {waitingPayment.method === "moniepoint_transfer" &&
+            paymentStatus === "pending" ? (
+              <div
+                className={cn(
+                  "flex items-center justify-center rounded-lg border px-3 py-2 font-mono text-lg tabular-nums tracking-wider",
+                  transferExpired
+                    ? "border-amber-400/60 text-amber-700 dark:text-amber-300"
+                    : "border-border",
+                )}
+                aria-live="polite"
+              >
+                {formatCountdown(transferSecondsRemaining)}
+              </div>
+            ) : null}
             <div className="flex items-center gap-3 text-sm">
-              {paymentStatus === "pending" ? (
+              {paymentStatus === "pending" && !transferExpired ? (
                 <Loader2 className="h-5 w-5 animate-spin text-teal" aria-hidden />
               ) : null}
               <p>
@@ -457,17 +502,21 @@ export function StaffCreateReservationDialog({
                   ? t("createReservation.terminalSuccess")
                   : paymentStatus === "failed"
                     ? t("createReservation.terminalFailed")
-                    : waitingPayment.method === "moniepoint_transfer"
-                      ? t("createReservation.transferPending")
-                      : t("createReservation.terminalPending")}
+                    : transferExpired
+                      ? t("createReservation.transferExpired")
+                      : waitingPayment.method === "moniepoint_transfer"
+                        ? t("createReservation.transferPending")
+                        : t("createReservation.terminalPending")}
               </p>
             </div>
-            <p className="text-xs text-muted">
-              {waitingPayment.method === "moniepoint_transfer"
-                ? t("createReservation.transferHint")
-                : t("createReservation.terminalHint")}
-            </p>
-            {paymentStatus === "failed" ? (
+            {!transferExpired ? (
+              <p className="text-xs text-muted">
+                {waitingPayment.method === "moniepoint_transfer"
+                  ? t("createReservation.transferHint")
+                  : t("createReservation.terminalHint")}
+              </p>
+            ) : null}
+            {paymentStatus === "failed" || transferExpired ? (
               <button
                 type="button"
                 onClick={() => {
@@ -601,33 +650,41 @@ export function StaffCreateReservationDialog({
                   {t("createReservation.paymentMethod")}
                 </legend>
                 <div className="space-y-2">
-                  {PAYMENT_OPTIONS.map((option) => (
-                    <label
-                      key={option}
-                      className={cn(
-                        "flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors",
-                        form.paymentMethod === option
-                          ? "border-teal bg-teal/5"
-                          : "border-border",
-                      )}
-                    >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        className="mt-1"
-                        checked={form.paymentMethod === option}
-                        onChange={() => updateField("paymentMethod", option)}
-                      />
-                      <span className="text-sm">
-                        <span className="font-medium">
-                          {t(`createReservation.paymentMethods.${option}`)}
+                  {UI_PAYMENT_GROUPS.map((group) => {
+                    const method: StaffPaymentOption =
+                      group === "card"
+                        ? cardMethod
+                        : group === "transfer"
+                          ? "moniepoint_transfer"
+                          : group;
+                    return (
+                      <label
+                        key={group}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-3 transition-colors",
+                          uiGroupForMethod(form.paymentMethod) === group
+                            ? "border-teal bg-teal/5"
+                            : "border-border",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          className="mt-1"
+                          checked={uiGroupForMethod(form.paymentMethod) === group}
+                          onChange={() => updateField("paymentMethod", method)}
+                        />
+                        <span className="text-sm">
+                          <span className="font-medium">
+                            {t(`createReservation.paymentMethods.${group}`)}
+                          </span>
+                          <span className="mt-0.5 block text-muted">
+                            {t(`createReservation.paymentMethods.${group}Hint`)}
+                          </span>
                         </span>
-                        <span className="mt-0.5 block text-muted">
-                          {t(`createReservation.paymentMethods.${option}Hint`)}
-                        </span>
-                      </span>
-                    </label>
-                  ))}
+                      </label>
+                    );
+                  })}
                 </div>
               </fieldset>
 
@@ -661,6 +718,13 @@ export function StaffCreateReservationDialog({
               !moniepointConfig.demoMode ? (
                 <p className="text-xs text-amber-700 dark:text-amber-200">
                   {t("createReservation.terminalNotConfigured")}
+                </p>
+              ) : null}
+
+              {form.paymentMethod === "paystack_terminal" &&
+              paystackTerminalConfig?.demoMode ? (
+                <p className="text-xs text-amber-700 dark:text-amber-200">
+                  {t("createReservation.paystackTerminalNotConfigured")}
                 </p>
               ) : null}
 
