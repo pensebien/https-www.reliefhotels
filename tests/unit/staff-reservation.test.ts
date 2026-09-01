@@ -32,4 +32,19 @@ describe("staffReservationSchema", () => {
     });
     assert.equal(parsed.success, true);
   });
+
+  it("accepts paystack terminal (Card) without requiring confirmed status", () => {
+    const parsed = staffReservationSchema.safeParse({
+      firstName: "Ada",
+      lastName: "Okonkwo",
+      email: "ada@example.com",
+      roomId: "guest-room",
+      checkIn: "2026-09-01",
+      checkOut: "2026-09-03",
+      guests: 2,
+      paymentMethod: "paystack_terminal",
+      status: "pending",
+    });
+    assert.equal(parsed.success, true);
+  });
 });

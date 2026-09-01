@@ -24,6 +24,7 @@ import {
 import {
   StaffCreateReservationDialog,
   type MoniepointPublicConfig,
+  type PaystackTerminalPublicConfig,
   type StaffCreateReservationSeed,
   type StaffRoomOption,
 } from "./staff-create-reservation-dialog";
@@ -55,6 +56,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   dashboardKey,
   roomOptions = [],
   moniepointConfig,
+  paystackTerminalConfig,
   onActivityChange,
 }: {
   reservations: CalendarReservation[];
@@ -65,6 +67,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   dashboardKey?: string;
   roomOptions?: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
+  paystackTerminalConfig?: PaystackTerminalPublicConfig;
   onActivityChange?: () => void;
 }) {
   const t = useTranslations("demo");
@@ -454,6 +457,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
           dashboardKey={dashboardKey}
           roomOptions={roomOptions}
           moniepointConfig={moniepointConfig}
+          paystackTerminalConfig={paystackTerminalConfig}
           seed={createSeed}
           onCreated={() => onActivityChange?.()}
         />

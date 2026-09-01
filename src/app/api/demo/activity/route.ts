@@ -4,6 +4,7 @@ import { listRoomBlocks } from "@/lib/db/inventory-store";
 import { getActivity } from "@/lib/demo-store";
 import { getEventInquiries, getGuestFeedback } from "@/lib/inquiry-store";
 import { getMoniepointPublicConfig } from "@/lib/moniepoint";
+import { getPaystackTerminalPublicConfig } from "@/lib/paystack-terminal";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
         notifyChannel: config.notifications.channel,
       },
       moniepoint: getMoniepointPublicConfig(),
+      paystackTerminal: getPaystackTerminalPublicConfig(),
       ...activity,
       eventInquiries,
       guestFeedback,
