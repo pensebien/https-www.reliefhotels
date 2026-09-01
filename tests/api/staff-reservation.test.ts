@@ -138,4 +138,39 @@ describe("POST /api/demo/reservations", () => {
     assert.equal(body.paymentPending, true);
     assert.ok(body.paymentReference?.startsWith("RH-MPTF-"));
   });
+
+  it("creates pending terminal payment for paystack terminal (Card, demo mode)", async () => {
+    const { POST } = await import("@/app/api/demo/reservations/route");
+    const email = `paystack-pos-${Date.now()}@example.com`;
+    const res = await POST(
+      new Request(
+        "http://localhost/api/demo/reservations?key=test-dashboard-key",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName: "Card",
+            lastName: "Guest",
+            email,
+            roomId: "guest-room",
+            checkIn: "2026-10-10",
+            checkOut: "2026-10-11",
+            guests: 1,
+            paymentMethod: "paystack_terminal",
+            status: "pending",
+          }),
+        },
+      ),
+    );
+
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as {
+      paymentPending?: boolean;
+      paymentReference?: string;
+      paymentMethod?: string;
+    };
+    assert.equal(body.paymentMethod, "paystack_terminal");
+    assert.equal(body.paymentPending, true);
+    assert.ok(body.paymentReference?.startsWith("RH-PSPOS-"));
+  });
 });

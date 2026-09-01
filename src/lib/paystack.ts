@@ -42,6 +42,8 @@ export async function initializePayment(
     itemType: input.itemType,
     itemId: input.itemId,
     itemLabel: input.itemLabel,
+    paymentMethod: "paystack",
+    paymentChannel: "paystack",
   });
 
   if (config.demoMode || !config.paystack.configured) {

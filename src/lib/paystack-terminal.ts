@@ -40,6 +40,16 @@ export function isPaystackTerminalConfigured(): boolean {
   return getPaystackTerminalEnv().configured;
 }
 
+export type PaystackTerminalPublicConfig = {
+  configured: boolean;
+  demoMode: boolean;
+};
+
+export function getPaystackTerminalPublicConfig(): PaystackTerminalPublicConfig {
+  const env = getPaystackTerminalEnv();
+  return { configured: env.configured, demoMode: env.demoMode };
+}
+
 async function resolveCustomerCode(email: string, name?: string): Promise<string> {
   const env = getPaystackTerminalEnv();
 

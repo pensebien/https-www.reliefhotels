@@ -6,6 +6,7 @@ import { sendReservationEmail } from "@/lib/email";
 import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { pushTerminalPayment, pushTransferPayment } from "@/lib/moniepoint";
 import { paymentChannelForMethod } from "@/lib/payment-methods";
+import { createPaystackTerminalSettlement } from "@/lib/paystack-terminal";
 import { staffReservationSchema } from "@/lib/schemas/staff-reservation";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import {
@@ -52,11 +53,12 @@ export async function POST(request: Request) {
     ].join(" · ");
 
     const collectsDeposit = data.paymentMethod !== "none";
-    const awaitsMoniepoint =
+    const awaitsProviderPush =
       data.paymentMethod === "moniepoint_terminal" ||
-      data.paymentMethod === "moniepoint_transfer";
+      data.paymentMethod === "moniepoint_transfer" ||
+      data.paymentMethod === "paystack_terminal";
 
-    const reservationStatus = awaitsMoniepoint
+    const reservationStatus = awaitsProviderPush
       ? "pending"
       : collectsDeposit
         ? "confirmed"
@@ -81,14 +83,14 @@ export async function POST(request: Request) {
 
     let paymentReference: string | undefined;
     let paymentPending = false;
-    let moniepointPushed = false;
+    let pushAccepted = false;
 
     if (collectsDeposit && data.paymentMethod !== "none") {
       const method = data.paymentMethod;
       paymentReference = frontDeskPaymentReference(method);
       const channel = paymentChannelForMethod(method);
 
-      const paymentStatus = awaitsMoniepoint ? "pending" : "success";
+      const paymentStatus = awaitsProviderPush ? "pending" : "success";
 
       await addPayment({
         reference: paymentReference,
@@ -111,18 +113,28 @@ export async function POST(request: Request) {
           merchantReference: paymentReference,
           paymentMethod: "ANY",
         });
-        moniepointPushed = push.accepted;
+        pushAccepted = push.accepted;
         paymentPending = true;
       } else if (method === "moniepoint_transfer") {
         const push = await pushTransferPayment({
           amountKobo: depositNgn * 100,
           merchantReference: paymentReference,
         });
-        moniepointPushed = push.accepted;
+        pushAccepted = push.accepted;
+        paymentPending = true;
+      } else if (method === "paystack_terminal") {
+        await createPaystackTerminalSettlement({
+          email: record.email,
+          name: `${record.firstName} ${record.lastName}`,
+          amountKobo: depositNgn * 100,
+          reference: paymentReference,
+          description: paymentItemLabel(room.id, method),
+        });
+        pushAccepted = true;
         paymentPending = true;
       }
 
-      if (awaitsMoniepoint) {
+      if (awaitsProviderPush) {
         const updated = await updateReservationById(record.id, {
           paymentReference,
         });
@@ -152,7 +164,7 @@ export async function POST(request: Request) {
       paymentReference,
       paymentMethod: collectsDeposit ? data.paymentMethod : undefined,
       paymentPending,
-      moniepointPushed,
+      pushAccepted,
       depositNgn: collectsDeposit ? depositNgn : undefined,
       emailSent,
       reservation: record,

@@ -52,6 +52,8 @@ export function CashierClient() {
     loadedOnce,
     unsettledReservations,
     activeReservations,
+    moniepointConfig,
+    paystackTerminalConfig,
     refresh,
   } = useCashierQueue(key);
 
@@ -237,6 +239,8 @@ export function CashierClient() {
         <CashierSettlePanel
           reservation={selected}
           cashierKey={key}
+          moniepointConfig={moniepointConfig}
+          paystackTerminalConfig={paystackTerminalConfig}
           onBack={() => setSelected(null)}
           onSettled={() => {
             setSelected(null);
