@@ -1,4 +1,6 @@
+import { findPaymentByReference } from "@/lib/demo-store";
 import { syncMoniepointPushPayment } from "@/lib/moniepoint-sync";
+import { syncPaystackTerminalPayment } from "@/lib/paystack-terminal";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
@@ -12,6 +14,24 @@ export async function GET(
   const { reference } = await context.params;
 
   try {
+    const payment = await findPaymentByReference(reference);
+    if (!payment) {
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
+
+    if (payment.paymentMethod === "paystack_terminal") {
+      const updated = await syncPaystackTerminalPayment(reference);
+      if (!updated) {
+        return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+      }
+      return NextResponse.json({
+        ok: true,
+        reference,
+        status: updated.status,
+        payment: updated,
+      });
+    }
+
     const result = await syncMoniepointPushPayment(reference);
     if ("reason" in result) {
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });

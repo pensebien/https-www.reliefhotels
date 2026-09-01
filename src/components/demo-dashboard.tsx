@@ -91,6 +91,10 @@ type Activity = {
       accountName: string;
     } | null;
   };
+  paystackTerminal?: {
+    configured: boolean;
+    demoMode: boolean;
+  };
   reservations: DashboardReservationRow[];
   payments: DashboardPaymentRow[];
   eventInquiries?: EventInquiryRow[];
@@ -641,6 +645,7 @@ export function DemoDashboard({
               dashboardKey={key}
               roomOptions={roomOptions}
               moniepointConfig={data?.moniepoint}
+              paystackTerminalConfig={data?.paystackTerminal}
               onActivityChange={() => load(key)}
             />
           ) : variant === "portal" ? (
@@ -676,6 +681,7 @@ export function DemoDashboard({
         dashboardKey={key}
         roomOptions={roomOptions}
         moniepointConfig={data?.moniepoint}
+        paystackTerminalConfig={data?.paystackTerminal}
         onCreated={() => load(key)}
       />
     </div>

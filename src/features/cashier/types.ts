@@ -47,10 +47,23 @@ export type CashierPayment = {
   createdAt: string;
 };
 
+export type CashierMoniepointConfig = {
+  configured: boolean;
+  terminalConfigured: boolean;
+  demoMode: boolean;
+};
+
+export type CashierPaystackTerminalConfig = {
+  configured: boolean;
+  demoMode: boolean;
+};
+
 export type CashierActivityResponse = {
   ok?: boolean;
   reservations: CashierReservation[];
   payments: CashierPayment[];
+  moniepoint?: CashierMoniepointConfig;
+  paystackTerminal?: CashierPaystackTerminalConfig;
 };
 
 export type CashierSettleRequest = {

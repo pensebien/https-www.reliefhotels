@@ -54,7 +54,8 @@ export const staffReservationSchema = z
     if (data.paymentMethod !== "none" && data.status === "pending") {
       if (
         data.paymentMethod !== "moniepoint_terminal" &&
-        data.paymentMethod !== "moniepoint_transfer"
+        data.paymentMethod !== "moniepoint_transfer" &&
+        data.paymentMethod !== "paystack_terminal"
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
