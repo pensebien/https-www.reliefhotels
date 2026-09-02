@@ -21,7 +21,7 @@ import {
 } from "@/lib/demo-store";
 import type { PaymentRecord } from "@/lib/demo-store";
 import { getProviderMeta, saveProviderMeta } from "@/lib/cashier/store";
-import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
+import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { paystackFetch } from "@/lib/paystack-auth";
 
 function getPaystackTerminalEnv() {
@@ -276,7 +276,7 @@ export async function syncPaystackTerminalPayment(
         status: "confirmed",
         paymentReference: reference,
       });
-      if (confirmed) await syncConfirmedReservationToRayza(confirmed);
+      if (confirmed) await handlePaymentConfirmed(updated, confirmed);
     }
     return updated ?? payment;
   }
@@ -296,7 +296,7 @@ export async function syncPaystackTerminalPayment(
         status: "confirmed",
         paymentReference: reference,
       });
-      if (confirmed) await syncConfirmedReservationToRayza(confirmed);
+      if (confirmed) await handlePaymentConfirmed(updated, confirmed);
     }
     return updated ?? payment;
   }
