@@ -1,7 +1,7 @@
 "use client";
 
+import { BookStayButton } from "@/components/book-stay-button";
 import { media } from "@/content/site";
-import { Link } from "@/i18n/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -31,8 +31,7 @@ export function HeroSection() {
             <h1 className="font-serif text-4xl font-bold leading-tight sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl">
               {t("title")}
             </h1>
-            <Link
-              href="/#contact"
+            <BookStayButton
               aria-label={t("cta")}
               className="group inline-flex rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
@@ -41,7 +40,7 @@ export function HeroSection() {
                   <ArrowUpRight className="h-6 w-6" aria-hidden />
                 </span>
               </span>
-            </Link>
+            </BookStayButton>
           </div>
         </div>
       </div>

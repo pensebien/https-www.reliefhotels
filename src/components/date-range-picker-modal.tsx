@@ -1,5 +1,6 @@
 "use client";
 
+import { lockBodyScroll, unlockBodyScroll } from "@/lib/body-scroll-lock";
 import { cn } from "@/lib/utils";
 import {
   addDays,
@@ -13,6 +14,7 @@ import { enUS, fr } from "date-fns/locale";
 import { ArrowRight, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { type DateRange, DayPicker } from "react-day-picker";
 import { enUS as rdpEn, fr as rdpFr } from "react-day-picker/locale";
 import "react-day-picker/style.css";
@@ -59,9 +61,14 @@ export function DateRangePickerModal({
   const t = useTranslations("propertyBar");
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const today = startOfDay(new Date());
   const dayPickerLocale = locale === "fr" ? rdpFr : rdpEn;
   const monthTabsStart = useMemo(() => startOfMonth(today), [today]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [range, setRange] = useState<DateRange | undefined>(() => ({
     from: parseDateString(checkIn),
@@ -92,15 +99,14 @@ export function DateRangePickerModal({
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     panelRef.current?.focus();
     return () => {
-      document.body.style.overflow = prev;
+      unlockBodyScroll();
       window.removeEventListener("keydown", onKey);
     };
   }, [open, onClose]);
@@ -135,7 +141,7 @@ export function DateRangePickerModal({
     onClose();
   }
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const checkInDisplay = range?.from
     ? formatFooterDate(range.from, locale)
@@ -146,14 +152,14 @@ export function DateRangePickerModal({
       ? t("datesSelectCheckout")
       : "—";
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[210] flex items-center justify-center p-4 sm:p-6"
       role="presentation"
     >
       <button
         type="button"
-        className="absolute inset-0 bg-black/55 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
         aria-label={t("datesModalClose")}
         onClick={onClose}
       />
@@ -163,12 +169,12 @@ export function DateRangePickerModal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative z-10 flex w-full max-w-[52rem] flex-col overflow-hidden rounded-xl bg-white text-neutral-900 shadow-2xl outline-none"
+        className="relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-[min(52rem,100%)] flex-col overflow-hidden rounded-xl bg-white text-neutral-900 shadow-2xl outline-none"
       >
-        <header className="relative border-b border-neutral-200 px-6 py-5">
+        <header className="relative shrink-0 border-b border-neutral-200 px-4 py-4 sm:px-6 sm:py-5">
           <h2
             id={titleId}
-            className="text-center text-xl font-bold tracking-tight text-neutral-900"
+            className="pr-10 text-center text-lg font-bold tracking-tight text-neutral-900 sm:text-xl"
           >
             {t("datesModalTitle")}
           </h2>
@@ -176,7 +182,7 @@ export function DateRangePickerModal({
             type="button"
             onClick={onClose}
             aria-label={t("datesModalClose")}
-            className="absolute right-4 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md border border-[#104c97] text-[#104c97] transition-colors hover:bg-[#104c97]/5"
+            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-md border border-[#104c97] text-[#104c97] transition-colors hover:bg-[#104c97]/5 sm:right-4"
           >
             <X className="h-5 w-5" strokeWidth={2} aria-hidden />
           </button>
@@ -184,7 +190,7 @@ export function DateRangePickerModal({
 
         <nav
           aria-label={t("datesMonthNavAria")}
-          className="flex gap-0 overflow-x-auto border-b border-neutral-200 px-2 scrollbar-thin"
+          className="flex shrink-0 gap-0 overflow-x-auto border-b border-neutral-200 px-2 scrollbar-thin"
         >
           {monthTabs.map((month) => {
             const active = isSameMonth(month, displayMonth);
@@ -206,7 +212,7 @@ export function DateRangePickerModal({
           })}
         </nav>
 
-        <div className="hilton-date-picker px-4 py-6 text-neutral-900 sm:px-8">
+        <div className="hilton-date-picker min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 text-neutral-900 sm:px-8 sm:py-6">
           <DayPicker
             mode="range"
             numberOfMonths={monthCount}
@@ -219,15 +225,15 @@ export function DateRangePickerModal({
             showOutsideDays
             hideNavigation
             fixedWeeks
-            className="mx-auto"
+            className="mx-auto w-full max-w-full"
             styles={{
-              root: { margin: 0 },
+              root: { margin: 0, width: "100%" },
             }}
           />
         </div>
 
-        <footer className="border-t border-neutral-200 px-6 py-5">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <footer className="shrink-0 border-t border-neutral-200 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-5">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-neutral-800">
               <input
                 type="checkbox"
@@ -238,15 +244,15 @@ export function DateRangePickerModal({
               {t("shopByPrice")}
             </label>
 
-            <div className="flex flex-wrap items-end justify-end gap-4 sm:gap-6">
-              <div className="flex flex-wrap items-end gap-3 text-sm sm:gap-4">
-                <div>
+            <div className="flex flex-wrap items-end justify-between gap-3 sm:justify-end sm:gap-6">
+              <div className="flex min-w-0 flex-wrap items-end gap-2 text-sm sm:gap-4">
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
                     {t("checkIn")}
                   </p>
                   <p
                     className={cn(
-                      "mt-0.5 font-medium text-neutral-900",
+                      "mt-0.5 truncate font-medium text-neutral-900",
                       activeField === "checkIn" && "border-b-2 border-[#104c97] pb-0.5",
                     )}
                   >
@@ -257,13 +263,13 @@ export function DateRangePickerModal({
                   className="mb-1 h-4 w-4 shrink-0 text-neutral-500"
                   aria-hidden
                 />
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-semibold uppercase tracking-wide text-neutral-600">
                     {t("checkOut")}
                   </p>
                   <p
                     className={cn(
-                      "mt-0.5 font-medium text-neutral-900",
+                      "mt-0.5 truncate font-medium text-neutral-900",
                       activeField === "checkOut" && "border-b-2 border-[#104c97] pb-0.5",
                     )}
                   >
@@ -293,7 +299,8 @@ export function DateRangePickerModal({
           </div>
         </footer>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -319,7 +326,7 @@ export function DateRangeTrigger({
       aria-label={`${checkInAria}, ${checkOutAria}`}
       aria-expanded={isOpen}
       className={cn(
-        "group/datePicker flex items-stretch overflow-hidden rounded-md border bg-white transition-[border-color,box-shadow]",
+        "group/datePicker flex w-full min-w-0 items-stretch overflow-hidden rounded-md border bg-white transition-[border-color,box-shadow]",
         isOpen
           ? "border-[#104c97] shadow-sm"
           : "border-transparent hover:border-[#104c97] hover:shadow-sm",
@@ -328,7 +335,7 @@ export function DateRangeTrigger({
       <DateDisplay {...checkInLabel} />
       <div
         className={cn(
-          "w-px self-stretch transition-colors",
+          "w-px shrink-0 self-stretch transition-colors",
           isOpen ? "bg-neutral-200" : "bg-transparent group-hover/datePicker:bg-neutral-200",
         )}
         aria-hidden
@@ -348,12 +355,12 @@ function DateDisplay({
   weekday: string;
 }) {
   return (
-    <span className="flex h-12 min-w-[4.75rem] cursor-pointer items-center px-2.5 sm:min-w-[5.25rem]">
-      <span className="flex items-center gap-2 whitespace-nowrap">
-        <span className="text-3xl font-bold leading-none text-[#104c97] sm:text-4xl">
+    <span className="flex h-12 min-w-0 flex-1 cursor-pointer items-center px-2 sm:min-w-[5.25rem] sm:px-2.5">
+      <span className="flex min-w-0 items-center gap-1.5 whitespace-nowrap sm:gap-2">
+        <span className="text-2xl font-bold leading-none text-[#104c97] sm:text-4xl">
           {day}
         </span>
-        <span className="flex flex-col leading-tight">
+        <span className="flex min-w-0 flex-col leading-tight">
           <span className="text-[10px] font-bold tracking-wide text-[#104c97] sm:text-[11px]">
             {month}
           </span>

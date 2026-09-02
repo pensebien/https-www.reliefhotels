@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 import { StaffPortalShell } from "@/components/staff-portal-shell";
 import { StructuredDataScript } from "@/components/structured-data-script";
 import { ThemeScript } from "@/components/theme-script";
+import { WhatsAppFloat } from "@/components/whatsapp-float";
 import { site, structuredData } from "@/content/site";
 import { routing } from "@/i18n/routing";
 import { STAFF_PORTAL_HEADER } from "@/lib/staff-portal";
@@ -110,6 +111,7 @@ export default async function LocaleLayout({
               <SiteHeader />
               <main className="flex-1">{children}</main>
               <SiteFooter />
+              <WhatsAppFloat />
             </>
           )}
         </NextIntlClientProvider>

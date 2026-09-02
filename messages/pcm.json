@@ -56,6 +56,10 @@
     "apply": "Apply",
     "checkRoomsRates": "Check Rooms & Rates"
   },
+  "bookStay": {
+    "title": "Book your stay",
+    "subtitle": "Choose your dates and guests, then check available rooms and rates."
+  },
   "intro": {
     "title": "Better escape with kind service, fine interior, and experiences wey dem pick well for people wey sabi travel."
   },
@@ -146,6 +150,10 @@
     "suites": "Suites with separate living area, marble bath, and elevated comfort.",
     "penthouse": "Penthouse with panoramic view and bespoke service."
   },
+  "whatsapp": {
+    "label": "Chat for WhatsApp",
+    "ariaLabel": "Chat for WhatsApp for {phone}"
+  },
   "contact": {
     "eyebrow": "Contact Us",
     "title": "Make our team arrange stay wey full comfort, celebration, and easy luxury.",
@@ -154,7 +162,7 @@
     "location": "Location",
     "formBadge": "Talk to us",
     "formTitle": "Send us message",
-    "formDescription": "Question, special request, or feedback about your stay — our team go reply quick. To book room, use Check Rooms & Rates for di top.",
+    "formDescription": "Question, special request, or feedback about your stay — our team go reply quick. To book room, use Book your stay below.",
     "firstName": "First name",
     "lastName": "Last name",
     "phoneOptional": "Phone (optional)",
@@ -166,7 +174,10 @@
     "success": "Thank you. Our team go review your message soon.",
     "successEmail": "Copy don go to our customer service team.",
     "successDemo": "Demo mode: message saved — check Messages for di demo dashboard.",
-    "error": "Something fail. Try again or call us."
+    "error": "Something fail. Try again or call us.",
+    "bookStay": "Book your stay",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Message us anytime — we go reply during service hours."
   },
   "form": {
     "stay": {
@@ -186,7 +197,8 @@
     "contactLink": "Contact",
     "contact": "Contact",
     "rights": "All rights reserved.",
-    "tagline": "Luxury stay, bespoke service, memorable arrival for Calabar."
+    "tagline": "Luxury stay, bespoke service, memorable arrival for Calabar.",
+    "whatsapp": "WhatsApp"
   },
   "rooms": {
     "pageTitle": "Rooms & Suites",
@@ -289,7 +301,21 @@
       }
     },
     "bookRoom": "Reserve this room",
-    "amenities": "Amenities",
+    "amenities": {
+      "kingBed": "King bed & fine linen",
+      "marbleBath": "Marble bathroom",
+      "cityView": "City view",
+      "butler": "Butler service",
+      "panoramic": "Panoramic view",
+      "livingRoom": "Separate living room",
+      "airportTransfer": "Free airport transfer",
+      "workDesk": "Executive desk",
+      "rainShower": "Rain shower",
+      "loungeAccess": "Grand lounge access",
+      "spaCredit": "Spa credit",
+      "healthyMenu": "Wellness menu",
+      "yoga": "Yoga mat for room"
+    },
     "guest": {
       "name": "Guest Room",
       "description": "Comfortable room with fine bed and modern things for restful stay."
@@ -309,21 +335,6 @@
     "executiveSpa": {
       "name": "Executive Spa Room",
       "description": "Executive room with work desk, lounge access, spa credit, and calm in-room amenities."
-    },
-    "amenities": {
-      "kingBed": "King bed & fine linen",
-      "marbleBath": "Marble bathroom",
-      "cityView": "City view",
-      "butler": "Butler service",
-      "panoramic": "Panoramic view",
-      "livingRoom": "Separate living room",
-      "airportTransfer": "Free airport transfer",
-      "workDesk": "Executive desk",
-      "rainShower": "Rain shower",
-      "loungeAccess": "Grand lounge access",
-      "spaCredit": "Spa credit",
-      "healthyMenu": "Wellness menu",
-      "yoga": "Yoga mat for room"
     }
   },
   "tours": {

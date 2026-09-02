@@ -1,6 +1,7 @@
 import { CalabarPlacesGrid } from "@/components/calabar-places-grid";
 import { cityExperiences, roomHighlights } from "@/content/site";
 import { Link } from "@/i18n/navigation";
+import { contactSectionHref } from "@/lib/contact-href";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -69,7 +70,7 @@ export default async function ExperiencesPage({
 
         <div className="mt-16 text-center">
           <Link
-            href="/#contact"
+            href={contactSectionHref()}
             className="inline-flex rounded-full bg-teal px-8 py-3.5 text-sm font-medium text-gray-950 hover:bg-teal-dark"
           >
             {t("contactCta")}

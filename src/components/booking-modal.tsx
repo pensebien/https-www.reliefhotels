@@ -1,8 +1,16 @@
 "use client";
 
+import { lockBodyScroll, unlockBodyScroll } from "@/lib/body-scroll-lock";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import { type ReactNode, useEffect, useId, useRef } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 
 export function BookingModal({
   open,
@@ -21,29 +29,33 @@ export function BookingModal({
 }) {
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     panelRef.current?.focus();
     return () => {
-      document.body.style.overflow = prev;
+      unlockBodyScroll();
       window.removeEventListener("keydown", onKey);
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
       <button
         type="button"
-        className="absolute inset-0 bg-black/55 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
         aria-label="Close dialog"
         onClick={onClose}
       />
@@ -54,11 +66,11 @@ export function BookingModal({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
-          "relative z-10 w-full max-w-md overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl outline-none",
+          "relative z-10 flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-2xl outline-none",
           panelClassName,
         )}
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4">
           <h2 id={titleId} className="text-lg font-semibold text-neutral-900">
             {title}
           </h2>
@@ -71,12 +83,17 @@ export function BookingModal({
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
-        <div className="px-5 py-5">{children}</div>
-        {footer && (
-          <div className="border-t border-neutral-200 px-5 py-4">{footer}</div>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+          {children}
+        </div>
+        {footer ? (
+          <div className="shrink-0 border-t border-neutral-200 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {footer}
+          </div>
+        ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

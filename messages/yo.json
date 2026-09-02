@@ -20,12 +20,20 @@
     "title": "Relief Hotels & Suites",
     "cta": "Ṣètò ìsun rẹ"
   },
+  "whatsapp": {
+    "label": "Chat on WhatsApp",
+    "ariaLabel": "Chat on WhatsApp at {phone}"
+  },
   "contact": {
     "title": "Jẹ́ kí ẹgbẹ́ wa ṣe ààyè ìsun tó ní àlàáfíà, ayẹyẹ, àti ìtẹ́wọ́gbọ́ tí ó rọrùn.",
-    "submit": "Beere Àgbékalẹ̀"
+    "submit": "Beere Àgbékalẹ̀",
+    "bookStay": "Book your stay",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Message us anytime — we reply during service hours."
   },
   "footer": {
     "title": "Ìtọ́jú àleé tó dára tó da lórí ààlàáfíà rẹ.",
-    "book": "Ṣe àgbékalẹ̀ ìsun rẹ"
+    "book": "Ṣe àgbékalẹ̀ ìsun rẹ",
+    "whatsapp": "WhatsApp"
   }
 }
