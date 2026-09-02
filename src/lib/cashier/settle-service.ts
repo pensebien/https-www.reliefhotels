@@ -6,7 +6,7 @@ import {
   updateReservationById,
 } from "@/lib/demo-store";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
-import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
+import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { syncMoniepointPushPayment } from "@/lib/moniepoint-sync";
 import { syncPaystackTerminalPayment } from "@/lib/paystack-terminal";
 import { cashierPaymentReference } from "@/lib/cashier/reference";
@@ -137,7 +137,7 @@ export async function settleCashierPayment(
     const updated = await updateReservationById(reservation.id, patch);
     if (updated) {
       updatedReservation = updated;
-      await syncConfirmedReservationToRayza(updated);
+      await handlePaymentConfirmed(payment, updated);
     }
   } else if (input.note) {
     const updated = await updateReservationById(reservation.id, {
@@ -203,7 +203,7 @@ export async function getCashierSettleStatus(
       });
       if (updated) {
         reservation = updated;
-        await syncConfirmedReservationToRayza(updated);
+        await handlePaymentConfirmed(finalPayment, updated);
       }
     }
   }

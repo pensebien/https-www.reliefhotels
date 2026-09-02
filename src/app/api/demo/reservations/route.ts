@@ -1,10 +1,16 @@
 import { rooms } from "@/content/site";
-import { addPayment, addReservation, updateReservationById } from "@/lib/demo-store";
+import {
+  addPayment,
+  addReservation,
+  findPaymentByReference,
+  updateReservationById,
+} from "@/lib/demo-store";
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
 import { sendReservationEmail } from "@/lib/email";
 import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { pushTerminalPayment, pushTransferPayment } from "@/lib/moniepoint";
+import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { paymentChannelForMethod } from "@/lib/payment-methods";
 import { createPaystackTerminalSettlement } from "@/lib/paystack-terminal";
 import { staffReservationSchema } from "@/lib/schemas/staff-reservation";
@@ -149,7 +155,20 @@ export async function POST(request: Request) {
     }
 
     if (record.status === "confirmed") {
-      await syncConfirmedReservationToRayza(record);
+      // Cash (or any non-pending) deposit actually collects money — send the
+      // guest a receipt and alert the manager, same as the online checkout
+      // path already does. "No deposit yet" confirms with no payment to
+      // reference, so it only needs the RAYZA sync.
+      const collectedPayment =
+        collectsDeposit && !awaitsProviderPush && paymentReference
+          ? await findPaymentByReference(paymentReference)
+          : null;
+
+      if (collectedPayment) {
+        await handlePaymentConfirmed(collectedPayment, record);
+      } else {
+        await syncConfirmedReservationToRayza(record);
+      }
     }
 
     const emailSent = await sendReservationEmail(record);
