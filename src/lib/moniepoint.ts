@@ -30,17 +30,20 @@ function getMoniepointEnv() {
     process.env.MONIEPOINT_BASE_URL?.replace(/\/$/, "") ??
     "https://channel.moniepoint.com";
 
+  const configured = Boolean(clientId && clientSecret && terminalSerial);
+  /** Explicit opt-in to simulate mode for local/QA testing (safe to auto-approve). */
+  const explicitDemoMode = process.env.DEMO_MODE === "true";
+
   return {
     clientId: clientId ?? "",
     clientSecret: clientSecret ?? "",
     terminalSerial: terminalSerial ?? "",
     baseUrl,
-    configured: Boolean(clientId && clientSecret && terminalSerial),
-    demoMode:
-      process.env.DEMO_MODE === "true" ||
-      !clientId ||
-      !clientSecret ||
-      !terminalSerial,
+    configured,
+    explicitDemoMode,
+    // Kept for the public config surface / "not configured" UI hints — true
+    // whenever we can't or won't make a real Moniepoint API call.
+    demoMode: explicitDemoMode || !configured,
     transferAccountName: process.env.MONIEPOINT_TRANSFER_ACCOUNT_NAME ?? "",
     transferAccountNumber: process.env.MONIEPOINT_TRANSFER_ACCOUNT_NUMBER ?? "",
     transferBankName: process.env.MONIEPOINT_TRANSFER_BANK_NAME ?? "Moniepoint",
@@ -154,7 +157,7 @@ export async function getTerminalTransactionStatus(
 ): Promise<MoniepointTransactionStatus> {
   const env = getMoniepointEnv();
 
-  if (env.demoMode) {
+  if (env.explicitDemoMode) {
     return {
       merchantReference,
       processingStatus: "PROCESSED",
@@ -163,6 +166,22 @@ export async function getTerminalTransactionStatus(
       actualAmount: null,
       actualPaymentMethod: "ANY",
       transactionReference: `MP-DEMO-${merchantReference}`,
+    };
+  }
+
+  if (!env.configured) {
+    // No real terminal provisioned and not explicit local/QA demo mode either —
+    // never auto-approve a real guest's payment just because Moniepoint isn't
+    // set up yet. Stays pending until staff manually confirm (see
+    // manuallyConfirmPendingPayment) or real credentials are configured.
+    return {
+      merchantReference,
+      processingStatus: "PENDING",
+      responseCode: null,
+      responseMessage: "Awaiting manual confirmation — Moniepoint Terminal is not configured",
+      actualAmount: null,
+      actualPaymentMethod: null,
+      transactionReference: null,
     };
   }
 
