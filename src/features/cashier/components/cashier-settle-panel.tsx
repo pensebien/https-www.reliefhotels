@@ -68,8 +68,9 @@ export function CashierSettlePanel({
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [confirmingManually, setConfirmingManually] = useState(false);
 
-  const { stage, error, notDeployed, result, submit, reset } =
+  const { stage, error, notDeployed, result, submit, reset, confirmManually } =
     useSettlePayment(cashierKey);
 
   useEffect(() => {
@@ -90,6 +91,16 @@ export function CashierSettlePanel({
     stage === "polling",
     SETTLE_POLL_TIMEOUT_SECONDS,
   );
+
+  async function handleManualConfirm() {
+    const reference = result?.reference;
+    if (!reference) return;
+    const confirmed = window.confirm(t("manualConfirmPrompt"));
+    if (!confirmed) return;
+    setConfirmingManually(true);
+    await confirmManually(reference);
+    setConfirmingManually(false);
+  }
 
   function handleSettle(method: CashierPaymentMethod) {
     if (busy) return;
@@ -229,22 +240,39 @@ export function CashierSettlePanel({
         </p>
 
         {busy ? (
-          <div className="flex items-center gap-3 rounded-lg border border-teal/40 bg-teal/5 px-4 py-4 text-sm">
-            <Loader2 className="h-5 w-5 shrink-0 animate-spin text-teal" aria-hidden />
-            <div>
-              <p className="font-medium">
-                {stage === "submitting"
-                  ? t("submitting")
-                  : pendingMethod === "moniepoint_transfer"
-                    ? t("waitingTransfer")
-                    : t("waitingCard")}
-              </p>
-              {stage === "polling" ? (
-                <p className="mt-0.5 font-mono text-xs tabular-nums text-muted" aria-live="polite">
-                  {t("timeRemaining", { time: formatCountdown(pollSecondsRemaining) })}
+          <div className="space-y-3 rounded-lg border border-teal/40 bg-teal/5 px-4 py-4 text-sm">
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-teal" aria-hidden />
+              <div>
+                <p className="font-medium">
+                  {stage === "submitting"
+                    ? t("submitting")
+                    : pendingMethod === "moniepoint_transfer"
+                      ? t("waitingTransfer")
+                      : t("waitingCard")}
                 </p>
-              ) : null}
+                {stage === "polling" ? (
+                  <p className="mt-0.5 font-mono text-xs tabular-nums text-muted" aria-live="polite">
+                    {t("timeRemaining", { time: formatCountdown(pollSecondsRemaining) })}
+                  </p>
+                ) : null}
+              </div>
             </div>
+            {stage === "polling" ? (
+              <div className="space-y-2 border-t border-teal/20 pt-3">
+                <p className="text-xs text-muted">{t("manualConfirmHint")}</p>
+                <button
+                  type="button"
+                  onClick={handleManualConfirm}
+                  disabled={confirmingManually}
+                  className="rounded-lg border border-teal bg-background px-3 py-2 text-xs font-medium text-teal-dark hover:bg-teal/10 disabled:opacity-60"
+                >
+                  {confirmingManually
+                    ? t("manualConfirming")
+                    : t("manualConfirmButton")}
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2">
