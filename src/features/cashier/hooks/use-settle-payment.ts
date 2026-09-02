@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  confirmCashierSettleManually,
   fetchCashierSettleStatus,
   isCashierError,
   settleCashierPayment,
@@ -178,5 +179,27 @@ export function useSettlePayment(key: string | null) {
     setResult(null);
   }, [clearTimer]);
 
-  return { stage, error, notDeployed, result, submit, reset };
+  /** Staff attest a pending Card/Transfer payment was received — no real terminal to verify it yet. */
+  const confirmManually = useCallback(
+    async (reference: string) => {
+      if (!key) {
+        setStage("error");
+        setError("Missing cashier key.");
+        return;
+      }
+      const confirmResult = await confirmCashierSettleManually(reference, key);
+      if (isCashierError(confirmResult)) {
+        setStage("error");
+        setNotDeployed(Boolean(confirmResult.notDeployed));
+        setError(confirmResult.error);
+        return;
+      }
+      clearTimer();
+      setStage("success");
+      setResult((prev) => ({ ...(prev ?? { ok: true }), ...confirmResult, ok: true }));
+    },
+    [clearTimer, key],
+  );
+
+  return { stage, error, notDeployed, result, submit, reset, confirmManually };
 }
