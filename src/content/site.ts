@@ -18,6 +18,12 @@ export const site = {
   appleIconSrc: "/apple-touch-icon.png",
   phone: "+234 803 326 2719",
   phoneHref: "tel:+2348033262719",
+  /** wa.me link — digits only, no + or spaces */
+  whatsappHref:
+    "https://wa.me/2348033262719?text=" +
+    encodeURIComponent(
+      "Hello Relief Hotels & Suites — I’d like help with a stay.",
+    ),
   email: "reservations@reliefhotelsandsuites.com",
   themeStorageKey: "relief-theme",
 } as const;

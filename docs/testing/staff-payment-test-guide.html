@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Staff payment testing guide — Relief Hotels</title>
+  <style>
+    :root {
+      --ink: #1a1814;
+      --muted: #5c564e;
+      --line: #e8e4de;
+      --teal: #0f766e;
+      --bg: #faf9f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: #fff;
+      margin: 0;
+      padding: 32px 40px 48px;
+      font-size: 11.5pt;
+      line-height: 1.45;
+    }
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22pt;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: var(--teal);
+    }
+    h2 {
+      font-size: 14pt;
+      margin: 28px 0 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      color: var(--teal);
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      margin: 16px 0 8px;
+      page-break-after: avoid;
+    }
+    p, li { margin: 0 0 8px; }
+    .meta {
+      color: var(--muted);
+      font-size: 10pt;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--bg); }
+    .shot {
+      margin: 14px 0 22px;
+      page-break-inside: avoid;
+    }
+    .shot img {
+      width: 100%;
+      max-height: 420px;
+      object-fit: contain;
+      object-position: top;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--bg);
+    }
+    .caption {
+      font-size: 9.5pt;
+      color: var(--muted);
+      font-style: italic;
+      margin-top: 6px;
+    }
+    ol { padding-left: 1.25rem; }
+    .cover-note {
+      background: var(--bg);
+      border-left: 4px solid var(--teal);
+      padding: 10px 14px;
+      margin: 12px 0 20px;
+    }
+    @media print {
+      body { padding: 16px 20px; }
+      h2 { break-before: auto; }
+      .shot { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Staff payment testing guide</h1>
+  <p class="meta">Relief Hotels &amp; Suites · Front desk / cashier QA · July 2026</p>
+
+  <div class="cover-note">
+    Use this guide to practice guest and front-desk payments in <strong>test mode</strong>.
+    Screenshots show the live staff UI. Keep your staff key private.
+  </div>
+
+  <h2>1. Before you start</h2>
+  <table>
+    <tr><th>Item</th><th>Value</th></tr>
+    <tr><td>Staff portal (local)</td><td><code>http://localhost:3002/en/staff?key=relief-demo-2026</code></td></tr>
+    <tr><td>Cashier</td><td><code>/en/staff/cashier?key=…</code></td></tr>
+    <tr><td>Calendar</td><td><code>/en/staff/calendar?key=…</code></td></tr>
+    <tr><td>Production staff</td><td><code>https://reservation.reliefhotelsandsuites.com?key=YOUR_KEY</code></td></tr>
+    <tr><td>Guest site</td><td><code>https://www.reliefhotelsandsuites.com</code></td></tr>
+  </table>
+
+  <h3>Paystack test card (online)</h3>
+  <table>
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td>Card number</td><td><code>4084 0840 8408 4081</code></td></tr>
+    <tr><td>CVV</td><td>Any 3 digits</td></tr>
+    <tr><td>Expiry</td><td>Any future date</td></tr>
+    <tr><td>PIN</td><td><code>0000</code></td></tr>
+    <tr><td>OTP</td><td><code>123456</code></td></tr>
+  </table>
+
+  <h2>2. Test A — Cashier settle deposit (cash)</h2>
+  <ol>
+    <li>Open <strong>Cashier</strong> with your staff key.</li>
+    <li>Choose <strong>Settle deposit</strong>.</li>
+    <li>Select a guest who still needs a deposit.</li>
+    <li>Choose <strong>Cash</strong> (no POS hardware needed for this QA).</li>
+    <li>Confirm amount ≈ <strong>20% deposit</strong>, then Settle.</li>
+    <li>Check Inbox / calendar — stay should be <strong>confirmed / booked</strong>.</li>
+  </ol>
+
+  <div class="shot">
+    <img src="./assets/staff-payment/01-staff-login-cashier.png" alt="Cashier landing" />
+    <p class="caption">Figure 1 — Cashier entry (Settle deposit / Order F&amp;B).</p>
+  </div>
+  <div class="shot">
+    <img src="./assets/staff-payment/02-cashier-settle-mode.png" alt="Settle mode" />
+    <p class="caption">Figure 2 — Settle deposit queue / panel.</p>
+  </div>
+  <div class="shot">
+    <img src="./assets/staff-payment/04-staff-inbox.png" alt="Staff inbox" />
+    <p class="caption">Figure 3 — Bookings inbox (verify status after settle).</p>
+  </div>
+
+  <h2>3. Test B — Calendar walk-in</h2>
+  <ol>
+    <li>Open <strong>Calendar</strong>.</li>
+    <li>Tap a <strong>green (free)</strong> cell for room + check-in.</li>
+    <li>Enter guest details; set check-out for the full stay.</li>
+    <li>Save — cell turns <strong>teal</strong> (booked) or <strong>amber</strong> (pending).</li>
+    <li>Pending stays: open booking → <strong>Mark as booked</strong> after payment.</li>
+  </ol>
+  <div class="shot">
+    <img src="./assets/staff-payment/03-staff-calendar.png" alt="Calendar" />
+    <p class="caption">Figure 4 — Occupancy calendar (tap free cell to book).</p>
+  </div>
+
+  <h2>4. Test C — Guest online Paystack deposit</h2>
+  <ol>
+    <li>On the public site, pick dates → Rooms.</li>
+    <li>Select a room → complete booking → Pay deposit.</li>
+    <li>Pay with the test card above.</li>
+    <li>Confirm success callback, then check Accounting / Inbox.</li>
+  </ol>
+  <div class="shot">
+    <img src="./assets/staff-payment/06-customer-rooms.png" alt="Rooms" />
+    <p class="caption">Figure 5 — Guest rooms &amp; rates.</p>
+  </div>
+  <div class="shot">
+    <img src="./assets/staff-payment/07-book-form.png" alt="Book form" />
+    <p class="caption">Figure 6 — Guest reservation / pay deposit form.</p>
+  </div>
+  <div class="shot">
+    <img src="./assets/staff-payment/05-accounting.png" alt="Accounting" />
+    <p class="caption">Figure 7 — Accounting ledger for payment verification.</p>
+  </div>
+
+  <h2>5. Test D — F&amp;B for a booked guest</h2>
+  <ol>
+    <li>Open Cashier → <strong>Order F&amp;B</strong> or <strong>/staff/fnb</strong>.</li>
+    <li>Search booked guest → add catalog lines → post to folio.</li>
+  </ol>
+  <div class="shot">
+    <img src="./assets/staff-payment/08-fnb.png" alt="F&amp;B" />
+    <p class="caption">Figure 8 — F&amp;B / folio charges.</p>
+  </div>
+
+  <h2>6. Pass / fail checklist</h2>
+  <table>
+    <tr><th>#</th><th>Check</th><th>Pass</th></tr>
+    <tr><td>1</td><td>Cashier cash settle confirms reservation</td><td>☐</td></tr>
+    <tr><td>2</td><td>Calendar walk-in creates a visible stay</td><td>☐</td></tr>
+    <tr><td>3</td><td>Online test card reaches success callback</td><td>☐</td></tr>
+    <tr><td>4</td><td>Payment visible in accounting / inbox</td><td>☐</td></tr>
+    <tr><td>5</td><td>F&amp;B line posts for booked guest</td><td>☐</td></tr>
+    <tr><td>6</td><td>Wrong staff key is rejected</td><td>☐</td></tr>
+  </table>
+
+  <h2>7. Troubleshooting</h2>
+  <table>
+    <tr><th>Symptom</th><th>Try</th></tr>
+    <tr><td>Invalid dashboard key</td><td>Match URL <code>key=</code> to <code>DEMO_DASHBOARD_KEY</code></td></tr>
+    <tr><td>No real Paystack page</td><td>Valid test keys; do not set <code>DEMO_MODE=true</code></td></tr>
+    <tr><td>Terminal missing</td><td>Use Cash for desk QA without POS hardware</td></tr>
+    <tr><td>Callback issues</td><td>Callback on <strong>www</strong> <code>/payment/callback</code>, not staff subdomain</td></tr>
+  </table>
+
+  <p class="meta" style="margin-top:28px">Relief Hotels &amp; Suites — internal training · Do not share live keys in this document.</p>
+</body>
+</html>

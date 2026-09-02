@@ -1,14 +1,16 @@
 "use client";
 
+import { BookStayButton } from "@/components/book-stay-button";
 import { site } from "@/content/site";
 import {
   experienceNavLinks,
   mainNavLinks,
   roomCategoryLinks,
 } from "@/content/navigation";
+import { contactSectionHref } from "@/lib/contact-href";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { ArrowUpRight, ChevronDown, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type ReactNode, useId, useState } from "react";
 
@@ -69,15 +71,12 @@ export function SiteFooter() {
             <p className="max-w-xl text-sm leading-7 text-white/70 sm:text-base">
               {t("description")}
             </p>
-            <Link
-              href="/#contact"
-              className="group inline-flex items-center gap-3 rounded-full bg-teal p-1 ps-5 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark"
-            >
+            <BookStayButton className="group inline-flex items-center gap-3 rounded-full bg-teal p-1 ps-5 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark">
               {t("book")}
               <span className="rounded-full bg-black p-2 text-white transition-transform duration-300 group-hover:rotate-45">
                 <ArrowUpRight className="h-4 w-4" />
               </span>
-            </Link>
+            </BookStayButton>
           </div>
 
           <div className="space-y-6">
@@ -121,7 +120,7 @@ export function SiteFooter() {
                 </FooterCollapsibleSection>
 
                 <Link
-                  href="/#contact"
+                  href={contactSectionHref()}
                   className="border-t border-white/10 pt-3 text-white/80 hover:text-teal"
                 >
                   {t("contactLink")}
@@ -139,6 +138,17 @@ export function SiteFooter() {
                 <Phone className="mt-1 h-4 w-4 text-teal" />
                 <a href={site.phoneHref} className="hover:text-teal">
                   {site.phone}
+                </a>
+              </div>
+              <div className="flex items-start gap-3">
+                <MessageCircle className="mt-1 h-4 w-4 text-teal" />
+                <a
+                  href={site.whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-teal"
+                >
+                  {t("whatsapp")} · {site.phone}
                 </a>
               </div>
               <div className="flex items-start gap-3">
