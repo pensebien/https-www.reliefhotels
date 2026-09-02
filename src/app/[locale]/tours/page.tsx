@@ -1,5 +1,6 @@
 import { tours } from "@/content/site";
 import { Link } from "@/i18n/navigation";
+import { contactSectionHref } from "@/lib/contact-href";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
@@ -75,7 +76,7 @@ export default async function ToursPage({
                       {t("bookRoomToExplore")}
                     </Link>
                     <Link
-                      href={`/#contact?tour=${tour.slug}`}
+                      href={contactSectionHref({ tour: tour.slug })}
                       className="inline-flex rounded-full border border-border px-6 py-2.5 text-sm font-medium transition-colors hover:border-teal"
                     >
                       {t("bookTour")}

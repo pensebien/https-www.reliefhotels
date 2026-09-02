@@ -9,7 +9,6 @@ import {
   roomCategories,
   rooms,
   roomsPageStayIncludes,
-  type RoomsCatalogTab,
 } from "@/content/site";
 import {
   bookingSearchToQueryString,
@@ -19,6 +18,7 @@ import {
 } from "@/lib/booking-search";
 import type { AvailableRoom } from "@/lib/room-availability";
 import { Link } from "@/i18n/navigation";
+import { contactSectionHref } from "@/lib/contact-href";
 import { formatNaira } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -351,7 +351,7 @@ function RoomCard({
             {t("payDeposit")}
           </Link>
           <Link
-            href={`/#contact?room=${room.slug}`}
+            href={contactSectionHref({ room: room.slug })}
             className="inline-flex rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:border-teal"
           >
             {t("bookRoom")}

@@ -1,7 +1,7 @@
 "use client";
 
+import { BookStayButton } from "@/components/book-stay-button";
 import { media, marqueeItems } from "@/content/site";
-import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 
 export function CtaSection() {
@@ -29,12 +29,9 @@ export function CtaSection() {
               <h2 className="max-w-2xl text-center font-serif text-3xl font-medium text-white sm:text-4xl">
                 {t("title")}
               </h2>
-              <Link
-                href="/#contact"
-                className="rounded-full bg-white px-6 py-3.5 text-sm font-medium text-neutral-900 transition-colors duration-300 hover:bg-neutral-900 hover:text-white dark:bg-black dark:text-white dark:hover:bg-white dark:hover:text-black"
-              >
+              <BookStayButton className="rounded-full bg-white px-6 py-3.5 text-sm font-medium text-neutral-900 transition-colors duration-300 hover:bg-neutral-900 hover:text-white dark:bg-black dark:text-white dark:hover:bg-white dark:hover:text-black">
                 {t("button")}
-              </Link>
+              </BookStayButton>
             </div>
           </div>
         </div>

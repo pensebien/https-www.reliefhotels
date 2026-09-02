@@ -1,5 +1,6 @@
 "use client";
 
+import { BookStayButton } from "@/components/book-stay-button";
 import { site } from "@/content/site";
 import { experienceNavLinks, mainNavLinks } from "@/content/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -155,12 +156,9 @@ export function SiteHeader() {
             <LanguageSwitcher />
           </div>
           <ThemeToggle />
-          <Link
-            href="/#contact"
-            className="hidden rounded-full bg-teal px-4 py-2 text-xs font-medium text-gray-950 transition-colors hover:bg-teal-dark sm:inline-flex sm:text-sm"
-          >
+          <BookStayButton className="hidden rounded-full bg-teal px-4 py-2 text-xs font-medium text-gray-950 transition-colors hover:bg-teal-dark sm:inline-flex sm:text-sm">
             {t("book")}
-          </Link>
+          </BookStayButton>
         </div>
       </nav>
     </header>
