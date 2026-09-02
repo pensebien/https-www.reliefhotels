@@ -3,33 +3,105 @@ import { getServerConfig } from "@/lib/config";
 import type { ReservationRecord } from "@/lib/demo-store";
 import type { GuestFeedback } from "@/lib/inquiry-store";
 
-function reservationHtml(record: ReservationRecord): string {
+/** Guest-submitted strings (name, email, message, ...) must never be interpolated into HTML unescaped. */
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function reservationHtml(record: ReservationRecord): string {
   return `
-    <h2>New reservation inquiry — ${site.name}</h2>
-    <p><strong>Guest:</strong> ${record.firstName} ${record.lastName}</p>
-    <p><strong>Email:</strong> ${record.email}</p>
-    <p><strong>Stay preference:</strong> ${record.stayPreference}</p>
-    <p><strong>Status:</strong> ${record.status}</p>
-    <p><strong>Submitted:</strong> ${record.createdAt}</p>
+    <h2>New reservation inquiry — ${escapeHtml(site.name)}</h2>
+    <p><strong>Guest:</strong> ${escapeHtml(record.firstName)} ${escapeHtml(record.lastName)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(record.email)}</p>
+    <p><strong>Stay preference:</strong> ${escapeHtml(record.stayPreference)}</p>
+    <p><strong>Status:</strong> ${escapeHtml(record.status)}</p>
+    <p><strong>Submitted:</strong> ${escapeHtml(record.createdAt)}</p>
     <hr />
     <p><strong>Details:</strong></p>
-    <p>${record.message.replace(/\n/g, "<br />")}</p>
-    <p style="color:#666;font-size:12px;">ID: ${record.id}</p>
+    <p>${escapeHtml(record.message).replace(/\n/g, "<br />")}</p>
+    <p style="color:#666;font-size:12px;">ID: ${escapeHtml(record.id)}</p>
   `;
 }
 
-function feedbackHtml(record: GuestFeedback): string {
+export function feedbackHtml(record: GuestFeedback): string {
   return `
-    <h2>Guest message — ${site.name}</h2>
-    <p><strong>From:</strong> ${record.firstName} ${record.lastName}</p>
-    <p><strong>Email:</strong> ${record.email}</p>
-    ${record.phone ? `<p><strong>Phone:</strong> ${record.phone}</p>` : ""}
-    <p><strong>Submitted:</strong> ${record.createdAt}</p>
+    <h2>Guest message — ${escapeHtml(site.name)}</h2>
+    <p><strong>From:</strong> ${escapeHtml(record.firstName)} ${escapeHtml(record.lastName)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(record.email)}</p>
+    ${record.phone ? `<p><strong>Phone:</strong> ${escapeHtml(record.phone)}</p>` : ""}
+    <p><strong>Submitted:</strong> ${escapeHtml(record.createdAt)}</p>
     <hr />
     <p><strong>Message:</strong></p>
-    <p>${record.message.replace(/\n/g, "<br />")}</p>
-    <p style="color:#666;font-size:12px;">ID: ${record.id}</p>
+    <p>${escapeHtml(record.message).replace(/\n/g, "<br />")}</p>
+    <p style="color:#666;font-size:12px;">ID: ${escapeHtml(record.id)}</p>
   `;
+}
+
+export type PaymentConfirmationInput = {
+  email: string;
+  reference: string;
+  amountKobo: number;
+  itemLabel: string;
+};
+
+export function formatNairaFromKobo(amountKobo: number): string {
+  return (amountKobo / 100).toLocaleString("en-NG", {
+    style: "currency",
+    currency: "NGN",
+  });
+}
+
+export function paymentConfirmationHtml(payload: PaymentConfirmationInput): string {
+  return `
+    <h2>Payment confirmed</h2>
+    <p>Thank you for your payment to ${escapeHtml(site.name)}.</p>
+    <p><strong>Amount:</strong> ${formatNairaFromKobo(payload.amountKobo)}</p>
+    <p><strong>Reference:</strong> ${escapeHtml(payload.reference)}</p>
+    <p><strong>Item:</strong> ${escapeHtml(payload.itemLabel)}</p>
+    <p>Our concierge team will contact you shortly to finalize your booking.</p>
+  `;
+}
+
+type ResendEmailInput = {
+  to: string[];
+  subject: string;
+  html: string;
+  replyTo?: string;
+  bcc?: string[];
+};
+
+/** Shared Resend send path — the one seam every transactional email goes through. */
+async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+  const config = getServerConfig();
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: config.email.from,
+      to: input.to,
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+      ...(input.bcc ? { bcc: input.bcc } : {}),
+      subject: input.subject,
+      html: input.html,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[email] Resend error:", err);
+    return false;
+  }
+
+  return true;
 }
 
 export async function sendReservationEmail(
@@ -46,28 +118,12 @@ export async function sendReservationEmail(
     return false;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.email.from,
-      to: [config.email.to],
-      reply_to: record.email,
-      subject: `[Relief Hotels] Reservation — ${record.firstName} ${record.lastName}`,
-      html: reservationHtml(record),
-    }),
+  return sendResendEmail({
+    to: [config.email.to],
+    replyTo: record.email,
+    subject: `[Relief Hotels] Reservation — ${record.firstName} ${record.lastName}`,
+    html: reservationHtml(record),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[email] Resend error:", err);
-    return false;
-  }
-
-  return true;
 }
 
 export async function sendFeedbackEmail(
@@ -84,68 +140,28 @@ export async function sendFeedbackEmail(
     return false;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.email.from,
-      to: [config.email.to],
-      reply_to: record.email,
-      subject: `[Relief Hotels] Guest message — ${record.firstName} ${record.lastName}`,
-      html: feedbackHtml(record),
-    }),
+  return sendResendEmail({
+    to: [config.email.to],
+    replyTo: record.email,
+    subject: `[Relief Hotels] Guest message — ${record.firstName} ${record.lastName}`,
+    html: feedbackHtml(record),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[email] Resend feedback error:", err);
-    return false;
-  }
-
-  return true;
 }
 
-export async function sendPaymentConfirmationEmail(payload: {
-  email: string;
-  reference: string;
-  amountKobo: number;
-  itemLabel: string;
-}): Promise<boolean> {
+export async function sendPaymentConfirmationEmail(
+  payload: PaymentConfirmationInput,
+): Promise<boolean> {
   const config = getServerConfig();
-  const amount = (payload.amountKobo / 100).toLocaleString("en-NG", {
-    style: "currency",
-    currency: "NGN",
-  });
 
   if (!config.email.configured) {
     console.info("[email:demo] payment confirmation", payload.reference);
     return false;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.email.from,
-      to: [payload.email],
-      bcc: [config.email.to],
-      subject: `[Relief Hotels] Payment received — ${payload.reference}`,
-      html: `
-        <h2>Payment confirmed</h2>
-        <p>Thank you for your payment to ${site.name}.</p>
-        <p><strong>Amount:</strong> ${amount}</p>
-        <p><strong>Reference:</strong> ${payload.reference}</p>
-        <p><strong>Item:</strong> ${payload.itemLabel}</p>
-        <p>Our concierge team will contact you shortly to finalize your booking.</p>
-      `,
-    }),
+  return sendResendEmail({
+    to: [payload.email],
+    bcc: [config.email.to],
+    subject: `[Relief Hotels] Payment received — ${payload.reference}`,
+    html: paymentConfirmationHtml(payload),
   });
-
-  return res.ok;
 }
