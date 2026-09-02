@@ -294,7 +294,7 @@ export function ReservationForm(props: ReservationFlowProps) {
               type="submit"
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal px-6 py-3.5 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark"
             >
-              {t("step2Title")}
+              {t("continueToPayment")}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
