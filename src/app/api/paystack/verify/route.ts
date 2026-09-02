@@ -1,13 +1,10 @@
 import { getServerConfig } from "@/lib/config";
 import {
   findPaymentByReference,
-  findReservationById,
   updatePaymentByReference,
   updateReservationById,
 } from "@/lib/demo-store";
-import { sendPaymentConfirmationEmail } from "@/lib/email";
-import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
-import { notifyManager } from "@/lib/notifications";
+import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { verifyPayment } from "@/lib/paystack";
 import { NextResponse } from "next/server";
 
@@ -32,6 +29,7 @@ export async function GET(request: Request) {
         status: "success",
         reference,
         amountKobo: existing.amountKobo,
+        email: existing.email,
         reservationId: existing.reservationId,
         notified: false,
         alreadyConfirmed: true,
@@ -77,48 +75,23 @@ export async function GET(request: Request) {
           status: "confirmed",
           paymentReference: reference,
         });
-        if (confirmed) await syncConfirmedReservationToRayza(confirmed);
-      }
-
-      const email = result.email || updated?.email;
-      const amountKobo = result.amountKobo || updated?.amountKobo || 0;
-
-      if (email && amountKobo) {
-        await sendPaymentConfirmationEmail({
-          email,
-          reference,
-          amountKobo,
-          itemLabel: updated?.itemLabel ?? "Relief Hotels booking",
-        });
-        const amountNgn = Math.round(amountKobo / 100);
-        const reservation = updated?.reservationId
-          ? await findReservationById(updated.reservationId)
-          : null;
-        const guestName = reservation
-          ? `${reservation.firstName} ${reservation.lastName}`
-          : undefined;
-
-        const notifyResult = await notifyManager({
-          event: "payment.verified",
-          referenceId: reference,
-          email,
-          guestName,
-          phone: reservation?.phone,
-          summary: `₦${amountNgn.toLocaleString("en-NG")} deposit — ${updated?.itemLabel ?? "booking"}`,
-        });
-        notified = notifyResult.sent;
+        if (confirmed) {
+          notified = await handlePaymentConfirmed(updated, confirmed);
+        }
       }
     } else if (result.status === "failed") {
       await updatePaymentByReference(reference, { status: "failed" });
     }
 
     const reservationId = payment?.reservationId ?? undefined;
+    const email = result.email || payment?.email;
 
     return NextResponse.json({
       ok: true,
       status: result.status,
       reference: result.reference,
       amountKobo: result.amountKobo,
+      email,
       reservationId,
       notified,
       demo: result.demo || config.demoMode,
