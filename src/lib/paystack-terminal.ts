@@ -28,11 +28,16 @@ function getPaystackTerminalEnv() {
   const secretKey = process.env.PAYSTACK_SECRET_KEY ?? "";
   const terminalId = process.env.PAYSTACK_TERMINAL_ID ?? "";
   const configured = Boolean(secretKey && terminalId);
+  /** Explicit opt-in to simulate mode for local/QA testing (safe to auto-approve). */
+  const explicitDemoMode = process.env.DEMO_MODE === "true";
   return {
     secretKey,
     terminalId,
     configured,
-    demoMode: process.env.DEMO_MODE === "true" || !configured,
+    explicitDemoMode,
+    // Kept for the public config surface / "not configured" UI hints — true
+    // whenever we can't or won't make a real Paystack Terminal API call.
+    demoMode: explicitDemoMode || !configured,
   };
 }
 
@@ -256,7 +261,13 @@ export async function syncPaystackTerminalPayment(
 
   const env = getPaystackTerminalEnv();
 
-  if (demoOverride || env.demoMode) {
+  // `demoOverride` (?demo=1) is an explicit per-request bypass used by tests/dev.
+  // `explicitDemoMode` is the global DEMO_MODE=true opt-in. Neither fires just
+  // because Paystack Terminal happens to be unconfigured in production — a real
+  // guest's payment should never auto-approve just because the terminal isn't
+  // provisioned yet. It stays pending until staff manually confirm (see
+  // manuallyConfirmPendingPayment) or real credentials are configured.
+  if (demoOverride || env.explicitDemoMode) {
     const updated = await updatePaymentByReference(reference, {
       status: "success",
     });

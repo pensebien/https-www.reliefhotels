@@ -96,3 +96,26 @@ export async function fetchCashierSettleStatus(
     return { ok: false, error: "Could not reach the server. Check your connection." };
   }
 }
+
+/** Staff attest a Card/Transfer payment was received when there's no real terminal to verify it. */
+export async function confirmCashierSettleManually(
+  reference: string,
+  key: string,
+): Promise<CashierResult<CashierSettleStatusResponse>> {
+  try {
+    const res = await fetch(
+      `/api/staff/cashier/settle/confirm?key=${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-demo-key": key,
+        },
+        body: JSON.stringify({ reference }),
+      },
+    );
+    return handleResponse<CashierSettleStatusResponse>(res);
+  } catch {
+    return { ok: false, error: "Could not reach the server. Check your connection." };
+  }
+}

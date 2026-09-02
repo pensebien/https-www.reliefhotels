@@ -56,6 +56,10 @@
     "apply": "Apply",
     "checkRoomsRates": "Check Rooms & Rates"
   },
+  "bookStay": {
+    "title": "Book your stay",
+    "subtitle": "Choose your dates and guests, then check available rooms and rates."
+  },
   "intro": {
     "title": "An elevated escape defined by gracious service, elegant interiors, and curated experiences for discerning travelers."
   },
@@ -146,15 +150,25 @@
     "suites": "Suites with separate living areas, marble baths, and elevated comfort.",
     "penthouse": "Penthouse accommodations with panoramic views and bespoke service."
   },
+  "whatsapp": {
+    "label": "Chat on WhatsApp",
+    "ariaLabel": "Chat on WhatsApp at {phone}"
+  },
   "contact": {
     "eyebrow": "Contact Us",
     "title": "Allow our team to craft a stay shaped around comfort, celebration, and effortless luxury.",
     "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Message us anytime — we reply during service hours.",
     "email": "Email",
     "location": "Location",
     "formBadge": "Get in touch",
     "formTitle": "Send us a message",
-    "formDescription": "Questions, special requests, or feedback about your stay — our team will respond promptly. To book a room, use Check Rooms & Rates above.",
+    "formDescription": "Questions, special requests, or feedback about your stay — our team will respond promptly. To reserve a room, book your stay below.",
+    "formDescriptionInterest": "Tell us how we can help with {interest} — our concierge will reply shortly.",
+    "prefillRoom": "I am interested in booking the {room}. Please contact me to arrange my stay.",
+    "prefillTour": "I am interested in the {tour} experience. Please contact me with details.",
+    "bookStay": "Book your stay",
     "firstName": "First name",
     "lastName": "Last name",
     "phoneOptional": "Phone (optional)",
@@ -185,6 +199,7 @@
     "roomsList": "Rooms & Suites",
     "contactLink": "Contact",
     "contact": "Contact",
+    "whatsapp": "WhatsApp",
     "rights": "All rights reserved.",
     "privacy": "Privacy policy",
     "tagline": "Luxury stays, bespoke service, and memorable arrivals in Calabar."
@@ -729,6 +744,11 @@
       "terminalSuccess": "Payment received — reservation confirmed.",
       "terminalFailed": "Payment was cancelled or failed on the terminal.",
       "terminalHint": "This screen updates automatically when the terminal confirms the payment.",
+      "manualConfirmHint": "No terminal connected yet — if you've verified the guest paid (e.g. saw the terminal or a bank alert), confirm it manually.",
+      "manualConfirmButton": "Confirm payment received",
+      "manualConfirming": "Confirming…",
+      "manualConfirmPrompt": "Confirm you've verified the guest actually paid? This marks the deposit as received and confirms the reservation.",
+      "manualConfirmError": "Could not confirm payment. Try again.",
       "backToForm": "Back to form",
       "staySummary": "{nights} night(s) · suggested 20% deposit {deposit}",
       "cancel": "Cancel",
@@ -874,7 +894,8 @@
   },
   "reviews": {
     "eyebrow": "Guest reflections",
-    "title": "Trusted by travellers across Nigeria and beyond"
+    "title": "Trusted by travellers across Nigeria and beyond",
+    "guestsAria": "Guest reviewers"
   },
   "phase1": {
     "meetings": {
@@ -1112,6 +1133,10 @@
     "waitingCard": "Waiting for card confirmation…",
     "waitingTransfer": "Waiting for bank transfer…",
     "timeRemaining": "Time remaining: {time}",
+    "manualConfirmHint": "No terminal connected yet — if you've verified the guest paid, confirm it manually.",
+    "manualConfirmButton": "Confirm payment received",
+    "manualConfirming": "Confirming…",
+    "manualConfirmPrompt": "Confirm you've verified the guest actually paid? This marks the payment as received and confirms the reservation.",
     "success": "Payment settled — reservation confirmed.",
     "failed": "Settlement failed.",
     "tryAgain": "Try again",

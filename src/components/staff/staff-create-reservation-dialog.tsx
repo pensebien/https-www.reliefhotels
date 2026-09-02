@@ -157,6 +157,8 @@ export function StaffCreateReservationDialog({
   const [paymentStatus, setPaymentStatus] = useState<
     "pending" | "success" | "failed" | null
   >(null);
+  const [confirmingManually, setConfirmingManually] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   const selectedRoom = roomOptions.find((room) => room.id === form.roomId);
   const collectsDeposit = form.paymentMethod !== "none";
@@ -266,6 +268,39 @@ export function StaffCreateReservationDialog({
       window.clearInterval(id);
     };
   }, [waitingPayment, pollTerminalStatus, onCreated, onClose, roomOptions, today]);
+
+  async function handleManualConfirm() {
+    if (!waitingPayment) return;
+    const confirmed = window.confirm(t("createReservation.manualConfirmPrompt"));
+    if (!confirmed) return;
+
+    setConfirmingManually(true);
+    setConfirmError(null);
+    try {
+      const res = await fetch(
+        `/api/demo/payments/${encodeURIComponent(waitingPayment.reference)}/confirm?key=${encodeURIComponent(dashboardKey)}`,
+        { method: "POST" },
+      );
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        setConfirmError(body?.error ?? t("createReservation.manualConfirmError"));
+        setConfirmingManually(false);
+        return;
+      }
+      setPaymentStatus("success");
+      celebrateSuccess();
+      onCreated();
+      window.setTimeout(() => {
+        setWaitingPayment(null);
+        setConfirmingManually(false);
+        onClose();
+        setForm(initialForm(roomOptions[0]?.id ?? "", today));
+      }, 1200);
+    } catch {
+      setConfirmError(t("createReservation.manualConfirmError"));
+      setConfirmingManually(false);
+    }
+  }
 
   if (!open) return null;
 
@@ -515,6 +550,28 @@ export function StaffCreateReservationDialog({
                   ? t("createReservation.transferHint")
                   : t("createReservation.terminalHint")}
               </p>
+            ) : null}
+            {paymentStatus === "pending" ? (
+              <div className="space-y-2 rounded-lg border border-dashed border-border p-3">
+                <p className="text-xs text-muted">
+                  {t("createReservation.manualConfirmHint")}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleManualConfirm}
+                  disabled={confirmingManually}
+                  className="rounded-lg border border-teal px-4 py-2 text-sm font-medium text-teal-dark hover:bg-teal/10 disabled:opacity-60"
+                >
+                  {confirmingManually
+                    ? t("createReservation.manualConfirming")
+                    : t("createReservation.manualConfirmButton")}
+                </button>
+                {confirmError ? (
+                  <p className="text-sm text-red-600" role="alert">
+                    {confirmError}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
             {paymentStatus === "failed" || transferExpired ? (
               <button
