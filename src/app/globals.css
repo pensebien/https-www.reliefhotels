@@ -84,11 +84,11 @@ body {
   --rdp-accent-color: #104c97;
   --rdp-accent-background-color: rgb(16 76 151 / 0.12);
   --rdp-day_button-border-radius: 2px;
-  --rdp-day_button-height: 40px;
-  --rdp-day_button-width: 40px;
-  --rdp-day-height: 42px;
-  --rdp-day-width: 42px;
-  --rdp-months-gap: 2.5rem;
+  --rdp-day_button-height: 36px;
+  --rdp-day_button-width: 36px;
+  --rdp-day-height: 38px;
+  --rdp-day-width: 38px;
+  --rdp-months-gap: 1.5rem;
   --rdp-today-color: #104c97;
   --rdp-range_start-color: #ffffff;
   --rdp-range_end-color: #ffffff;
@@ -101,8 +101,25 @@ body {
   color: #171717;
 }
 
+@media (min-width: 640px) {
+  .hilton-date-picker {
+    --rdp-day_button-height: 40px;
+    --rdp-day_button-width: 40px;
+    --rdp-day-height: 42px;
+    --rdp-day-width: 42px;
+    --rdp-months-gap: 2.5rem;
+  }
+}
+
 .hilton-date-picker .rdp-root {
   color: #171717;
+  max-width: 100%;
+}
+
+.hilton-date-picker .rdp-months {
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .hilton-date-picker .rdp-month_caption,

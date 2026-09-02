@@ -56,6 +56,10 @@
     "apply": "Appliquer",
     "checkRoomsRates": "Voir chambres et tarifs"
   },
+  "bookStay": {
+    "title": "Réservez votre séjour",
+    "subtitle": "Choisissez vos dates et le nombre de voyageurs, puis consultez les chambres et tarifs disponibles."
+  },
   "intro": {
     "title": "Une escapade raffinée définie par un service attentionné, des intérieurs élégants et des expériences choisies pour les voyageurs exigeants."
   },
@@ -146,6 +150,10 @@
     "suites": "Suites avec salon séparé, salles de bain en marbre et confort élevé.",
     "penthouse": "Penthouse avec vues panoramiques et service sur mesure."
   },
+  "whatsapp": {
+    "label": "Discuter sur WhatsApp",
+    "ariaLabel": "Discuter sur WhatsApp au {phone}"
+  },
   "contact": {
     "eyebrow": "Contactez-nous",
     "title": "Laissez notre équipe créer un séjour autour du confort, de la célébration et du luxe discret.",
@@ -154,7 +162,7 @@
     "location": "Adresse",
     "formBadge": "Nous écrire",
     "formTitle": "Envoyez-nous un message",
-    "formDescription": "Questions, demandes spéciales ou commentaires — notre équipe vous répondra rapidement. Pour réserver une chambre, utilisez Vérifier les chambres et tarifs ci-dessus.",
+    "formDescription": "Questions, demandes spéciales ou commentaires — notre équipe vous répondra rapidement. Pour réserver une chambre, utilisez le bouton ci-dessous.",
     "firstName": "Prénom",
     "lastName": "Nom",
     "phoneOptional": "Téléphone (facultatif)",
@@ -166,7 +174,10 @@
     "success": "Merci. Notre équipe examinera votre message sous peu.",
     "successEmail": "Une copie a été envoyée à notre service client.",
     "successDemo": "Mode démo : message enregistré — consultez Messages sur le tableau de bord démo.",
-    "error": "Une erreur s'est produite. Réessayez ou appelez-nous."
+    "error": "Une erreur s'est produite. Réessayez ou appelez-nous.",
+    "bookStay": "Réservez votre séjour",
+    "whatsapp": "WhatsApp",
+    "whatsappHint": "Écrivez-nous à tout moment — nous répondons aux heures de service."
   },
   "form": {
     "stay": {
@@ -186,7 +197,8 @@
     "contactLink": "Contact",
     "contact": "Contact",
     "rights": "Tous droits réservés.",
-    "tagline": "Séjours de luxe, service sur mesure et arrivées mémorables à Calabar."
+    "tagline": "Séjours de luxe, service sur mesure et arrivées mémorables à Calabar.",
+    "whatsapp": "WhatsApp"
   },
   "rooms": {
     "pageTitle": "Chambres & Suites",
@@ -289,7 +301,21 @@
       }
     },
     "bookRoom": "Réserver cette chambre",
-    "amenities": "Équipements",
+    "amenities": {
+      "kingBed": "Lit king & literie premium",
+      "marbleBath": "Salle de bain en marbre",
+      "cityView": "Vue sur la ville",
+      "butler": "Service de majordome",
+      "panoramic": "Vues panoramiques",
+      "livingRoom": "Salon séparé",
+      "airportTransfer": "Transfert aéroport offert",
+      "workDesk": "Bureau executive",
+      "rainShower": "Douche pluie",
+      "loungeAccess": "Accès au grand salon",
+      "spaCredit": "Crédit spa",
+      "healthyMenu": "Menu bien-être",
+      "yoga": "Tapis de yoga en chambre"
+    },
     "guest": {
       "name": "Chambre Standard",
       "description": "Hébergement confortable avec literie premium, équipements modernes et attentions raffinées."
@@ -309,21 +335,6 @@
     "executiveSpa": {
       "name": "Chambre Executive Spa",
       "description": "Chambre Executive avec espace de travail, accès au salon, crédits spa et équipements restaurateurs en chambre."
-    },
-    "amenities": {
-      "kingBed": "Lit king & literie premium",
-      "marbleBath": "Salle de bain en marbre",
-      "cityView": "Vue sur la ville",
-      "butler": "Service de majordome",
-      "panoramic": "Vues panoramiques",
-      "livingRoom": "Salon séparé",
-      "airportTransfer": "Transfert aéroport offert",
-      "workDesk": "Bureau executive",
-      "rainShower": "Douche pluie",
-      "loungeAccess": "Accès au grand salon",
-      "spaCredit": "Crédit spa",
-      "healthyMenu": "Menu bien-être",
-      "yoga": "Tapis de yoga en chambre"
     }
   },
   "tours": {
