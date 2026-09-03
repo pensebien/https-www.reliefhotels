@@ -17,6 +17,7 @@ type BookingSummaryProps = {
   editableStay?: boolean;
   onNightsChange?: (nights: number) => void;
   onGuestsChange?: (guests: number) => void;
+  footnote?: string;
 };
 
 function formatStayDate(value: string): string {
@@ -97,6 +98,7 @@ export function BookingSummary({
   editableStay = false,
   onNightsChange,
   onGuestsChange,
+  footnote,
 }: BookingSummaryProps) {
   const t = useTranslations("booking");
   const totalEstimate = calculateTotalEstimateNgn(priceFrom, nights);
@@ -177,6 +179,11 @@ export function BookingSummary({
           {formatNaira(depositNgn)}
         </p>
         <p className="mt-1 text-xs text-muted">{t("depositNote")}</p>
+        {footnote ? (
+          <p className="mt-3 border-t border-teal/20 pt-3 text-xs text-muted">
+            {footnote}
+          </p>
+        ) : null}
       </div>
     </div>
   );

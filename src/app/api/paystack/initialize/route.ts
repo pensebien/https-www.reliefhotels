@@ -4,6 +4,7 @@ import { findReservationById, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
 import { paystackInitializeSchema } from "@/lib/schemas/payment";
 import { rooms } from "@/content/site";
+import { pluralize } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
 
     const amountNgn = demoAmountNgn ?? calculateDepositNgn(item.priceFrom, nights);
     const amountKobo = amountNgn * 100;
-    const itemLabel = `${itemId} — ${nights} night(s) deposit (20%)`;
+    const itemLabel = `${itemId} — ${pluralize(nights, "night")} deposit (20%)`;
 
     const result = await initializePayment({
       email,
