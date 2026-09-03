@@ -195,7 +195,7 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
           form.locator('textarea[name="message"]'),
           "Corporate dinner for 40 guests — need AV and set menus.",
         );
-        await humanClick(form.getByRole("button", { type: "submit" }));
+        await humanClick(form.locator('button[type="submit"]'));
       } else {
         await page.goto("/en/dine-wine");
         await humanScan(page, 2);
@@ -212,7 +212,7 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
           form.locator('textarea[name="notes"]'),
           "Window table for anniversary dinner.",
         );
-        await humanClick(form.getByRole("button", { type: "submit" }));
+        await humanClick(form.locator('button[type="submit"]'));
       }
       await expect(page.getByText(/thank|received|success|team will/i).first()).toBeVisible({
         timeout: 20_000,
