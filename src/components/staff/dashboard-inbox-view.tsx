@@ -19,7 +19,7 @@ import {
 } from "@/components/staff/occupancy-category-icons";
 import { resolveBookingCategoryKey } from "@/lib/booking-category";
 import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
-import { cn } from "@/lib/utils";
+import { cn, pluralize } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -107,7 +107,7 @@ function InboxCaseCard({
             <p className="mt-2 text-xs font-medium text-foreground">
               {reservation.checkIn ? formatStayDate(reservation.checkIn) : "—"} →{" "}
               {reservation.checkOut ? formatStayDate(reservation.checkOut) : "—"}
-              {reservation.guests ? ` · ${reservation.guests} guest(s)` : ""}
+              {reservation.guests ? ` · ${pluralize(reservation.guests, "guest")}` : ""}
             </p>
           )}
 

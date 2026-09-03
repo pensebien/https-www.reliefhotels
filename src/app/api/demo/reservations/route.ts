@@ -15,6 +15,7 @@ import { paymentChannelForMethod } from "@/lib/payment-methods";
 import { createPaystackTerminalSettlement } from "@/lib/paystack-terminal";
 import { staffReservationSchema } from "@/lib/schemas/staff-reservation";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
+import { pluralize } from "@/lib/utils";
 import {
   frontDeskPaymentReference,
   paymentItemLabel,
@@ -54,8 +55,8 @@ export async function POST(request: Request) {
       `room:${room.id}`,
       room.id,
       `${data.checkIn} → ${data.checkOut}`,
-      `${nights} night(s)`,
-      `${data.guests} guest(s)`,
+      pluralize(nights, "night"),
+      pluralize(data.guests, "guest"),
     ].join(" · ");
 
     const collectsDeposit = data.paymentMethod !== "none";

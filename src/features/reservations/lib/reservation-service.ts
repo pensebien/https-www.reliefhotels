@@ -1,5 +1,6 @@
 import type { BookQueryParams, StayContext } from "../types";
 import type { ReservationFormValues } from "./reservation-schema";
+import { pluralize } from "@/lib/utils";
 
 export function calculateDepositNgn(
   priceFrom: number,
@@ -29,8 +30,8 @@ export function buildReservationPayload(
   }
 
   summaryParts.push(
-    `${stayContext.nights} night(s)`,
-    `${stayContext.guests} guest(s)`,
+    pluralize(stayContext.nights, "night"),
+    pluralize(stayContext.guests, "guest"),
   );
 
   let message = formData.message.trim();
