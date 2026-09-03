@@ -143,6 +143,7 @@ export function ReservationForm(props: ReservationFlowProps) {
           editableStay={step === 1}
           onNightsChange={updateNights}
           onGuestsChange={updateGuests}
+          footnote={step === 2 ? t("managerNotifyAfterPayment") : undefined}
         />
       </div>
 
@@ -301,10 +302,6 @@ export function ReservationForm(props: ReservationFlowProps) {
         </>
       ) : (
         <>
-          <p className="mt-6 text-sm leading-6 text-muted">
-            {t("managerNotifyAfterPayment")}
-          </p>
-
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <button
               type="button"

@@ -12,3 +12,8 @@ export function formatNaira(amount: number, locale = "en-NG") {
     maximumFractionDigits: 0,
   }).format(amount);
 }
+
+/** "1 night" / "2 nights" — proper singular/plural instead of the "night(s)" shorthand. */
+export function pluralize(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}

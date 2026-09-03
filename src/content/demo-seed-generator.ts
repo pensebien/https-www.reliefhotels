@@ -8,6 +8,7 @@ import { stableDemoUuid } from "@/lib/demo-seed-id";
 import { experienceOptions } from "@/content/experience-options";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
 import { rooms } from "@/content/site";
+import { pluralize } from "@/lib/utils";
 
 const FIRST_NAMES = [
   "Adaeze",
@@ -160,7 +161,7 @@ function buildRoomSeeds(): {
         checkOut,
         nights,
         guests,
-        stayPreference: `${room.id} · ${nights} night(s) · ${guests} guest(s)`,
+        stayPreference: `${room.id} · ${pluralize(nights, "night")} · ${pluralize(guests, "guest")}`,
         message,
         status,
         paymentReference: status === "confirmed" ? ref : undefined,
@@ -181,7 +182,7 @@ function buildRoomSeeds(): {
           status: "success",
           itemType: "room",
           itemId: room.id,
-          itemLabel: `${room.id} — ${nights} night(s) deposit (20%)`,
+          itemLabel: `${room.id} — ${pluralize(nights, "night")} deposit (20%)`,
           source: "demo",
           createdAt: isoCreated(i, 9 + (i % 10)),
         });

@@ -13,7 +13,7 @@ import {
 } from "@/lib/booking-category";
 import { parseYmd } from "@/lib/reservation-dates";
 import { toMailtoHref } from "@/lib/contact-links";
-import { cn, formatNaira } from "@/lib/utils";
+import { cn, formatNaira, pluralize } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
 export type DashboardReservationRow = {
@@ -190,8 +190,8 @@ export function BookingListCard({
               {t("stayDates")}:{" "}
               {reservation.checkIn ? formatStayDate(reservation.checkIn) : "—"} →{" "}
               {reservation.checkOut ? formatStayDate(reservation.checkOut) : "—"}
-              {reservation.nights ? ` · ${reservation.nights} night(s)` : ""}
-              {reservation.guests ? ` · ${reservation.guests} guest(s)` : ""}
+              {reservation.nights ? ` · ${pluralize(reservation.nights, "night")}` : ""}
+              {reservation.guests ? ` · ${pluralize(reservation.guests, "guest")}` : ""}
             </p>
           )}
           <div className="mt-2">
