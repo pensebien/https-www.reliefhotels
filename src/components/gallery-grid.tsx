@@ -6,9 +6,9 @@ import {
   type GalleryCategory,
 } from "@/content/gallery";
 import { cn } from "@/lib/utils";
+import { SafeImage } from "@/components/safe-image";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 export function GalleryGrid() {
@@ -66,7 +66,7 @@ export function GalleryGrid() {
             onClick={() => setLightbox(item.id)}
             className="group relative mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal"
           >
-            <Image
+            <SafeImage
               src={item.src}
               alt={t(item.titleKey)}
               width={700}
@@ -101,7 +101,7 @@ export function GalleryGrid() {
             className="relative max-h-[90vh] max-w-5xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <Image
+            <SafeImage
               src={activeItem.src}
               alt={t(activeItem.titleKey)}
               width={1400}

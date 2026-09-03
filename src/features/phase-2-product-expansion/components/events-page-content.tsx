@@ -1,8 +1,8 @@
 import { EventInquiryForm } from "@/features/phase-2-product-expansion/components/event-inquiry-form";
 import { EventStatsBar } from "@/features/phase-2-product-expansion/components/event-stats-bar";
 import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
+import { SafeImage } from "@/components/safe-image";
 import { getTranslations } from "next-intl/server";
-import Image from "next/image";
 
 export async function EventsPageContent() {
   const t = await getTranslations("phase2.events");
@@ -24,7 +24,13 @@ export async function EventsPageContent() {
           {eventSpaces.map((space) => (
             <article key={space.id} className="overflow-hidden rounded-2xl border border-border bg-card">
               <div className="relative h-52">
-                <Image src={space.image} alt={t(space.nameKey)} fill className="object-cover" sizes="400px" />
+                <SafeImage
+                  src={space.image}
+                  alt={t(space.nameKey)}
+                  fill
+                  sizes="400px"
+                  className="object-cover"
+                />
               </div>
               <div className="p-6">
                 <p className="text-xs uppercase tracking-wider text-muted">
