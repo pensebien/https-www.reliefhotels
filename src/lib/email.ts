@@ -165,3 +165,51 @@ export async function sendPaymentConfirmationEmail(
     html: paymentConfirmationHtml(payload),
   });
 }
+
+export type BankTransferApprovalInput = {
+  to: string;
+  reference: string;
+  guestName: string;
+  amountKobo: number;
+  itemLabel: string;
+  /** Absent when `BANK_TRANSFER_LINK_SECRET` isn't configured — email still goes out with a note instead of a link. */
+  approvalUrl?: string;
+};
+
+export function bankTransferApprovalHtml(payload: BankTransferApprovalInput): string {
+  const cta = payload.approvalUrl
+    ? `<p><a href="${escapeHtml(payload.approvalUrl)}">Review and approve this payment</a></p>`
+    : `<p style="color:#b45309;">No approval link — BANK_TRANSFER_LINK_SECRET isn't configured. Approve from the staff dashboard instead.</p>`;
+
+  return `
+    <h2>Bank transfer awaiting approval</h2>
+    <p>A guest says they've paid a deposit by direct bank transfer. This has <strong>not</strong> been verified by any payment gateway — please check your bank app for the incoming transfer before approving.</p>
+    <p><strong>Guest:</strong> ${escapeHtml(payload.guestName)}</p>
+    <p><strong>Amount:</strong> ${formatNairaFromKobo(payload.amountKobo)}</p>
+    <p><strong>Item:</strong> ${escapeHtml(payload.itemLabel)}</p>
+    <p><strong>Reference:</strong> ${escapeHtml(payload.reference)}</p>
+    ${cta}
+    <p style="color:#666;font-size:12px;">The room stays unreserved until this is approved — either via the link above or the staff dashboard.</p>
+  `;
+}
+
+export async function sendBankTransferApprovalEmail(
+  payload: BankTransferApprovalInput,
+): Promise<boolean> {
+  const config = getServerConfig();
+
+  if (!config.email.configured || !payload.to) {
+    console.info("[email:demo] bank transfer awaiting approval", {
+      reference: payload.reference,
+      to: payload.to || "(BANK_TRANSFER_APPROVAL_EMAIL unset)",
+      approvalUrl: payload.approvalUrl,
+    });
+    return false;
+  }
+
+  return sendResendEmail({
+    to: [payload.to],
+    subject: `[Relief Hotels] Bank transfer awaiting approval — ${payload.reference}`,
+    html: bankTransferApprovalHtml(payload),
+  });
+}

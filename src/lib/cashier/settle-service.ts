@@ -26,6 +26,7 @@ const METHOD_LABEL: Record<CashierPaymentMethod, string> = {
   paystack_terminal: "Paystack Terminal settle",
   moniepoint_terminal: "Moniepoint terminal settle",
   moniepoint_transfer: "Moniepoint transfer settle",
+  bank_transfer_manual: "bank transfer settle (manual)",
 };
 
 function resolveItemType(reservation: ReservationRecord): "room" | "tour" {

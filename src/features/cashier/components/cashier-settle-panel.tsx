@@ -19,12 +19,12 @@ import type {
 import { resolveCardTerminalMethod } from "@/lib/payment-methods";
 import { formatCountdown, useCountdown } from "@/lib/use-countdown";
 import { cn, formatNaira } from "@/lib/utils";
-import { ArrowLeftRight, Banknote, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeftRight, Banknote, CreditCard, Landmark, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 type SettleTile = {
-  group: "cash" | "card" | "transfer";
+  group: "cash" | "card" | "transfer" | "bankTransferManual";
   method: CashierPaymentMethod;
   icon: typeof Banknote;
 };
@@ -57,6 +57,7 @@ export function CashierSettlePanel({
     { group: "cash", method: "cash", icon: Banknote },
     { group: "card", method: cardMethod, icon: CreditCard },
     { group: "transfer", method: "moniepoint_transfer", icon: ArrowLeftRight },
+    { group: "bankTransferManual", method: "bank_transfer_manual", icon: Landmark },
   ];
 
   const [amount, setAmount] = useState<string>(
@@ -249,7 +250,9 @@ export function CashierSettlePanel({
                     ? t("submitting")
                     : pendingMethod === "moniepoint_transfer"
                       ? t("waitingTransfer")
-                      : t("waitingCard")}
+                      : pendingMethod === "bank_transfer_manual"
+                        ? t("waitingBankTransferManual")
+                        : t("waitingCard")}
                 </p>
                 {stage === "polling" ? (
                   <p className="mt-0.5 font-mono text-xs tabular-nums text-muted" aria-live="polite">
@@ -275,7 +278,7 @@ export function CashierSettlePanel({
             ) : null}
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {tiles.map(({ group, method, icon: Icon }) => (
               <button
                 key={group}

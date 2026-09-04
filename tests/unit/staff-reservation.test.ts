@@ -47,4 +47,19 @@ describe("staffReservationSchema", () => {
     });
     assert.equal(parsed.success, true);
   });
+
+  it("accepts bank_transfer_manual without requiring confirmed status", () => {
+    const parsed = staffReservationSchema.safeParse({
+      firstName: "Ada",
+      lastName: "Okonkwo",
+      email: "ada@example.com",
+      roomId: "guest-room",
+      checkIn: "2026-09-01",
+      checkOut: "2026-09-03",
+      guests: 2,
+      paymentMethod: "bank_transfer_manual",
+      status: "pending",
+    });
+    assert.equal(parsed.success, true);
+  });
 });

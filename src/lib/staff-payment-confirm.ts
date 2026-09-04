@@ -7,6 +7,7 @@ const MANUALLY_CONFIRMABLE_METHODS = new Set([
   "moniepoint_terminal",
   "moniepoint_transfer",
   "paystack_terminal",
+  "bank_transfer_manual",
 ]);
 
 export type ManualConfirmResult =

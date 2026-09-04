@@ -1,3 +1,4 @@
+import { getBankTransferPublicConfig } from "@/lib/bank-transfer";
 import { getServerConfig } from "@/lib/config";
 import { checkStorageHealth } from "@/lib/db/health";
 import { listRoomBlocks } from "@/lib/db/inventory-store";
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
       },
       moniepoint: getMoniepointPublicConfig(),
       paystackTerminal: getPaystackTerminalPublicConfig(),
+      bankTransfer: getBankTransferPublicConfig(),
       ...activity,
       eventInquiries,
       guestFeedback,

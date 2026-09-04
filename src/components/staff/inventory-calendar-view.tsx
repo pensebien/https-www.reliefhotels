@@ -23,6 +23,7 @@ import {
 } from "./occupancy-category-icons";
 import {
   StaffCreateReservationDialog,
+  type BankTransferPublicConfig,
   type MoniepointPublicConfig,
   type PaystackTerminalPublicConfig,
   type StaffCreateReservationSeed,
@@ -57,6 +58,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   roomOptions = [],
   moniepointConfig,
   paystackTerminalConfig,
+  bankTransferConfig,
   onActivityChange,
 }: {
   reservations: CalendarReservation[];
@@ -68,6 +70,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   roomOptions?: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
   paystackTerminalConfig?: PaystackTerminalPublicConfig;
+  bankTransferConfig?: BankTransferPublicConfig;
   onActivityChange?: () => void;
 }) {
   const t = useTranslations("demo");
@@ -458,6 +461,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
           roomOptions={roomOptions}
           moniepointConfig={moniepointConfig}
           paystackTerminalConfig={paystackTerminalConfig}
+          bankTransferConfig={bankTransferConfig}
           seed={createSeed}
           onCreated={() => onActivityChange?.()}
         />

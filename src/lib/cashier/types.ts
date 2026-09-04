@@ -5,13 +5,15 @@ export type CashierPaymentMethod =
   | "cash"
   | "paystack_terminal"
   | "moniepoint_terminal"
-  | "moniepoint_transfer";
+  | "moniepoint_transfer"
+  | "bank_transfer_manual";
 
 export const CASHIER_PAYMENT_METHODS = [
   "cash",
   "paystack_terminal",
   "moniepoint_terminal",
   "moniepoint_transfer",
+  "bank_transfer_manual",
 ] as const satisfies readonly CashierPaymentMethod[];
 
 export type CashierSettleStatus = "success" | "pending" | "failed";
@@ -66,8 +68,9 @@ export function fromStoredPaymentMethod(
 
 export function paymentChannelForCashierMethod(
   method: CashierPaymentMethod,
-): "cash" | "moniepoint" | "paystack" {
+): "cash" | "moniepoint" | "paystack" | "bank_transfer_manual" {
   if (method === "cash") return "cash";
   if (method === "paystack_terminal") return "paystack";
+  if (method === "bank_transfer_manual") return "bank_transfer_manual";
   return "moniepoint";
 }

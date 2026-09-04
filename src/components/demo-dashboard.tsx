@@ -95,6 +95,14 @@ type Activity = {
     configured: boolean;
     demoMode: boolean;
   };
+  bankTransfer?: {
+    configured: boolean;
+    account: {
+      bankName: string;
+      accountNumber: string;
+      accountName: string;
+    } | null;
+  };
   reservations: DashboardReservationRow[];
   payments: DashboardPaymentRow[];
   eventInquiries?: EventInquiryRow[];
@@ -646,6 +654,7 @@ export function DemoDashboard({
               roomOptions={roomOptions}
               moniepointConfig={data?.moniepoint}
               paystackTerminalConfig={data?.paystackTerminal}
+              bankTransferConfig={data?.bankTransfer}
               onActivityChange={() => load(key)}
             />
           ) : variant === "portal" ? (
@@ -682,6 +691,7 @@ export function DemoDashboard({
         roomOptions={roomOptions}
         moniepointConfig={data?.moniepoint}
         paystackTerminalConfig={data?.paystackTerminal}
+        bankTransferConfig={data?.bankTransfer}
         onCreated={() => load(key)}
       />
     </div>

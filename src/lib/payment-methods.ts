@@ -3,15 +3,17 @@ export type FrontDeskPaymentMethod =
   | "cash"
   | "moniepoint_terminal"
   | "moniepoint_transfer"
-  | "paystack_terminal";
+  | "paystack_terminal"
+  | "bank_transfer_manual";
 
-export type PaymentChannel = "paystack" | "moniepoint" | "cash";
+export type PaymentChannel = "paystack" | "moniepoint" | "cash" | "bank_transfer_manual";
 
 export const FRONT_DESK_PAYMENT_METHODS = [
   "cash",
   "moniepoint_terminal",
   "moniepoint_transfer",
   "paystack_terminal",
+  "bank_transfer_manual",
 ] as const satisfies readonly FrontDeskPaymentMethod[];
 
 export type StaffPaymentOption = "none" | FrontDeskPaymentMethod;
@@ -40,6 +42,7 @@ export function paymentChannelForMethod(
 ): PaymentChannel {
   if (method === "cash") return "cash";
   if (method === "paystack_terminal") return "paystack";
+  if (method === "bank_transfer_manual") return "bank_transfer_manual";
   return "moniepoint";
 }
 
@@ -55,6 +58,8 @@ export function paymentMethodLabelKey(
       return "createReservation.paymentMethods.moniepoint_transfer";
     case "paystack_terminal":
       return "createReservation.paymentMethods.paystack_terminal";
+    case "bank_transfer_manual":
+      return "createReservation.paymentMethods.bankTransferManual";
     case "paystack":
       return "createReservation.paymentMethods.paystack";
     default:

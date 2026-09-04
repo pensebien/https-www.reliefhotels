@@ -13,7 +13,9 @@ export function frontDeskPaymentReference(
         ? "RH-MPOS"
         : method === "paystack_terminal"
           ? "RH-PSPOS"
-          : "RH-MPTF";
+          : method === "bank_transfer_manual"
+            ? "RH-BTM"
+            : "RH-MPTF";
   return `${prefix}-${date}-${suffix}`;
 }
 
@@ -28,6 +30,8 @@ export function paymentItemLabel(
         ? "Moniepoint terminal deposit"
         : method === "paystack_terminal"
           ? "Paystack terminal deposit"
-          : "Moniepoint transfer deposit";
+          : method === "bank_transfer_manual"
+            ? "bank transfer deposit (manual)"
+            : "Moniepoint transfer deposit";
   return `${roomId} — ${suffix}`;
 }

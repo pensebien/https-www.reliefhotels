@@ -1,3 +1,4 @@
+import { sendBankTransferApprovalNotifications } from "@/lib/bank-transfer";
 import { rooms } from "@/content/site";
 import {
   addPayment,
@@ -63,7 +64,8 @@ export async function POST(request: Request) {
     const awaitsProviderPush =
       data.paymentMethod === "moniepoint_terminal" ||
       data.paymentMethod === "moniepoint_transfer" ||
-      data.paymentMethod === "paystack_terminal";
+      data.paymentMethod === "paystack_terminal" ||
+      data.paymentMethod === "bank_transfer_manual";
 
     const reservationStatus = awaitsProviderPush
       ? "pending"
@@ -136,6 +138,17 @@ export async function POST(request: Request) {
           amountKobo: depositNgn * 100,
           reference: paymentReference,
           description: paymentItemLabel(room.id, method),
+        });
+        pushAccepted = true;
+        paymentPending = true;
+      } else if (method === "bank_transfer_manual") {
+        // No gateway to push to — the guest transfers directly, arranged over
+        // WhatsApp. Just alert the manager to go verify and approve.
+        await sendBankTransferApprovalNotifications({
+          reference: paymentReference,
+          reservation: record,
+          amountKobo: depositNgn * 100,
+          itemLabel: paymentItemLabel(room.id, method),
         });
         pushAccepted = true;
         paymentPending = true;

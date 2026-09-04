@@ -16,6 +16,11 @@ export function AccountingSummaryCards({
     { key: "paystack", label: t("summary.paystack"), amount: summary.paystack },
     { key: "moniepoint", label: t("summary.moniepoint"), amount: summary.moniepoint },
     {
+      key: "bankTransferManual",
+      label: t("summary.bankTransferManual"),
+      amount: summary.bank_transfer_manual,
+    },
+    {
       key: "total",
       label: t("summary.total"),
       amount: summary.totalNgn,
@@ -24,7 +29,7 @@ export function AccountingSummaryCards({
   ];
 
   return (
-    <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {cards.map((card) => (
         <div
           key={card.key}

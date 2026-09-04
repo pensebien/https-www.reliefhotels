@@ -9,7 +9,12 @@ import { manuallyConfirmPendingPayment } from "@/lib/staff-payment-confirm";
 
 async function seedPendingPayment(
   reference: string,
-  paymentMethod: "moniepoint_terminal" | "moniepoint_transfer" | "paystack_terminal" | "cash",
+  paymentMethod:
+    | "moniepoint_terminal"
+    | "moniepoint_transfer"
+    | "paystack_terminal"
+    | "bank_transfer_manual"
+    | "cash",
   status: "pending" | "success" = "pending",
 ) {
   const reservation = await addReservation({
@@ -36,7 +41,12 @@ async function seedPendingPayment(
     itemId: "guest-room",
     itemLabel: "guest-room — deposit",
     paymentMethod,
-    paymentChannel: paymentMethod === "cash" ? "cash" : "moniepoint",
+    paymentChannel:
+      paymentMethod === "cash"
+        ? "cash"
+        : paymentMethod === "bank_transfer_manual"
+          ? "bank_transfer_manual"
+          : "moniepoint",
   });
 
   return reservation;
@@ -64,6 +74,18 @@ describe("manuallyConfirmPendingPayment", () => {
 
     const result = await manuallyConfirmPendingPayment(reference);
     assert.equal(result.ok, true);
+  });
+
+  it("confirms a pending bank_transfer_manual payment", async () => {
+    const reference = `RH-BTM-CONFIRM-${Date.now()}`;
+    const reservation = await seedPendingPayment(reference, "bank_transfer_manual");
+
+    const result = await manuallyConfirmPendingPayment(reference);
+    assert.equal(result.ok, true);
+    if (result.ok) assert.equal(result.payment.status, "success");
+
+    const updatedReservation = await findReservationById(reservation.id);
+    assert.equal(updatedReservation?.status, "confirmed");
   });
 
   it("rejects cash payments as not manually confirmable", async () => {

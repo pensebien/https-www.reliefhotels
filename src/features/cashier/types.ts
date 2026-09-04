@@ -6,7 +6,8 @@ export type CashierPaymentMethod =
   | "cash"
   | "paystack_terminal"
   | "moniepoint_terminal"
-  | "moniepoint_transfer";
+  | "moniepoint_transfer"
+  | "bank_transfer_manual";
 
 export type CashierReservationStatus = "pending" | "confirmed" | "cancelled";
 

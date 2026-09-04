@@ -6,12 +6,13 @@
  * already exposed by `GET /api/demo/activity`.
  */
 
-export type LedgerChannel = "cash" | "paystack" | "moniepoint";
+export type LedgerChannel = "cash" | "paystack" | "moniepoint" | "bank_transfer_manual";
 
 export const LEDGER_CHANNELS: readonly LedgerChannel[] = [
   "cash",
   "paystack",
   "moniepoint",
+  "bank_transfer_manual",
 ];
 
 /** Shape of a single entry from `GET /api/demo/activity` → `payments`. */
@@ -70,6 +71,7 @@ export type LedgerChannelSummary = {
   cash: number;
   paystack: number;
   moniepoint: number;
+  bank_transfer_manual: number;
   totalNgn: number;
   count: number;
 };
@@ -98,7 +100,12 @@ export function resolveLedgerChannel(payment: {
   paymentMethod?: string;
 }): LedgerChannel {
   const channel = payment.paymentChannel?.toLowerCase();
-  if (channel === "cash" || channel === "paystack" || channel === "moniepoint") {
+  if (
+    channel === "cash" ||
+    channel === "paystack" ||
+    channel === "moniepoint" ||
+    channel === "bank_transfer_manual"
+  ) {
     return channel;
   }
 
@@ -107,6 +114,7 @@ export function resolveLedgerChannel(payment: {
   if (method === "moniepoint_terminal" || method === "moniepoint_transfer") {
     return "moniepoint";
   }
+  if (method === "bank_transfer_manual") return "bank_transfer_manual";
   return "paystack";
 }
 
@@ -181,7 +189,7 @@ export function filterSuccessfulLedgerRows(
   return rows.filter((row) => row.status === "success");
 }
 
-/** Cash / Paystack / Moniepoint / total breakdown, all amounts in NGN. */
+/** Cash / Paystack / Moniepoint / manual bank transfer / total breakdown, all amounts in NGN. */
 export function summarizeLedgerByChannel(
   rows: readonly LedgerRow[],
 ): LedgerChannelSummary {
@@ -189,6 +197,7 @@ export function summarizeLedgerByChannel(
     cash: 0,
     paystack: 0,
     moniepoint: 0,
+    bank_transfer_manual: 0,
     totalNgn: 0,
     count: rows.length,
   };

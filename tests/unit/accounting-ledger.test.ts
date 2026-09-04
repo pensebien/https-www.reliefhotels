@@ -98,6 +98,13 @@ describe("resolveLedgerChannel", () => {
     assert.equal(resolveLedgerChannel({}), "paystack");
     assert.equal(resolveLedgerChannel({ paymentMethod: "paystack_terminal" }), "paystack");
   });
+
+  it("derives bank_transfer_manual as its own channel, not paystack or moniepoint", () => {
+    assert.equal(
+      resolveLedgerChannel({ paymentMethod: "bank_transfer_manual" }),
+      "bank_transfer_manual",
+    );
+  });
 });
 
 describe("buildLedgerRows", () => {
@@ -192,6 +199,7 @@ describe("summarizeLedgerByChannel", () => {
       cash: 0,
       paystack: 0,
       moniepoint: 0,
+      bank_transfer_manual: 0,
       totalNgn: 0,
       count: 0,
     });

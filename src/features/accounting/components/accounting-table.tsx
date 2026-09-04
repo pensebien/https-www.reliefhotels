@@ -8,6 +8,14 @@ const CHANNEL_BADGE_CLASSES: Record<LedgerChannel, string> = {
   cash: "bg-amber-500/15 text-amber-800 dark:text-amber-200",
   paystack: "bg-teal/20 text-teal-dark",
   moniepoint: "bg-sky-500/15 text-sky-800 dark:text-sky-200",
+  bank_transfer_manual: "bg-violet-500/15 text-violet-800 dark:text-violet-200",
+};
+
+const CHANNEL_LABELS: Record<LedgerChannel, string> = {
+  cash: "cash",
+  paystack: "paystack",
+  moniepoint: "moniepoint",
+  bank_transfer_manual: "bank transfer (manual)",
 };
 
 function formatRowDate(dateYmd: string): string {
@@ -71,7 +79,7 @@ export function AccountingTable({ rows }: { rows: LedgerRow[] }) {
                     CHANNEL_BADGE_CLASSES[row.channel],
                   )}
                 >
-                  {row.channel}
+                  {CHANNEL_LABELS[row.channel]}
                 </span>
               </td>
               <td className="px-3 py-2 capitalize text-muted">{row.status}</td>

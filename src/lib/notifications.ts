@@ -3,6 +3,7 @@ import { logNotificationAttempt } from "@/lib/db/notification-log";
 export type NotificationEvent =
   | "reservation.created"
   | "payment.verified"
+  | "payment.awaiting_manual_review"
   | "event.inquiry.created"
   | "dining.reservation.created";
 
@@ -25,9 +26,14 @@ export type NotifyResult = {
   error?: string;
 };
 
-/** Manager SMS/WhatsApp only after a verified payment (e.g. 20% room deposit). */
+/**
+ * Manager SMS/WhatsApp only after a verified payment (e.g. 20% room deposit),
+ * or a manual-bank-transfer claim that needs a human to go verify it — an
+ * unverified claim, not a confirmed payment, so it gets distinct wording
+ * below rather than being folded into "payment.verified".
+ */
 function isManagerAlertAllowed(event: NotificationEvent): boolean {
-  return event === "payment.verified";
+  return event === "payment.verified" || event === "payment.awaiting_manual_review";
 }
 
 function buildMessageBody(payload: NotifyPayload): string {
@@ -39,6 +45,11 @@ function buildMessageBody(payload: NotifyPayload): string {
       const guest = payload.guestName ? ` from ${payload.guestName}` : "";
       const phone = payload.phone ? ` (${payload.phone})` : "";
       return `${prefix} Deposit payment received${guest}${phone}. ${payload.summary} Ref:${payload.referenceId}`;
+    }
+    case "payment.awaiting_manual_review": {
+      const guest = payload.guestName ? ` from ${payload.guestName}` : "";
+      const phone = payload.phone ? ` (${payload.phone})` : "";
+      return `${prefix} Guest claims a bank transfer${guest}${phone} — verify in your bank app, then approve. ${payload.summary} Ref:${payload.referenceId}`;
     }
     case "event.inquiry.created":
       return `${prefix} Event inquiry. ${payload.summary} Ref:${payload.referenceId}`;

@@ -6,6 +6,7 @@ const REFERENCE_PREFIX: Record<CashierPaymentMethod, string> = {
   paystack_terminal: "RH-PSTM",
   moniepoint_terminal: "RH-MPOS",
   moniepoint_transfer: "RH-MPTF",
+  bank_transfer_manual: "RH-BTM",
 };
 
 /** Mirrors `frontDeskPaymentReference` (staff-payment.ts) but also covers Paystack Terminal. */

@@ -42,15 +42,31 @@ export type PaystackTerminalPublicConfig = {
   demoMode: boolean;
 };
 
-/** Front-desk payment options grouped the way staff pick them: Card / Transfer / Cash. */
-type UiPaymentGroup = "none" | "cash" | "card" | "transfer";
+export type BankTransferPublicConfig = {
+  configured: boolean;
+  account: {
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  } | null;
+};
 
-const UI_PAYMENT_GROUPS: UiPaymentGroup[] = ["none", "cash", "card", "transfer"];
+/** Front-desk payment options grouped the way staff pick them. */
+type UiPaymentGroup = "none" | "cash" | "card" | "transfer" | "bankTransferManual";
+
+const UI_PAYMENT_GROUPS: UiPaymentGroup[] = [
+  "none",
+  "cash",
+  "card",
+  "transfer",
+  "bankTransferManual",
+];
 
 function uiGroupForMethod(method: StaffPaymentOption): UiPaymentGroup {
   if (method === "none") return "none";
   if (method === "cash") return "cash";
   if (method === "moniepoint_transfer") return "transfer";
+  if (method === "bank_transfer_manual") return "bankTransferManual";
   return "card"; // moniepoint_terminal | paystack_terminal
 }
 
@@ -120,6 +136,7 @@ export function StaffCreateReservationDialog({
   roomOptions,
   moniepointConfig,
   paystackTerminalConfig,
+  bankTransferConfig,
   onCreated,
   seed = null,
 }: {
@@ -129,6 +146,7 @@ export function StaffCreateReservationDialog({
   roomOptions: StaffRoomOption[];
   moniepointConfig?: MoniepointPublicConfig;
   paystackTerminalConfig?: PaystackTerminalPublicConfig;
+  bankTransferConfig?: BankTransferPublicConfig;
   onCreated: () => void;
   /** Prefill when opening from an occupancy calendar free cell. */
   seed?: StaffCreateReservationSeed | null;
@@ -152,7 +170,11 @@ export function StaffCreateReservationDialog({
   const [submitting, setSubmitting] = useState(false);
   const [waitingPayment, setWaitingPayment] = useState<{
     reference: string;
-    method: "moniepoint_terminal" | "moniepoint_transfer" | "paystack_terminal";
+    method:
+      | "moniepoint_terminal"
+      | "moniepoint_transfer"
+      | "paystack_terminal"
+      | "bank_transfer_manual";
   } | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<
     "pending" | "success" | "failed" | null
@@ -325,7 +347,11 @@ export function StaffCreateReservationDialog({
         const method = value as StaffPaymentOption;
         if (method === "none") {
           next.status = "pending";
-        } else if (method === "moniepoint_terminal" || method === "paystack_terminal") {
+        } else if (
+          method === "moniepoint_terminal" ||
+          method === "paystack_terminal" ||
+          method === "bank_transfer_manual"
+        ) {
           next.status = "pending";
         } else {
           next.status = "confirmed";
@@ -368,6 +394,7 @@ export function StaffCreateReservationDialog({
       form.paymentMethod !== "none" &&
       form.paymentMethod !== "moniepoint_terminal" &&
       form.paymentMethod !== "paystack_terminal" &&
+      form.paymentMethod !== "bank_transfer_manual" &&
       form.status !== "confirmed"
     ) {
       errors.status = t("createReservation.errors.depositNeedsConfirmed");
@@ -424,7 +451,8 @@ export function StaffCreateReservationDialog({
         body.paymentReference &&
         (body.paymentMethod === "moniepoint_terminal" ||
           body.paymentMethod === "moniepoint_transfer" ||
-          body.paymentMethod === "paystack_terminal")
+          body.paymentMethod === "paystack_terminal" ||
+          body.paymentMethod === "bank_transfer_manual")
       ) {
         setWaitingPayment({
           reference: body.paymentReference,
@@ -469,14 +497,18 @@ export function StaffCreateReservationDialog({
               {waitingPayment
                 ? waitingPayment.method === "moniepoint_transfer"
                   ? t("createReservation.transferWaitingTitle")
-                  : t("createReservation.terminalWaitingTitle")
+                  : waitingPayment.method === "bank_transfer_manual"
+                    ? t("createReservation.bankTransferWaitingTitle")
+                    : t("createReservation.terminalWaitingTitle")
                 : t("createReservation.title")}
             </h2>
             <p className="mt-1 text-sm text-muted">
               {waitingPayment
                 ? waitingPayment.method === "moniepoint_transfer"
                   ? t("createReservation.transferWaitingSubtitle")
-                  : t("createReservation.terminalWaitingSubtitle")
+                  : waitingPayment.method === "bank_transfer_manual"
+                    ? t("createReservation.bankTransferWaitingSubtitle")
+                    : t("createReservation.terminalWaitingSubtitle")
                 : seed
                   ? t("createReservation.subtitleFromCalendar")
                   : t("createReservation.subtitle")}
@@ -514,6 +546,22 @@ export function StaffCreateReservationDialog({
                 </p>
               </div>
             ) : null}
+            {waitingPayment.method === "bank_transfer_manual" &&
+            bankTransferConfig?.account ? (
+              <div className="rounded-lg border border-border bg-muted/5 px-3 py-3 text-sm">
+                <p className="font-medium">
+                  {t("createReservation.bankTransferAccountTitle")}
+                </p>
+                <p className="mt-1">{bankTransferConfig.account.bankName}</p>
+                <p className="font-mono">
+                  {bankTransferConfig.account.accountNumber}
+                </p>
+                <p>{bankTransferConfig.account.accountName}</p>
+                <p className="mt-2 text-xs text-muted">
+                  {t("createReservation.bankTransferManualHint")}
+                </p>
+              </div>
+            ) : null}
             {waitingPayment.method === "moniepoint_transfer" &&
             paymentStatus === "pending" ? (
               <div
@@ -541,14 +589,18 @@ export function StaffCreateReservationDialog({
                       ? t("createReservation.transferExpired")
                       : waitingPayment.method === "moniepoint_transfer"
                         ? t("createReservation.transferPending")
-                        : t("createReservation.terminalPending")}
+                        : waitingPayment.method === "bank_transfer_manual"
+                          ? t("createReservation.bankTransferPending")
+                          : t("createReservation.terminalPending")}
               </p>
             </div>
             {!transferExpired ? (
               <p className="text-xs text-muted">
                 {waitingPayment.method === "moniepoint_transfer"
                   ? t("createReservation.transferHint")
-                  : t("createReservation.terminalHint")}
+                  : waitingPayment.method === "bank_transfer_manual"
+                    ? t("createReservation.bankTransferHint")
+                    : t("createReservation.terminalHint")}
               </p>
             ) : null}
             {paymentStatus === "pending" ? (
@@ -713,7 +765,9 @@ export function StaffCreateReservationDialog({
                         ? cardMethod
                         : group === "transfer"
                           ? "moniepoint_transfer"
-                          : group;
+                          : group === "bankTransferManual"
+                            ? "bank_transfer_manual"
+                            : group;
                     return (
                       <label
                         key={group}
@@ -764,6 +818,30 @@ export function StaffCreateReservationDialog({
                   ) : (
                     <p className="text-xs text-amber-700 dark:text-amber-200">
                       {t("createReservation.transferAccountMissing")}
+                    </p>
+                  )}
+                </>
+              ) : null}
+
+              {form.paymentMethod === "bank_transfer_manual" ? (
+                <>
+                  {bankTransferConfig?.account ? (
+                    <div className="rounded-lg border border-border bg-muted/5 px-3 py-3 text-sm">
+                      <p className="font-medium">
+                        {t("createReservation.bankTransferAccountTitle")}
+                      </p>
+                      <p className="mt-1">{bankTransferConfig.account.bankName}</p>
+                      <p className="font-mono">
+                        {bankTransferConfig.account.accountNumber}
+                      </p>
+                      <p>{bankTransferConfig.account.accountName}</p>
+                      <p className="mt-2 text-xs text-muted">
+                        {t("createReservation.bankTransferManualHint")}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-amber-700 dark:text-amber-200">
+                      {t("createReservation.bankTransferAccountMissing")}
                     </p>
                   )}
                 </>
