@@ -70,6 +70,8 @@ export default async function BookPage({
   if (!checkIn || !checkOut) {
     const roomsParams = new URLSearchParams();
     roomsParams.set("room", room.id);
+    if (sp.checkIn) roomsParams.set("checkIn", sp.checkIn);
+    if (sp.checkOut) roomsParams.set("checkOut", sp.checkOut);
     if (sp.guests) roomsParams.set("guests", sp.guests);
     if (sp.rooms) roomsParams.set("rooms", sp.rooms);
     const qs = roomsParams.toString();

@@ -57,8 +57,16 @@ export function RoomsCatalog() {
     () => new Map(),
   );
 
+  // Switching category tabs only changes the `category` param, which produces a
+  // new `bookingQuery` object even though checkIn/checkOut/rooms/guests are the
+  // same. Key the fetch on the serialized query so tab clicks stay client-side
+  // instead of re-hitting the availability API and re-showing the loading state.
+  const bookingQueryKey = bookingQuery
+    ? bookingSearchToQueryString(bookingQuery)
+    : null;
+
   useEffect(() => {
-    if (!bookingQuery) {
+    if (!bookingQueryKey) {
       setAvailableById(new Map());
       setFetchError(false);
       setLoading(false);
@@ -69,8 +77,7 @@ export function RoomsCatalog() {
     setLoading(true);
     setFetchError(false);
 
-    const qs = bookingSearchToQueryString(bookingQuery);
-    fetch(`/api/rooms/availability?${qs}`)
+    fetch(`/api/rooms/availability?${bookingQueryKey}`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error ?? "fetch failed");
@@ -92,7 +99,7 @@ export function RoomsCatalog() {
     return () => {
       cancelled = true;
     };
-  }, [bookingQuery]);
+  }, [bookingQueryKey]);
 
   const catalogRooms = useMemo(() => {
     if (!bookingQuery) return [];
