@@ -240,7 +240,7 @@ test("prototype validation session (6 tasks)", async ({ page }, testInfo) => {
       await page.goto("/en#contact");
       await humanPause(page);
       const contact = page.locator("#contact");
-      const phone = contact.getByRole("link", { name: /803 326 2719/i }).first();
+      const phone = contact.getByRole("link", { name: /810 065 3664/i }).first();
       const email = contact
         .getByRole("link", { name: /reservations@reliefhotelsandsuites/i })
         .first();

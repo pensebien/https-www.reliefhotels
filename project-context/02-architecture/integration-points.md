@@ -49,7 +49,7 @@
 | Item | Detail |
 |------|--------|
 | Endpoint | `https://api.ng.termii.com/api/sms/send` |
-| Recipient | `MANAGER_PHONE` (E.164, e.g. `+2348033262719`) |
+| Recipient | `MANAGER_PHONE` (E.164, e.g. `+2348100653664`) |
 | Sender | `TERMII_SENDER_ID` (registered sender ID) |
 | Events | `reservation.created`, `payment.verified`, `event.inquiry.created`, `dining.reservation.created` |
 | Demo | `NOTIFY_CHANNEL=console` logs body to server stdout |
