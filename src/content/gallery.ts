@@ -1,4 +1,10 @@
-/** Photo gallery — demo imagery (replace with hotel photography before launch) */
+/**
+ * Photo gallery. Executive, Suites, and Penthouse now use real Relief Hotels & Suites
+ * (Calabar) photography via media.images.photos — see site.ts. Events & Meetings, Outdoor
+ * Bar, VIP Bar, Amenities (spa/wellness/gym), and two of the three Dining slots are still
+ * stock and need real photography before launch: none of the current photos show a bar,
+ * a boardroom, a garden pavilion, a gym, or a spa/wellness space.
+ */
 
 import { media } from "@/content/site";
 
@@ -38,7 +44,7 @@ export const galleryItems: GalleryItem[] = [
   // Executive
   {
     id: "executive-01",
-    src: media.images.roomExecutive,
+    src: media.images.photos.executiveRoom,
     category: "executive",
     titleKey: "items.executive01",
     featured: true,
@@ -51,14 +57,14 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: "executive-03",
-    src: media.images.grandLounge,
+    src: media.images.photos.reception,
     category: "executive",
     titleKey: "items.executive03",
   },
   // Suites
   {
     id: "suites-01",
-    src: media.images.roomDeluxe,
+    src: media.images.photos.suiteBedroom,
     category: "suites",
     titleKey: "items.suites01",
     featured: true,
@@ -78,7 +84,7 @@ export const galleryItems: GalleryItem[] = [
   // Penthouse
   {
     id: "penthouse-01",
-    src: media.images.presidentialSuite,
+    src: media.images.photos.suiteParlour,
     category: "penthouse",
     titleKey: "items.penthouse01",
     featured: true,
@@ -112,7 +118,7 @@ export const galleryItems: GalleryItem[] = [
   // Dining
   {
     id: "dining-01",
-    src: media.images.rooftopDining,
+    src: media.images.photos.restaurant,
     category: "dining",
     titleKey: "items.dining01",
     featured: true,

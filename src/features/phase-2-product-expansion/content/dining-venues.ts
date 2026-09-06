@@ -1,3 +1,5 @@
+import { media } from "@/content/site";
+
 export const diningVenues = [
   {
     id: "private-bar",
@@ -20,8 +22,7 @@ export const diningVenues = [
     nameKey: "venues.indoorRestaurant.name",
     descriptionKey: "venues.indoorRestaurant.description",
     cuisineKey: "venues.indoorRestaurant.cuisine",
-    image:
-      "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80",
+    image: media.images.photos.restaurant,
   },
 ] as const;
 

@@ -4,7 +4,7 @@ import { StaffPortalShell } from "@/components/staff-portal-shell";
 import { StructuredDataScript } from "@/components/structured-data-script";
 import { ThemeScript } from "@/components/theme-script";
 import { WhatsAppFloat } from "@/components/whatsapp-float";
-import { site, structuredData } from "@/content/site";
+import { media, site, structuredData } from "@/content/site";
 import { routing } from "@/i18n/routing";
 import { STAFF_PORTAL_HEADER } from "@/lib/staff-portal";
 import type { Metadata } from "next";
@@ -57,11 +57,13 @@ export async function generateMetadata({
       locale: locale === "en" ? "en_NG" : locale,
       type: "website",
       siteName: site.name,
+      images: [{ url: media.images.photos.exterior, width: 708, height: 889 }],
     },
     twitter: {
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
+      images: [media.images.photos.exterior],
     },
     icons: {
       icon: [

@@ -56,6 +56,23 @@ export const media = {
       "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
     tourCulture:
       "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80",
+    /**
+     * Real Relief Hotels & Suites (Calabar) photography, added 2026-09-05 from the property's
+     * own photo set. Used wherever a caption makes a specific claim these photos can back up (a
+     * real room, the real lobby, the real dining room, the real facade). Slots whose copy
+     * promises something these photos don't show — skyline/panoramic views, a wellness terrace,
+     * a bar, a boardroom — intentionally keep the stock placeholder above until that shot
+     * exists; see gallery.ts for the running list of what's still pending.
+     */
+    photos: {
+      exterior: "/images/hotel/exterior.jpg",
+      reception: "/images/hotel/reception.jpg",
+      restaurant: "/images/hotel/restaurant.jpg",
+      guestRoom: "/images/hotel/guest-room.jpg",
+      executiveRoom: "/images/hotel/executive-room.jpg",
+      suiteBedroom: "/images/hotel/suite-bedroom.jpg",
+      suiteParlour: "/images/hotel/suite-parlour.jpg",
+    },
   },
 } as const;
 
@@ -86,7 +103,7 @@ export const experienceCards = [
     id: "guestRoom",
     titleKey: "roomTypes.guestRoom.title",
     subtitleKey: "experiences.guestRoom.subtitle",
-    image: media.images.roomDeluxe,
+    image: media.images.photos.guestRoom,
     href: "/rooms?category=guestRoom",
     large: true,
   },
@@ -94,21 +111,21 @@ export const experienceCards = [
     id: "executive",
     titleKey: "roomTypes.executive.title",
     subtitleKey: "experiences.executive.subtitle",
-    image: media.images.roomExecutive,
+    image: media.images.photos.executiveRoom,
     href: "/rooms?category=executive",
   },
   {
     id: "suites",
     titleKey: "roomTypes.suites.title",
     subtitleKey: "experiences.suites.subtitle",
-    image: media.images.suitesShowcase,
+    image: media.images.photos.suiteBedroom,
     href: "/rooms?category=suites",
   },
   {
     id: "penthouse",
     titleKey: "roomTypes.penthouse.title",
     subtitleKey: "experiences.penthouse.subtitle",
-    image: media.images.presidentialSuite,
+    image: media.images.photos.suiteParlour,
     href: "/rooms?category=penthouse",
   },
 ] as const;
@@ -125,25 +142,25 @@ export const roomHighlights = [
     id: "guestRoom",
     titleKey: "roomTypes.guestRoom.title",
     descriptionKey: "roomTypes.guestRoom.description",
-    image: media.images.roomDeluxe,
+    image: media.images.photos.guestRoom,
   },
   {
     id: "executive",
     titleKey: "roomTypes.executive.title",
     descriptionKey: "roomTypes.executive.description",
-    image: media.images.roomExecutive,
+    image: media.images.photos.executiveRoom,
   },
   {
     id: "suites",
     titleKey: "roomTypes.suites.title",
     descriptionKey: "roomTypes.suites.description",
-    image: media.images.suitesShowcase,
+    image: media.images.photos.suiteBedroom,
   },
   {
     id: "penthouse",
     titleKey: "roomTypes.penthouse.title",
     descriptionKey: "roomTypes.penthouse.description",
-    image: media.images.presidentialSuite,
+    image: media.images.photos.suiteParlour,
   },
 ] as const;
 
@@ -199,12 +216,12 @@ export const rooms = [
     descriptionKey: "rooms.guest.description",
     priceFrom: 95000,
     currency: "NGN",
-    image: media.images.roomDeluxe,
+    image: media.images.photos.guestRoom,
     gallery: [
-      media.images.roomDeluxe,
-      media.images.roomBedAlt,
+      media.images.photos.guestRoom,
+      media.images.photos.reception,
+      media.images.photos.restaurant,
       media.images.roomBathroom,
-      media.images.grandLounge,
     ],
     amenitiesKeys: [
       "rooms.amenities.kingBed",
@@ -221,12 +238,12 @@ export const rooms = [
     descriptionKey: "rooms.executive.description",
     priceFrom: 125000,
     currency: "NGN",
-    image: media.images.roomExecutive,
+    image: media.images.photos.executiveRoom,
     gallery: [
-      media.images.roomExecutive,
-      media.images.roomBedAlt,
-      media.images.grandLounge,
+      media.images.photos.executiveRoom,
+      media.images.photos.reception,
       media.images.roomBathroom,
+      media.images.photos.restaurant,
     ],
     amenitiesKeys: [
       "rooms.amenities.workDesk",
@@ -243,11 +260,11 @@ export const rooms = [
     descriptionKey: "rooms.suites.description",
     priceFrom: 185000,
     currency: "NGN",
-    image: media.images.roomDeluxe,
+    image: media.images.photos.suiteBedroom,
     gallery: [
-      media.images.roomDeluxe,
-      media.images.suitesShowcase,
-      media.images.roomBathroom,
+      media.images.photos.suiteBedroom,
+      media.images.photos.suiteParlour,
+      media.images.photos.reception,
       media.images.spa,
     ],
     amenitiesKeys: [
@@ -266,11 +283,11 @@ export const rooms = [
     descriptionKey: "rooms.presidential.description",
     priceFrom: 420000,
     currency: "NGN",
-    image: media.images.presidentialSuite,
+    image: media.images.photos.suiteParlour,
     gallery: [
-      media.images.presidentialSuite,
-      media.images.suitesShowcase,
-      media.images.grandLounge,
+      media.images.photos.suiteParlour,
+      media.images.photos.suiteBedroom,
+      media.images.photos.exterior,
       media.images.spa,
     ],
     amenitiesKeys: [
@@ -289,12 +306,12 @@ export const rooms = [
     descriptionKey: "rooms.executiveSpa.description",
     priceFrom: 210000,
     currency: "NGN",
-    image: media.images.roomExecutive,
+    image: media.images.photos.executiveRoom,
     gallery: [
-      media.images.roomExecutive,
+      media.images.photos.executiveRoom,
       media.images.spa,
       media.images.roomBathroom,
-      media.images.grandLounge,
+      media.images.photos.reception,
     ],
     amenitiesKeys: [
       "rooms.amenities.workDesk",
