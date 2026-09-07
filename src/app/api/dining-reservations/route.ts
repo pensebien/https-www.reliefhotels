@@ -1,3 +1,4 @@
+import { sendDiningReservationEmails } from "@/lib/email";
 import { addDiningReservation } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,8 +23,14 @@ export async function POST(request: Request) {
     }
 
     const record = await addDiningReservation(parsed.data);
+    const { guestSent } = await sendDiningReservationEmails(record);
 
-    return NextResponse.json({ ok: true, id: record.id, notified: false });
+    return NextResponse.json({
+      ok: true,
+      id: record.id,
+      emailSent: guestSent,
+      notified: false,
+    });
   } catch {
     return NextResponse.json({ error: "Unable to save reservation" }, { status: 500 });
   }

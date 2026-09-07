@@ -29,8 +29,13 @@ export const site = {
 } as const;
 
 export const media = {
-  heroVideo:
-    "https://videos.pexels.com/video-files/29218201/12612858_1920_1080_30fps.mp4",
+  /**
+   * Ken Burns slideshow built from real Relief Hotels & Suites (Calabar) photography —
+   * exterior, reception, suite parlour, suite bedroom, restaurant — replacing the prior stock
+   * Pexels clip. Source Remotion project isn't checked in; regenerate by re-running the same
+   * composition against media.images.photos if the photo set changes.
+   */
+  heroVideo: "/videos/hero.mp4",
   ctaVideo:
     "https://videos.pexels.com/video-files/7233782/7233782-hd_1920_1080_25fps.mp4",
   emblem: "https://images.shadcnspace.com/assets/svgs/primary-leaf.svg",

@@ -1,4 +1,4 @@
-import { sendFeedbackEmail } from "@/lib/email";
+import { sendFeedbackEmail, sendGuestFeedbackAck } from "@/lib/email";
 import { addGuestFeedback } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -29,7 +29,10 @@ export async function POST(request: Request) {
     }
 
     const record = await addGuestFeedback(parsed.data);
-    const sent = await sendFeedbackEmail(record);
+    const [sent] = await Promise.all([
+      sendFeedbackEmail(record),
+      sendGuestFeedbackAck(record),
+    ]);
 
     return NextResponse.json({
       ok: true,

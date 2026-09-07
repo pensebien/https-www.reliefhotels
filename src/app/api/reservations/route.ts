@@ -1,6 +1,6 @@
 import { rooms } from "@/content/site";
 import { addReservation } from "@/lib/demo-store";
-import { sendReservationEmail } from "@/lib/email";
+import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
 import { getRoomAvailability } from "@/lib/room-availability";
 import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
@@ -79,7 +79,10 @@ export async function POST(request: Request) {
       status: "pending",
     });
 
-    const sent = await sendReservationEmail(record);
+    const [sent] = await Promise.all([
+      sendReservationEmail(record),
+      sendGuestReservationConfirmation(record),
+    ]);
     if (sent) {
       record.emailSent = true;
     }
