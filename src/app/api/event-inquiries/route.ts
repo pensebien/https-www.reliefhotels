@@ -1,3 +1,4 @@
+import { sendEventInquiryEmails } from "@/lib/email";
 import { addEventInquiry } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,8 +23,14 @@ export async function POST(request: Request) {
     }
 
     const record = await addEventInquiry(parsed.data);
+    const { guestSent } = await sendEventInquiryEmails(record);
 
-    return NextResponse.json({ ok: true, id: record.id, notified: false });
+    return NextResponse.json({
+      ok: true,
+      id: record.id,
+      emailSent: guestSent,
+      notified: false,
+    });
   } catch {
     return NextResponse.json({ error: "Unable to save inquiry" }, { status: 500 });
   }
