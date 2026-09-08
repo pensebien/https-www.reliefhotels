@@ -1,3 +1,4 @@
+import { getServerConfig } from "@/lib/config";
 import { sendFeedbackEmail, sendGuestFeedbackAck } from "@/lib/email";
 import { addGuestFeedback } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
       id: record.id,
       emailSent: sent,
       notified: false,
-      demo: !process.env.RESEND_API_KEY,
+      demo: !getServerConfig().email.configured,
     });
   } catch (error) {
     console.error("[feedback]", error);
