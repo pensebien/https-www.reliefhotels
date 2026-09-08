@@ -286,7 +286,7 @@ export function paymentConfirmationHtml(payload: PaymentConfirmationInput): stri
   });
 }
 
-type ResendEmailInput = {
+type EmailInput = {
   to: string[];
   subject: string;
   html: string;
@@ -294,8 +294,16 @@ type ResendEmailInput = {
   bcc?: string[];
 };
 
-/** Shared Resend send path — the one seam every transactional email goes through. */
-async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+/** Splits "Relief Hotels <onboarding@resend.dev>" into its name/email parts. */
+function parseFromAddress(from: string): { name?: string; email: string } {
+  const match = from.match(/^(.*)<(.+)>$/);
+  if (!match) return { email: from.trim() };
+  const name = match[1].trim().replace(/^"(.*)"$/, "$1");
+  return { name: name || undefined, email: match[2].trim() };
+}
+
+/** Shared Resend send path. */
+async function sendResendEmail(input: EmailInput): Promise<boolean> {
   const config = getServerConfig();
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -323,6 +331,49 @@ async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
   return true;
 }
 
+/** Shared SendGrid send path. */
+async function sendSendGridEmail(input: EmailInput): Promise<boolean> {
+  const config = getServerConfig();
+
+  const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [
+        {
+          to: input.to.map((email) => ({ email })),
+          ...(input.bcc
+            ? { bcc: input.bcc.map((email) => ({ email })) }
+            : {}),
+        },
+      ],
+      from: parseFromAddress(config.email.from),
+      ...(input.replyTo ? { reply_to: { email: input.replyTo } } : {}),
+      subject: input.subject,
+      content: [{ type: "text/html", value: input.html }],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error("[email] SendGrid error:", err);
+    return false;
+  }
+
+  return true;
+}
+
+/** The one seam every transactional email goes through — routes to the active provider. */
+async function sendTransactionalEmail(input: EmailInput): Promise<boolean> {
+  const provider = getServerConfig().email.provider;
+  return provider === "sendgrid"
+    ? sendSendGridEmail(input)
+    : sendResendEmail(input);
+}
+
 export async function sendReservationEmail(
   record: ReservationRecord,
 ): Promise<boolean> {
@@ -337,7 +388,7 @@ export async function sendReservationEmail(
     return false;
   }
 
-  return sendResendEmail({
+  return sendTransactionalEmail({
     to: [config.email.to],
     replyTo: record.email,
     subject: `[Relief Hotels] Reservation — ${record.firstName} ${record.lastName}`,
@@ -356,7 +407,7 @@ export async function sendGuestReservationConfirmation(
     return false;
   }
 
-  return sendResendEmail({
+  return sendTransactionalEmail({
     to: [record.email],
     subject: `We've received your reservation request — ${site.name}`,
     html: guestReservationConfirmationHtml(record),
@@ -377,7 +428,7 @@ export async function sendFeedbackEmail(
     return false;
   }
 
-  return sendResendEmail({
+  return sendTransactionalEmail({
     to: [config.email.to],
     replyTo: record.email,
     subject: `[Relief Hotels] Guest message — ${record.firstName} ${record.lastName}`,
@@ -396,7 +447,7 @@ export async function sendGuestFeedbackAck(
     return false;
   }
 
-  return sendResendEmail({
+  return sendTransactionalEmail({
     to: [record.email],
     subject: `We've received your message — ${site.name}`,
     html: guestFeedbackAckHtml(record),
@@ -415,12 +466,12 @@ export async function sendDiningReservationEmails(
   }
 
   const [guestSent, staffSent] = await Promise.all([
-    sendResendEmail({
+    sendTransactionalEmail({
       to: [record.email],
       subject: `Your dining reservation request — ${site.name}`,
       html: diningReservationGuestHtml(record),
     }),
-    sendResendEmail({
+    sendTransactionalEmail({
       to: [config.email.to],
       replyTo: record.email,
       subject: `[Relief Hotels] Dining reservation — ${record.firstName} ${record.lastName}`,
@@ -443,12 +494,12 @@ export async function sendEventInquiryEmails(
   }
 
   const [guestSent, staffSent] = await Promise.all([
-    sendResendEmail({
+    sendTransactionalEmail({
       to: [record.email],
       subject: `Your event inquiry — ${site.name}`,
       html: eventInquiryGuestHtml(record),
     }),
-    sendResendEmail({
+    sendTransactionalEmail({
       to: [config.email.to],
       replyTo: record.email,
       subject: `[Relief Hotels] Event inquiry — ${record.firstName} ${record.lastName}`,
@@ -469,7 +520,7 @@ export async function sendPaymentConfirmationEmail(
     return false;
   }
 
-  return sendResendEmail({
+  return sendTransactionalEmail({
     to: [payload.email],
     bcc: [config.email.to],
     subject: `[Relief Hotels] Payment received — ${payload.reference}`,
