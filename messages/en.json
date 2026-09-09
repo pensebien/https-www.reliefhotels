@@ -14,6 +14,7 @@
     "tours": "Tours & Guides",
     "book": "Book Your Stay",
     "menu": "Menu",
+    "closeMenu": "Close menu",
     "theme": "Toggle theme"
   },
   "hero": {
@@ -227,11 +228,11 @@
       },
       "rights": {
         "title": "Your rights",
-        "body": "You may request access, correction, or deletion of your personal data by contacting us at reservations@reliefhotelsandsuites.com. We will respond within a reasonable time."
+        "body": "You may request access, correction, or deletion of your personal data by contacting us at info@reliefhotelsandsuites.com. We will respond within a reasonable time."
       },
       "contact": {
         "title": "Contact",
-        "body": "Relief Hotels & Suites\nCalabar, Cross River State, Nigeria\nEmail: reservations@reliefhotelsandsuites.com"
+        "body": "Relief Hotels & Suites\nCalabar, Cross River State, Nigeria\nEmail: info@reliefhotelsandsuites.com"
       }
     }
   },
@@ -992,6 +993,7 @@
         "email": "Email",
         "phone": "Phone",
         "eventType": "Event type",
+        "eventDate": "Event date",
         "guestCount": "Expected guests",
         "message": "Event details",
         "submit": "Submit inquiry",

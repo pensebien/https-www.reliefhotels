@@ -76,8 +76,8 @@ export function HotelPropertyBar() {
         aria-label={t("ariaLabel")}
         className="sticky top-20 z-40 border-b border-neutral-200 bg-white text-neutral-900 shadow-sm"
       >
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 lg:px-8 xl:px-12">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between lg:px-8 xl:px-12">
+          <div className="flex min-w-0 items-center gap-3 lg:flex-1">
             <Link href="/" className="shrink-0" aria-label={`${site.name} home`}>
               <Image
                 src={site.logoSrc}
@@ -108,27 +108,35 @@ export function HotelPropertyBar() {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <DateRangeTrigger
-              checkInLabel={checkInLabel}
-              checkOutLabel={checkOutLabel}
-              checkInAria={t("checkIn")}
-              checkOutAria={t("checkOut")}
-              isOpen={datesModalOpen}
-              onClick={() => setDatesModalOpen(true)}
-            />
+          <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+            <div className="w-full lg:w-auto">
+              <DateRangeTrigger
+                checkInLabel={checkInLabel}
+                checkOutLabel={checkOutLabel}
+                checkInAria={t("checkIn")}
+                checkOutAria={t("checkOut")}
+                isOpen={datesModalOpen}
+                onClick={() => setDatesModalOpen(true)}
+              />
+            </div>
 
-            <BookingBarButton onClick={() => setRoomsModalOpen(true)}>
+            <BookingBarButton
+              onClick={() => setRoomsModalOpen(true)}
+              className="flex-1 lg:flex-none"
+            >
               <span className="whitespace-nowrap">{roomsGuestsLabel}</span>
             </BookingBarButton>
 
-            <BookingBarButton onClick={() => setRatesModalOpen(true)}>
+            <BookingBarButton
+              onClick={() => setRatesModalOpen(true)}
+              className="flex-1 lg:flex-none"
+            >
               <span className="whitespace-nowrap">{t("specialRates")}</span>
             </BookingBarButton>
 
             <Link
               href={bookHref}
-              className="flex h-12 min-h-12 items-center justify-center rounded-md bg-[#104c97] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d3d7a] sm:px-5"
+              className="flex h-12 min-h-12 w-full items-center justify-center rounded-md bg-[#104c97] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d3d7a] sm:px-5 lg:w-auto"
             >
               {t("checkRoomsRates")}
             </Link>

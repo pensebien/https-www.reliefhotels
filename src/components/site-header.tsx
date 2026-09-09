@@ -7,7 +7,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-provider";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -16,8 +16,10 @@ export function SiteHeader() {
   const t = useTranslations("nav");
   const [scrolled, setScrolled] = useState(false);
   const [experienceOpen, setExperienceOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const experienceRef = useRef<HTMLDivElement>(null);
   const experienceCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   function openExperienceMenu() {
     if (experienceCloseTimer.current) {
@@ -58,6 +60,23 @@ export function SiteHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function onPointerDown(e: MouseEvent) {
+      if (mobileMenuRef.current?.contains(e.target as Node)) return;
+      setMobileMenuOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMobileMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header
       className={cn(
@@ -93,13 +112,13 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-1 overflow-visible sm:gap-2">
-          <ul className="flex items-center gap-1 overflow-x-auto whitespace-nowrap sm:gap-2 lg:gap-4">
+        <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex lg:gap-2">
+          <ul className="flex items-center gap-1 lg:gap-4">
             {mainNavLinks.map((item) => (
-              <li key={item.key} className="shrink-0">
+              <li key={item.key}>
                 <Link
                   href={item.href}
-                  className="px-2 py-2 text-xs text-white/85 transition-colors hover:text-teal sm:px-3 sm:text-sm"
+                  className="px-2 py-2 text-sm text-white/85 transition-colors hover:text-teal"
                 >
                   {t(item.key)}
                 </Link>
@@ -108,7 +127,7 @@ export function SiteHeader() {
           </ul>
           <div
             ref={experienceRef}
-            className="relative shrink-0"
+            className="relative"
             onMouseEnter={openExperienceMenu}
             onMouseLeave={scheduleCloseExperienceMenu}
           >
@@ -117,7 +136,7 @@ export function SiteHeader() {
               onClick={() => setExperienceOpen((open) => !open)}
               aria-expanded={experienceOpen}
               aria-haspopup="true"
-              className="inline-flex items-center gap-1 px-2 py-2 text-xs text-white/85 transition-colors hover:text-teal sm:px-3 sm:text-sm"
+              className="inline-flex items-center gap-1 px-2 py-2 text-sm text-white/85 transition-colors hover:text-teal"
             >
               {t("experience")}
               <ChevronDown
@@ -151,16 +170,72 @@ export function SiteHeader() {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="hidden md:block">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3 lg:ml-0">
+          <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
           <ThemeToggle />
           <BookStayButton className="hidden rounded-full bg-teal px-4 py-2 text-xs font-medium text-gray-950 transition-colors hover:bg-teal-dark sm:inline-flex sm:text-sm">
             {t("book")}
           </BookStayButton>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav-panel"
+            aria-label={mobileMenuOpen ? t("closeMenu") : t("menu")}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:bg-white/10 lg:hidden"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" aria-hidden />
+            ) : (
+              <Menu className="h-5 w-5" aria-hidden />
+            )}
+          </button>
         </div>
       </nav>
+
+      {mobileMenuOpen && (
+        <div
+          id="mobile-nav-panel"
+          ref={mobileMenuRef}
+          className="border-t border-white/10 bg-neutral-950 lg:hidden"
+        >
+          <nav
+            aria-label={t("menu")}
+            className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4"
+          >
+            {mainNavLinks.map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-base text-white/90 transition-colors hover:bg-white/5 hover:text-teal"
+              >
+                {t(item.key)}
+              </Link>
+            ))}
+            <div className="mt-1 border-t border-white/10 pt-1">
+              {experienceNavLinks.map((item) => (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block rounded-lg px-3 py-2.5 text-base text-white/90 transition-colors hover:bg-white/5 hover:text-teal"
+                >
+                  {t(item.key)}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-3 border-t border-white/10 pt-4">
+              <LanguageSwitcher />
+              <BookStayButton className="inline-flex rounded-full bg-teal px-4 py-2 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark">
+                {t("book")}
+              </BookStayButton>
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
