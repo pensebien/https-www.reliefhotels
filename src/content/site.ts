@@ -24,7 +24,7 @@ export const site = {
     encodeURIComponent(
       "Hello Relief Hotels & Suites — I’d like help with a stay.",
     ),
-  email: "reservations@reliefhotelsandsuites.com",
+  email: "info@reliefhotelsandsuites.com",
   themeStorageKey: "relief-theme",
 } as const;
 
