@@ -14,7 +14,7 @@ function initialsFromName(name: string): string {
 
 const AVATAR_TONES = [
   "bg-teal/20 text-teal-dark",
-  "bg-gold/25 text-[#8a6d2f]",
+  "bg-gold/25 text-[#6b5324]",
   "bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-100",
 ] as const;
 

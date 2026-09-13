@@ -62,7 +62,7 @@ export function getServerConfig() {
         "Relief Hotels <onboarding@resend.dev>",
       to:
         process.env.RESERVATION_EMAIL ??
-        "reservations@reliefhotelsandsuites.com",
+        "info@reliefhotelsandsuites.com",
     },
     notifications: {
       channel: notifyChannel,

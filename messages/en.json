@@ -14,12 +14,13 @@
     "tours": "Tours & Guides",
     "book": "Book Your Stay",
     "menu": "Menu",
+    "closeMenu": "Close menu",
     "theme": "Toggle theme"
   },
   "hero": {
     "eyebrow": "Discover {highlight} with bespoke stays, intuitive service, and unforgettable moments in the heart of the city.",
     "highlight": "refined hospitality",
-    "title": "Relief Hotels & Suites",
+    "title": "Relief Hotels & Suites Calabar",
     "cta": "Plan your stay"
   },
   "propertyBar": {
@@ -82,7 +83,7 @@
     "roomService": "Room service",
     "barbecueGrill": "Barbecue and grill",
     "meetingRooms": "Meeting rooms",
-    "barbingSalon": "Barbing salon"
+    "barbingSalon": "VIP Bar"
   },
   "experiences": {
     "guestRoom": {
@@ -106,7 +107,7 @@
   },
   "services": {
     "guestRoom": {
-      "title": "Guest Room",
+      "title": "Standard",
       "description": "Comfortable, well-appointed rooms with premium linens and modern amenities — ideal for leisure and business travellers alike."
     },
     "executive": {
@@ -124,7 +125,7 @@
   },
   "roomTypes": {
     "guestRoom": {
-      "title": "Guest Room",
+      "title": "Standard",
       "description": "Comfortable, well-appointed rooms with premium linens and modern amenities — ideal for leisure and business travellers alike."
     },
     "executive": {
@@ -184,7 +185,7 @@
   },
   "form": {
     "stay": {
-      "guestRoom": "Guest Room",
+      "guestRoom": "Standard",
       "executive": "Executive",
       "suites": "Suites",
       "penthouse": "Penthouse"
@@ -227,11 +228,11 @@
       },
       "rights": {
         "title": "Your rights",
-        "body": "You may request access, correction, or deletion of your personal data by contacting us at reservations@reliefhotelsandsuites.com. We will respond within a reasonable time."
+        "body": "You may request access, correction, or deletion of your personal data by contacting us at info@reliefhotelsandsuites.com. We will respond within a reasonable time."
       },
       "contact": {
         "title": "Contact",
-        "body": "Relief Hotels & Suites\nCalabar, Cross River State, Nigeria\nEmail: reservations@reliefhotelsandsuites.com"
+        "body": "Relief Hotels & Suites\nCalabar, Cross River State, Nigeria\nEmail: info@reliefhotelsandsuites.com"
       }
     }
   },
@@ -251,7 +252,7 @@
     "limitedAvailability": "Only {count} left for these dates",
     "tabs": {
       "all": "All",
-      "guestRoom": "Guest Rooms",
+      "guestRoom": "Standard Rooms",
       "executive": "Executive",
       "suites": "Suites",
       "penthouse": "Penthouse"
@@ -353,7 +354,7 @@
       "yoga": "In-room yoga mat"
     },
     "guest": {
-      "name": "Guest Room",
+      "name": "Standard",
       "description": "Comfortable accommodation with premium bedding, modern amenities, and thoughtful touches for a restful stay."
     },
     "suites": {
@@ -912,46 +913,14 @@
       "spaces": {
         "ballroom": {
           "capacity": "Up to 450 guests",
-          "title": "Grand Ballroom",
+          "title": "Conference Hall",
           "description": "Flexible theatre, banquet, and reception layouts with premium AV support."
         },
         "boardroom": {
           "capacity": "Up to 120 guests",
-          "title": "Executive Boardroom",
+          "title": "Boardroom",
           "description": "Private setting for leadership retreats, negotiations, and strategy sessions."
-        },
-        "pavilion": {
-          "capacity": "Up to 220 guests",
-          "title": "Garden Pavilion",
-          "description": "Open-air elegance for weddings, galas, and sunset receptions."
         }
-      },
-      "types": {
-        "corporate": "Corporate summits",
-        "wedding": "Weddings",
-        "gala": "Galas & awards",
-        "diplomatic": "Diplomatic hosting"
-      }
-    },
-    "experiences": {
-      "eyebrow": "Curated experiences",
-      "title": "Calabar moments worth remembering",
-      "description": "Curated activities for Nigerian guests, regional travellers, and international visitors — from romantic evenings to heritage excursions.",
-      "picnic": {
-        "title": "Garden picnic",
-        "description": "Relaxed outdoor moments with friends and family in a serene setting."
-      },
-      "romantic": {
-        "title": "Romantic dining",
-        "description": "Private tables, candlelight, and chef-led menus under the stars."
-      },
-      "heritage": {
-        "title": "Heritage walks",
-        "description": "Discover Calabar's culture, markets, and historic landmarks with expert guides."
-      },
-      "suites": {
-        "title": "Suites",
-        "description": "Separate living areas, marble baths, and elevated comfort for memorable stays."
       }
     }
   },
@@ -992,6 +961,7 @@
         "email": "Email",
         "phone": "Phone",
         "eventType": "Event type",
+        "eventDate": "Event date",
         "guestCount": "Expected guests",
         "message": "Event details",
         "submit": "Submit inquiry",

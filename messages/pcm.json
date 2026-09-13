@@ -14,12 +14,13 @@
     "tours": "Tours & Guides",
     "book": "Book Your Stay",
     "menu": "Menu",
+    "closeMenu": "Close di menu",
     "theme": "Change theme"
   },
   "hero": {
     "eyebrow": "Come enjoy {highlight} — bespoke stay, sharp service, and moments wey you no go forget for city centre.",
     "highlight": "fine hospitality",
-    "title": "Relief Hotels & Suites",
+    "title": "Relief Hotels & Suites Calabar",
     "cta": "Plan your stay"
   },
   "propertyBar": {
@@ -82,7 +83,7 @@
     "roomService": "Room service",
     "barbecueGrill": "Barbecue and grill",
     "meetingRooms": "Meeting rooms",
-    "barbingSalon": "Barbing Salon"
+    "barbingSalon": "VIP Bar"
   },
   "experiences": {
     "guestRoom": {
@@ -106,7 +107,7 @@
   },
   "services": {
     "guestRoom": {
-      "title": "Guest Room",
+      "title": "Standard",
       "description": "Comfortable room with fine bed and modern things — good for leisure and business travel."
     },
     "executive": {
@@ -124,7 +125,7 @@
   },
   "roomTypes": {
     "guestRoom": {
-      "title": "Guest Room",
+      "title": "Standard",
       "description": "Comfortable room with fine bed and modern things — good for leisure and business travel."
     },
     "executive": {
@@ -181,7 +182,7 @@
   },
   "form": {
     "stay": {
-      "guestRoom": "Guest Room",
+      "guestRoom": "Standard",
       "executive": "Executive",
       "suites": "Suites",
       "penthouse": "Penthouse"
@@ -216,7 +217,7 @@
     "limitedAvailability": "Only {count} remain for these dates",
     "tabs": {
       "all": "All",
-      "guestRoom": "Guest Rooms",
+      "guestRoom": "Standard Rooms",
       "executive": "Executive",
       "suites": "Suites",
       "penthouse": "Penthouse"
@@ -317,7 +318,7 @@
       "yoga": "Yoga mat for room"
     },
     "guest": {
-      "name": "Guest Room",
+      "name": "Standard",
       "description": "Comfortable room with fine bed and modern things for restful stay."
     },
     "suites": {

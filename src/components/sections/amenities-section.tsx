@@ -14,7 +14,7 @@ export function AmenitiesSection() {
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-teal-dark">
             {t("title")}
           </p>
-          <h2 className="mt-2 whitespace-nowrap font-serif text-3xl font-medium sm:text-4xl">
+          <h2 className="mt-2 font-serif text-3xl font-medium sm:text-4xl">
             {t("subtitle")}
           </h2>
         </div>

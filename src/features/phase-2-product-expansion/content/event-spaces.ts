@@ -6,7 +6,7 @@ export const eventSpaces = [
     capacity: 450,
     styleKey: "spaces.ballroom.style",
     image:
-      "https://images.unsplash.com/photo-1519167758481-83f550bb49b8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1748802633639-22f99d0b3a0c?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "executive-salon",

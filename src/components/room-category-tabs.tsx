@@ -77,7 +77,7 @@ export function RoomCategoryTabs({
         className,
       )}
     >
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-1 px-4 lg:px-16">
+      <div className="mx-auto flex max-w-7xl items-center justify-start gap-1 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:justify-center lg:px-16 [&::-webkit-scrollbar]:hidden">
         {roomsCatalogTabs.map((tab) => {
           const isActive = activeTab === tab;
           return (
@@ -89,7 +89,7 @@ export function RoomCategoryTabs({
               id={`rooms-tab-${tab}`}
               scroll={false}
               className={cn(
-                "relative px-4 py-3.5 text-sm font-semibold transition-colors sm:px-6 sm:text-base",
+                "relative shrink-0 px-4 py-3.5 text-sm font-semibold transition-colors sm:px-6 sm:text-base",
                 isActive
                   ? "text-foreground after:absolute after:bottom-0 after:left-2 after:right-2 after:h-0.5 after:rounded-full after:bg-teal sm:after:left-4 sm:after:right-4"
                   : "text-muted hover:text-foreground",

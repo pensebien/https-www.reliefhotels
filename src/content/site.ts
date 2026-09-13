@@ -24,7 +24,7 @@ export const site = {
     encodeURIComponent(
       "Hello Relief Hotels & Suites — I’d like help with a stay.",
     ),
-  email: "reservations@reliefhotelsandsuites.com",
+  email: "info@reliefhotelsandsuites.com",
   themeStorageKey: "relief-theme",
 } as const;
 
@@ -82,7 +82,7 @@ export const media = {
 } as const;
 
 export const stats = [
-  { value: 24, labelKey: "stats.suites" },
+  { value: 25, labelKey: "stats.suites" },
   { value: 150, labelKey: "stats.seating" },
   { value: 3, labelKey: "stats.venues" },
 ] as const;
