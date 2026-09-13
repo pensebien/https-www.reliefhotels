@@ -20,7 +20,7 @@
   "hero": {
     "eyebrow": "Découvrez une {highlight} avec des séjours sur mesure, un service intuitif et des moments inoubliables au cœur de la ville.",
     "highlight": "hospitalité raffinée",
-    "title": "Relief Hotels & Suites",
+    "title": "Relief Hotels & Suites Calabar",
     "cta": "Planifier votre séjour"
   },
   "propertyBar": {
@@ -83,7 +83,7 @@
     "roomService": "Service en chambre",
     "barbecueGrill": "Barbecue et grill",
     "meetingRooms": "Salles de réunion",
-    "barbingSalon": "Salon de coiffure"
+    "barbingSalon": "Bar VIP"
   },
   "experiences": {
     "guestRoom": {

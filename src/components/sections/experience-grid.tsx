@@ -26,7 +26,6 @@ export function ExperienceGrid() {
             <ExperienceCard
               href={executive.href}
               title={tRoom(`${executive.id}.title`)}
-              subtitle={tExp(`${executive.id}.subtitle`)}
               image={executive.image}
               className="min-h-[200px]"
             />
@@ -34,18 +33,14 @@ export function ExperienceGrid() {
               <ExperienceCard
                 href={suites.href}
                 title={tRoom(`${suites.id}.title`)}
-                subtitle={tExp(`${suites.id}.subtitle`)}
                 image={suites.image}
                 className="min-h-[200px]"
-                small
               />
               <ExperienceCard
                 href={penthouse.href}
                 title={tRoom(`${penthouse.id}.title`)}
-                subtitle={tExp(`${penthouse.id}.subtitle`)}
                 image={penthouse.image}
                 className="min-h-[200px]"
-                small
               />
             </div>
           </div>
@@ -62,15 +57,13 @@ function ExperienceCard({
   image,
   className,
   large,
-  small,
 }: {
   href: (typeof experienceCards)[number]["href"];
   title: string;
-  subtitle: string;
+  subtitle?: string;
   image: string;
   className?: string;
   large?: boolean;
-  small?: boolean;
 }) {
   return (
     <Link
@@ -89,12 +82,10 @@ function ExperienceCard({
         aria-hidden
       />
       <div className="absolute bottom-0 z-10 flex flex-col gap-1 p-6 pb-8 ps-8 sm:ps-8">
-        <h3
-          className={`font-semibold text-white ${small ? "text-lg" : large ? "text-2xl" : "text-xl"}`}
-        >
+        <h3 className={`font-semibold text-white ${large ? "text-2xl" : "text-xl"}`}>
           {title}
         </h3>
-        <p className="text-sm text-white/80">{subtitle}</p>
+        {subtitle && <p className="text-sm text-white/80">{subtitle}</p>}
       </div>
     </Link>
   );

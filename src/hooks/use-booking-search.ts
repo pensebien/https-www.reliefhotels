@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  addDaysToDateString,
   bookingSearchToQueryString,
   defaultCheckInDate,
   defaultCheckOutDate,
+  nightsBetween,
   parseBookingSearchParams,
   toDateString,
   type BookingSearchQuery,
@@ -40,6 +42,50 @@ export function useBookingSearch() {
     setAdults(fromUrl.guests);
     setChildren(0);
   }, [fromUrl]);
+
+  // Default dates start as today, but if every room is sold out today, roll
+  // forward to the first upcoming date that still has availability.
+  useEffect(() => {
+    if (fromUrl) return;
+    let cancelled = false;
+    const nights = nightsBetween(checkIn, checkOut);
+
+    async function useFirstAvailableDefaultDate() {
+      let candidateCheckIn = checkIn;
+      for (let daysAhead = 0; daysAhead < 30; daysAhead += 1) {
+        const candidateCheckOut = addDaysToDateString(candidateCheckIn, nights);
+        try {
+          const res = await fetch(
+            `/api/rooms/availability?${bookingSearchToQueryString({
+              checkIn: candidateCheckIn,
+              checkOut: candidateCheckOut,
+              rooms: 1,
+              guests: 1,
+            })}`,
+          );
+          if (!res.ok) return;
+          const data: { available?: unknown[] } = await res.json();
+          if (Array.isArray(data.available) && data.available.length > 0) {
+            if (!cancelled && daysAhead > 0) {
+              setCheckIn(candidateCheckIn);
+              setCheckOut(candidateCheckOut);
+            }
+            return;
+          }
+        } catch {
+          return;
+        }
+        candidateCheckIn = addDaysToDateString(candidateCheckIn, 1);
+      }
+    }
+
+    useFirstAvailableDefaultDate();
+    return () => {
+      cancelled = true;
+    };
+    // Only ever check the initial default date once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const syncToUrl = useCallback(
     (query: BookingSearchQuery) => {

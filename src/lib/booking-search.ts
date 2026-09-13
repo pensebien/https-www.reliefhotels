@@ -8,14 +8,12 @@ export type BookingSearchQuery = {
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function defaultCheckInDate(): Date {
-  const d = new Date();
-  d.setDate(d.getDate() + 7);
-  return d;
+  return new Date();
 }
 
 export function defaultCheckOutDate(): Date {
   const d = new Date();
-  d.setDate(d.getDate() + 9);
+  d.setDate(d.getDate() + 2);
   return d;
 }
 
@@ -29,6 +27,12 @@ export function toDateString(date: Date): string {
 export function parseDateString(value: string): Date {
   const [y, m, d] = value.split("-").map(Number);
   return new Date(y, m - 1, d);
+}
+
+export function addDaysToDateString(value: string, days: number): string {
+  const date = parseDateString(value);
+  date.setDate(date.getDate() + days);
+  return toDateString(date);
 }
 
 export function parseBookingSearchParams(

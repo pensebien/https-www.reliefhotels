@@ -15,7 +15,6 @@ import { parseDateString } from "@/lib/booking-search";
 import { Link } from "@/i18n/navigation";
 import { MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import Image from "next/image";
 import { useState } from "react";
 
 function formatDateLabel(date: Date, locale: string) {
@@ -78,17 +77,6 @@ export function HotelPropertyBar() {
       >
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between lg:px-8 xl:px-12">
           <div className="flex min-w-0 items-center gap-3 lg:flex-1">
-            <Link href="/" className="shrink-0" aria-label={`${site.name} home`}>
-              <Image
-                src={site.logoSrc}
-                alt=""
-                width={40}
-                height={40}
-                className="h-9 w-9 object-contain"
-                priority
-              />
-            </Link>
-
             <div className="min-w-0 font-sans leading-snug">
               <p className="truncate text-sm font-semibold text-neutral-900 sm:text-base">
                 {site.name}
@@ -108,8 +96,8 @@ export function HotelPropertyBar() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
-            <div className="w-full lg:w-auto">
+          <div className="flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:overflow-visible lg:shrink-0 [&::-webkit-scrollbar]:hidden">
+            <div className="shrink-0">
               <DateRangeTrigger
                 checkInLabel={checkInLabel}
                 checkOutLabel={checkOutLabel}
@@ -122,21 +110,21 @@ export function HotelPropertyBar() {
 
             <BookingBarButton
               onClick={() => setRoomsModalOpen(true)}
-              className="flex-1 lg:flex-none"
+              className="shrink-0"
             >
               <span className="whitespace-nowrap">{roomsGuestsLabel}</span>
             </BookingBarButton>
 
             <BookingBarButton
               onClick={() => setRatesModalOpen(true)}
-              className="flex-1 lg:flex-none"
+              className="shrink-0"
             >
               <span className="whitespace-nowrap">{t("specialRates")}</span>
             </BookingBarButton>
 
             <Link
               href={bookHref}
-              className="flex h-12 min-h-12 w-full items-center justify-center rounded-md bg-[#104c97] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d3d7a] sm:px-5 lg:w-auto"
+              className="flex h-12 min-h-12 shrink-0 items-center justify-center whitespace-nowrap rounded-md bg-[#104c97] px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#0d3d7a] sm:px-5"
             >
               {t("checkRoomsRates")}
             </Link>

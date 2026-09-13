@@ -1,12 +1,10 @@
 "use client";
 
-import {
-  meetingsEventTypes,
-  meetingsEventsHighlights,
-} from "@/features/phase-1-foundation/content/meetings-events";
+import { meetingsEventsHighlights } from "@/features/phase-1-foundation/content/meetings-events";
 import { Link } from "@/i18n/navigation";
-import { Building2, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 export function MeetingsEventsTeaser() {
   const t = useTranslations("phase1.meetings");
@@ -36,29 +34,28 @@ export function MeetingsEventsTeaser() {
           {meetingsEventsHighlights.map((space) => (
             <article
               key={space.id}
-              className="rounded-2xl border border-border bg-background p-6"
+              className="overflow-hidden rounded-2xl border border-border bg-background"
             >
-              <Users className="h-5 w-5 text-teal" aria-hidden />
-              <p className="mt-3 text-xs uppercase tracking-wider text-muted">
-                {t(space.capacityKey)}
-              </p>
-              <h3 className="mt-1 text-lg font-semibold">{t(space.titleKey)}</h3>
-              <p className="mt-2 text-sm text-muted">{t(space.descriptionKey)}</p>
+              <div className="relative h-48">
+                <Image
+                  src={space.image}
+                  alt={t(space.titleKey)}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-6">
+                <Users className="h-5 w-5 text-teal" aria-hidden />
+                <p className="mt-3 text-xs uppercase tracking-wider text-muted">
+                  {t(space.capacityKey)}
+                </p>
+                <h3 className="mt-1 text-lg font-semibold">{t(space.titleKey)}</h3>
+                <p className="mt-2 text-sm text-muted">{t(space.descriptionKey)}</p>
+              </div>
             </article>
           ))}
         </div>
-
-        <ul className="mt-8 flex flex-wrap gap-3">
-          {meetingsEventTypes.map((key) => (
-            <li
-              key={key}
-              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm"
-            >
-              <Building2 className="h-3.5 w-3.5 text-teal" aria-hidden />
-              {t(key)}
-            </li>
-          ))}
-        </ul>
       </div>
     </section>
   );

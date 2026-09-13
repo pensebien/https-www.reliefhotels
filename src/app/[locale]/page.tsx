@@ -1,9 +1,6 @@
 import { HotelPropertyBar } from "@/components/hotel-property-bar";
 import { RoomCategoryTabs } from "@/components/room-category-tabs";
-import {
-  MeetingsEventsTeaser,
-  SignatureExperiencesTeaser,
-} from "@/features/phase-1-foundation";
+import { MeetingsEventsTeaser } from "@/features/phase-1-foundation";
 import { AmenitiesSection } from "@/components/sections/amenities-section";
 import { ReviewsSection } from "@/components/sections/reviews-section";
 import { ContactSection } from "@/components/sections/contact-section";
@@ -43,7 +40,6 @@ export default async function HomePage({
       <ExperienceGrid />
       <AmenitiesSection />
       <MeetingsEventsTeaser />
-      <SignatureExperiencesTeaser />
       <ReviewsSection />
       <ContactSection />
     </>

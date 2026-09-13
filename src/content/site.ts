@@ -82,7 +82,7 @@ export const media = {
 } as const;
 
 export const stats = [
-  { value: 24, labelKey: "stats.suites" },
+  { value: 25, labelKey: "stats.suites" },
   { value: 150, labelKey: "stats.seating" },
   { value: 3, labelKey: "stats.venues" },
 ] as const;
