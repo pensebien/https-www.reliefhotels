@@ -50,7 +50,7 @@ export function useBookingSearch() {
     let cancelled = false;
     const nights = nightsBetween(checkIn, checkOut);
 
-    async function useFirstAvailableDefaultDate() {
+    async function findFirstAvailableDefaultDate() {
       let candidateCheckIn = checkIn;
       for (let daysAhead = 0; daysAhead < 30; daysAhead += 1) {
         const candidateCheckOut = addDaysToDateString(candidateCheckIn, nights);
@@ -79,7 +79,7 @@ export function useBookingSearch() {
       }
     }
 
-    useFirstAvailableDefaultDate();
+    findFirstAvailableDefaultDate();
     return () => {
       cancelled = true;
     };
