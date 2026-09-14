@@ -54,7 +54,6 @@ export default async function ToursPage({
                   <h2 className="font-serif text-2xl font-semibold">
                     {t(`${key}.name`)}
                   </h2>
-                  <p className="mt-2 flex-1 text-muted">{t(`${key}.description`)}</p>
                   <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted">
                     <span className="flex items-center gap-1.5">
                       <MapPin className="h-4 w-4 text-teal" aria-hidden />

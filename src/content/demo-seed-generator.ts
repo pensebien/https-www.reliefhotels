@@ -119,7 +119,6 @@ function buildRoomSeeds(): {
   const roomPlan: Array<{ roomId: (typeof rooms)[number]["id"]; count: number }> = [
     { roomId: "guest-room", count: 10 },
     { roomId: "executive-room", count: 9 },
-    { roomId: "executive-spa", count: 4 },
     { roomId: "signature-suite", count: 9 },
     { roomId: "presidential-suite", count: 8 },
   ];

@@ -25,11 +25,6 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-/** Keys in site data are `rooms.amenities.*` but the namespace is already `rooms`. */
-function roomsMessageKey(key: string) {
-  return key.startsWith("rooms.") ? key.slice("rooms.".length) : key;
-}
-
 type Room = (typeof rooms)[number];
 
 function formatStayDate(value: string, locale: string) {
@@ -307,8 +302,7 @@ function RoomCard({
       </button>
       <div className="p-6 sm:p-8">
         <h3 className="font-serif text-2xl font-semibold">{t(`${key}.name`)}</h3>
-        <p className="mt-2 text-muted">{t(`${key}.description`)}</p>
-        <p className="mt-4 text-lg font-medium text-foreground">
+        <p className="mt-2 text-lg font-medium text-foreground">
           {availability ? (
             <>
               {t("totalForStay", {
@@ -333,33 +327,23 @@ function RoomCard({
             {t("limitedAvailability", { count: availability.availableUnits })}
           </p>
         )}
-        <ul className="mt-4 flex flex-wrap gap-2">
-          {room.amenitiesKeys.map((amenityKey) => (
-            <li
-              key={amenityKey}
-              className="rounded-full border border-border px-3 py-1 text-xs text-muted"
-            >
-              {t(roomsMessageKey(amenityKey))}
-            </li>
-          ))}
-        </ul>
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={onViewDetails}
-            className="inline-flex rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:border-teal"
+            className="inline-flex items-center justify-center rounded-full border border-border px-2 py-2.5 text-center text-xs font-medium leading-tight transition-colors hover:border-teal sm:px-3 sm:text-sm"
           >
             {t("viewDetails")}
           </button>
           <Link
             href={bookHref}
-            className="inline-flex rounded-full bg-teal px-6 py-3 text-sm font-medium text-gray-950 hover:bg-teal-dark"
+            className="inline-flex items-center justify-center rounded-full bg-teal px-2 py-2.5 text-center text-xs font-medium leading-tight text-gray-950 hover:bg-teal-dark sm:px-3 sm:text-sm"
           >
             {t("payDeposit")}
           </Link>
           <Link
             href={contactSectionHref({ room: room.slug })}
-            className="inline-flex rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:border-teal"
+            className="inline-flex items-center justify-center rounded-full border border-border px-2 py-2.5 text-center text-xs font-medium leading-tight transition-colors hover:border-teal sm:px-3 sm:text-sm"
           >
             {t("bookRoom")}
           </Link>

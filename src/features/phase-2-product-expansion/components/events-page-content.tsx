@@ -33,11 +33,7 @@ export async function EventsPageContent() {
                 />
               </div>
               <div className="p-6">
-                <p className="text-xs uppercase tracking-wider text-muted">
-                  {t("capacity", { count: space.capacity })} · {t(space.styleKey)}
-                </p>
-                <h2 className="mt-2 text-xl font-semibold">{t(space.nameKey)}</h2>
-                <p className="mt-2 text-sm text-muted">{t(space.descriptionKey)}</p>
+                <h2 className="text-xl font-semibold">{t(space.nameKey)}</h2>
               </div>
             </article>
           ))}

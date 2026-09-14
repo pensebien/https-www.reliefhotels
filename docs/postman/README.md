@@ -45,7 +45,7 @@ Base URL: `https://cloud-relay-nu.vercel.app` (`rayza_base_url`)
 Verified live against the real API and its `/openapi.json` spec (2026-08-12):
 
 - **Auth:** `authorization: Bearer {{rayza_api_key}}` — the raw key with no `Bearer` prefix returns **401**. (Missing the header entirely returns **422**, since it's modeled as a required header parameter.)
-- **Room identifiers:** RAYZA has no catalog of Relief's rooms — whatever string you send as `room_identifier` is stored as-is (omit it and it defaults to `"default"`). The app and this collection reuse Relief's own room slugs (`guest-room`, `executive-room`, `signature-suite`, `presidential-suite`, `executive-spa`) rather than inventing a separate code.
+- **Room identifiers:** RAYZA has no catalog of Relief's rooms — whatever string you send as `room_identifier` is stored as-is (omit it and it defaults to `"default"`). The app and this collection reuse Relief's own room slugs (`guest-room`, `executive-room`, `signature-suite`, `presidential-suite`) rather than inventing a separate code.
 - **Booking amount:** field is `amount` (number, naira) — not `total_price`.
 - **Idempotency:** re-`POST`ing the same `booking_reference` returns `{"status": "already_received", ...}` (still 201), not a conflict. Cancelling an already-cancelled or unknown reference returns **404**.
 
@@ -127,4 +127,4 @@ Base URL: `relief_base_url` (production: `https://reliefhotelsandsuites.com`)
 
 - **Tier 2 / planned endpoints:** `PATCH /api/demo/reservations/{id}` and `/api/staff/room-blocks` are included for HMS work-in-progress; they may return 404 until implemented.
 - **Demo payments:** Use `demo=1` on Paystack verify when `DEMO_MODE` is enabled or Paystack keys are absent.
-- **Room IDs:** Valid slugs include `guest-room`, `executive-room`, `signature-suite`, `presidential-suite`, `executive-spa`.
+- **Room IDs:** Valid slugs include `guest-room`, `executive-room`, `signature-suite`, `presidential-suite`.

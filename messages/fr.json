@@ -257,8 +257,7 @@
         "guest": "Chambre confortable avec literie premium, équipements modernes et vue sur Calabar. Douche pluie et linge moelleux pour un séjour reposant.",
         "executive": "Espace de travail dédié, literie premium et accès au salon Executive pour les voyageurs d'affaires.",
         "suites": "Suite spacieuse avec salon séparé, salle de bain en marbre et service de majordome.",
-        "presidential": "Penthouse avec vues panoramiques, salon séparé et service de majordome sur mesure.",
-        "executiveSpa": "Chambre Executive avec crédits spa, accès au salon et équipements bien-être en chambre."
+        "presidential": "Penthouse avec vues panoramiques, salon séparé et service de majordome sur mesure."
       },
       "guest": {
         "guests": "2 personnes",
@@ -291,14 +290,6 @@
         "bathroom": "Bain marbre",
         "dining": "Repas privé",
         "location": "Niveau Penthouse"
-      },
-      "executiveSpa": {
-        "guests": "2 personnes",
-        "views": "Jardin et ville",
-        "layout": "Chambre avec coin spa",
-        "bathroom": "Douche spa",
-        "dining": "Minibar bien-être",
-        "location": "Aile spa Executive"
       }
     },
     "bookRoom": "Réserver cette chambre",
@@ -332,10 +323,6 @@
     "executive": {
       "name": "Chambre Executive",
       "description": "Espace de travail, literie premium et accès au salon pour les voyageurs d'affaires."
-    },
-    "executiveSpa": {
-      "name": "Chambre Executive Spa",
-      "description": "Chambre Executive avec espace de travail, accès au salon, crédits spa et équipements restaurateurs en chambre."
     }
   },
   "tours": {

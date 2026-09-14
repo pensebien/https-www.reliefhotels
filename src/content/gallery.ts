@@ -111,7 +111,7 @@ export const galleryItems: GalleryItem[] = [
   },
   {
     id: "events-03",
-    src: "https://images.unsplash.com/photo-1519167758481-83f550bb49b0?auto=format&fit=crop&w=1400&q=80",
+    src: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1400&q=80",
     category: "eventsMeetings",
     titleKey: "items.events03",
   },
@@ -138,7 +138,7 @@ export const galleryItems: GalleryItem[] = [
   // Outdoor bar
   {
     id: "outdoor-01",
-    src: "https://images.unsplash.com/photo-1470337458703-46ad2256b196?auto=format&fit=crop&w=1400&q=80",
+    src: "https://images.unsplash.com/photo-1560624052-449f5ddf0c31?auto=format&fit=crop&w=1400&q=80",
     category: "outdoorBar",
     titleKey: "items.outdoor01",
     featured: true,

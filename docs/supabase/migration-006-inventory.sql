@@ -27,6 +27,5 @@ insert into room_inventory (room_id, total_units) values
   ('guest-room', 12),
   ('executive-room', 8),
   ('signature-suite', 4),
-  ('presidential-suite', 1),
-  ('executive-spa', 3)
+  ('presidential-suite', 1)
 on conflict (room_id) do nothing;

@@ -24,6 +24,14 @@ export const diningVenues = [
     cuisineKey: "venues.indoorRestaurant.cuisine",
     image: media.images.photos.restaurant,
   },
+  {
+    id: "outdoor-bar",
+    nameKey: "venues.outdoorBar.name",
+    descriptionKey: "venues.outdoorBar.description",
+    cuisineKey: "venues.outdoorBar.cuisine",
+    image:
+      "https://images.unsplash.com/photo-1560624052-449f5ddf0c31?auto=format&fit=crop&w=1200&q=80",
+  },
 ] as const;
 
 export const menuHighlights = [

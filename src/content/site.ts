@@ -12,6 +12,13 @@ export const site = {
   },
   mapsUrl:
     "https://www.google.com/maps/place/Orion+Terence+Hotel+%26+Suite/@5.0304148,8.3144,15z/data=!3m1!4b1!4m6!3m5!1s0x105d7d15a5878d7b:0xe167472c61e3359c!8m2!3d5.0304151!4d8.3328541!16s%2Fg%2F11fct342vc?entry=ttu",
+  /**
+   * The listed Google Place name behind mapsUrl (a prior business name at this
+   * address) — querying by this name, rather than raw coordinates or the street
+   * address, is what makes the keyless embed below drop an accurate pin.
+   */
+  mapsPlaceName: "Orion Terence Hotel & Suite, Calabar",
+  mapsCoords: { lat: 5.0304151, lng: 8.3328541 },
   logoSrc: "/relief-logo.png",
   faviconSrc: "/favicon.ico",
   iconSrc: "/icon-32.png",
@@ -303,29 +310,6 @@ export const rooms = [
     ],
     featured: true,
   },
-  {
-    id: "executive-spa",
-    slug: "executive-spa",
-    category: "executive" as const,
-    nameKey: "rooms.executiveSpa.name",
-    descriptionKey: "rooms.executiveSpa.description",
-    priceFrom: 210000,
-    currency: "NGN",
-    image: media.images.photos.executiveRoom,
-    gallery: [
-      media.images.photos.executiveRoom,
-      media.images.spa,
-      media.images.roomBathroom,
-      media.images.photos.reception,
-    ],
-    amenitiesKeys: [
-      "rooms.amenities.workDesk",
-      "rooms.amenities.loungeAccess",
-      "rooms.amenities.spaCredit",
-      "rooms.amenities.healthyMenu",
-    ],
-    featured: false,
-  },
 ] as const;
 
 export const tours = [
@@ -387,6 +371,16 @@ export const cityExperiences = [
     nameKey: "city.executive.name",
     descriptionKey: "city.executive.description",
   },
+] as const;
+
+/** Approximate road distances from the property (2 CICC Road, Ikot Mbo, Calabar). */
+export const nearbyPlaces = [
+  { id: "millennium-park", name: "Millennium Park, Calabar", distance: "4 km" },
+  { id: "marina-resort", name: "Marina Resort, Calabar", distance: "6 km" },
+  { id: "cultural-centre", name: "Cultural Centre, Calabar", distance: "5 km" },
+  { id: "national-museum", name: "National Museum, Calabar", distance: "5 km" },
+  { id: "tinapa", name: "Tinapa Business Resort", distance: "10 km" },
+  { id: "airport", name: "Margaret Ekpo International Airport", distance: "8 km" },
 ] as const;
 
 export const structuredData = {
