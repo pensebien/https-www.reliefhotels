@@ -7,7 +7,6 @@ export const INVENTORY_BY_ROOM_ID: Record<string, number> = {
   "executive-room": 8,
   "signature-suite": 4,
   "presidential-suite": 1,
-  "executive-spa": 3,
 };
 
 export type InventoryUnitKind = "room" | "event";
@@ -71,7 +70,6 @@ export function resolveReservationRoomId(input: {
     "executive-room": "executive-room",
     "signature-suite": "signature-suite",
     "presidential-suite": "presidential-suite",
-    "executive-spa": "executive-spa",
   };
 
   return aliases[token];

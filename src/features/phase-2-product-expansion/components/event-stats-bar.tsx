@@ -24,7 +24,7 @@ export async function EventStatsBar() {
           <Stat
             value={
               <>
-                2,700{" "}
+                +400{" "}
                 <span className="text-xl font-semibold sm:text-2xl">sq. m.</span>
               </>
             }

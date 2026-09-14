@@ -37,8 +37,7 @@ export default async function BookPage({
     redirect({ href: "/tours", locale });
   }
 
-  const rawId = sp.id ?? sp.room ?? "signature-suite";
-  const itemId = rawId === "wellness-retreat" ? "executive-spa" : rawId;
+  const itemId = sp.id ?? sp.room ?? "signature-suite";
 
   const room = rooms.find((r) => r.id === itemId || r.slug === itemId);
 

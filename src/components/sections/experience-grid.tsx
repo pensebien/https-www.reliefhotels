@@ -7,7 +7,6 @@ import Image from "next/image";
 
 export function ExperienceGrid() {
   const tRoom = useTranslations("roomTypes");
-  const tExp = useTranslations("experiences");
   const [guestRoom, executive, suites, penthouse] = experienceCards;
 
   return (
@@ -17,7 +16,6 @@ export function ExperienceGrid() {
           <ExperienceCard
             href={guestRoom.href}
             title={tRoom(`${guestRoom.id}.title`)}
-            subtitle={tExp(`${guestRoom.id}.subtitle`)}
             image={guestRoom.image}
             className="min-h-[420px] md:row-span-2"
             large
@@ -53,14 +51,12 @@ export function ExperienceGrid() {
 function ExperienceCard({
   href,
   title,
-  subtitle,
   image,
   className,
   large,
 }: {
   href: (typeof experienceCards)[number]["href"];
   title: string;
-  subtitle?: string;
   image: string;
   className?: string;
   large?: boolean;
@@ -85,7 +81,6 @@ function ExperienceCard({
         <h3 className={`font-semibold text-white ${large ? "text-2xl" : "text-xl"}`}>
           {title}
         </h3>
-        {subtitle && <p className="text-sm text-white/80">{subtitle}</p>}
       </div>
     </Link>
   );

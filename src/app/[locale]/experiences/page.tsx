@@ -61,9 +61,6 @@ export default async function ExperiencesPage({
               className="rounded-2xl border border-border bg-card p-6"
             >
               <h3 className="font-semibold">{tc(`${cityKeys[i]}.name`)}</h3>
-              <p className="mt-2 text-sm text-muted">
-                {tc(`${cityKeys[i]}.description`)}
-              </p>
             </div>
           ))}
         </div>

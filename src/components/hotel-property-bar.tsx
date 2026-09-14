@@ -79,7 +79,7 @@ export function HotelPropertyBar() {
           <div className="flex min-w-0 items-center gap-3 lg:flex-1">
             <div className="min-w-0 font-sans leading-snug">
               <p className="truncate text-sm font-semibold text-neutral-900 sm:text-base">
-                {site.name}
+                {site.name} Calabar
               </p>
               <p className="flex min-w-0 items-center gap-1.5 text-xs text-neutral-600 sm:text-sm">
                 <span className="truncate">{site.address.full}</span>

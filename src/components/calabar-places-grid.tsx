@@ -24,19 +24,20 @@ export async function CalabarPlacesGrid() {
           </div>
           <div className="flex flex-1 flex-col p-5">
             <h3 className="font-semibold leading-snug">{t(place.nameKey)}</h3>
-            <p className="mt-2 flex-1 text-sm text-muted">{t(place.descriptionKey)}</p>
-            <p className="mt-3 text-xs font-medium leading-relaxed text-teal-dark">
-              {t(place.highlightsKey)}
-            </p>
-            <a
-              href={place.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex items-center gap-1.5 self-start text-sm font-medium text-foreground transition-colors hover:text-teal"
-            >
-              {t("explore")}
-              <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </a>
+            <div className="mt-auto pt-3">
+              <p className="text-xs font-medium leading-relaxed text-teal-dark">
+                {t(place.highlightsKey)}
+              </p>
+              <a
+                href={place.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex items-center gap-1.5 self-start text-sm font-medium text-foreground transition-colors hover:text-teal"
+              >
+                {t("explore")}
+                <ArrowUpRight className="h-4 w-4" aria-hidden />
+              </a>
+            </div>
           </div>
         </article>
       ))}

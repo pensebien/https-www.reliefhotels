@@ -257,8 +257,7 @@
         "guest": "Comfortable room with fine bed, modern amenities, and Calabar view. Rain shower and soft linen for restful stay.",
         "executive": "Work desk, fine linen, and Executive lounge access for business travellers.",
         "suites": "Big suite with living area separate, marble bathroom, and butler service.",
-        "presidential": "Penthouse with panoramic view, living room, and butler service.",
-        "executiveSpa": "Executive room with spa credit, lounge access, and wellness amenities."
+        "presidential": "Penthouse with panoramic view, living room, and butler service."
       },
       "guest": {
         "guests": "Sleeps 2",
@@ -291,14 +290,6 @@
         "bathroom": "Marble bath",
         "dining": "Private dining",
         "location": "Penthouse level"
-      },
-      "executiveSpa": {
-        "guests": "Sleeps 2",
-        "views": "Garden & city",
-        "layout": "Bedroom with spa nook",
-        "bathroom": "Spa rain shower",
-        "dining": "Wellness minibar",
-        "location": "Executive spa wing"
       }
     },
     "bookRoom": "Reserve this room",
@@ -332,10 +323,6 @@
     "executive": {
       "name": "Executive Room",
       "description": "For business people — work desk, fine linen, and lounge access."
-    },
-    "executiveSpa": {
-      "name": "Executive Spa Room",
-      "description": "Executive room with work desk, lounge access, spa credit, and calm in-room amenities."
     }
   },
   "tours": {

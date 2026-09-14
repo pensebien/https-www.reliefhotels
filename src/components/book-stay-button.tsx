@@ -110,7 +110,7 @@ function BookStayButtonInner({
         open={open}
         onClose={closeAll}
         title={tBook("title")}
-        panelClassName="w-full max-w-lg"
+        panelClassName="w-full max-w-xl"
         footer={
           <button
             type="button"

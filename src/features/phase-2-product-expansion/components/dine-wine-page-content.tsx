@@ -35,8 +35,7 @@ export async function DineWinePageContent() {
                   {t(venue.cuisineKey)}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">{t(venue.nameKey)}</h2>
-                <p className="mt-2 flex-1 text-sm text-muted">{t(venue.descriptionKey)}</p>
-                <div className="mt-6 flex justify-end">
+                <div className="mt-auto flex justify-end pt-6">
                   <a
                     href={`?venue=${venue.id}#dining-reservation`}
                     className="btn-primary"

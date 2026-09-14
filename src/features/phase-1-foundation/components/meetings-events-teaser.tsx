@@ -51,7 +51,6 @@ export function MeetingsEventsTeaser() {
                   {t(space.capacityKey)}
                 </p>
                 <h3 className="mt-1 text-lg font-semibold">{t(space.titleKey)}</h3>
-                <p className="mt-2 text-sm text-muted">{t(space.descriptionKey)}</p>
               </div>
             </article>
           ))}

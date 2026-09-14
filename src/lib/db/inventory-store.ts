@@ -21,7 +21,6 @@ const DEFAULT_INVENTORY: Record<string, number> = {
   "executive-room": 8,
   "signature-suite": 4,
   "presidential-suite": 1,
-  "executive-spa": 3,
 };
 
 const STORE_DIR = path.join(process.cwd(), "data");
