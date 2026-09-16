@@ -11,13 +11,13 @@ export const site = {
     full: "2 CICC Road, Ikot Mbo, Calabar, Cross River, Nigeria",
   },
   mapsUrl:
-    "https://www.google.com/maps/place/Orion+Terence+Hotel+%26+Suite/@5.0304148,8.3144,15z/data=!3m1!4b1!4m6!3m5!1s0x105d7d15a5878d7b:0xe167472c61e3359c!8m2!3d5.0304151!4d8.3328541!16s%2Fg%2F11fct342vc?entry=ttu",
+    "https://www.google.com/maps/place/Relief+Hotels+and+Suites+Calabar/@5.0301743,8.3309742,18.2z/data=!4m6!3m5!1s0x105d7d007dac1045:0x6656d408d02fc374!8m2!3d5.0304151!4d8.3328541!16s%2Fg%2F11zwpcgng3?entry=ttu",
   /**
-   * The listed Google Place name behind mapsUrl (a prior business name at this
-   * address) — querying by this name, rather than raw coordinates or the street
-   * address, is what makes the keyless embed below drop an accurate pin.
+   * The listed Google Place name behind mapsUrl — querying by this name,
+   * rather than raw coordinates or the street address, is what makes the
+   * keyless embed below drop an accurate pin.
    */
-  mapsPlaceName: "Orion Terence Hotel & Suite, Calabar",
+  mapsPlaceName: "Relief Hotels and Suites Calabar",
   mapsCoords: { lat: 5.0304151, lng: 8.3328541 },
   logoSrc: "/relief-logo.png",
   faviconSrc: "/favicon.ico",
@@ -375,6 +375,11 @@ export const cityExperiences = [
 
 /** Approximate road distances from the property (2 CICC Road, Ikot Mbo, Calabar). */
 export const nearbyPlaces = [
+  {
+    id: "cicc",
+    name: "Calabar International Conference Centre",
+    distance: "0.5 km",
+  },
   { id: "millennium-park", name: "Millennium Park, Calabar", distance: "4 km" },
   { id: "marina-resort", name: "Marina Resort, Calabar", distance: "6 km" },
   { id: "cultural-centre", name: "Cultural Centre, Calabar", distance: "5 km" },
