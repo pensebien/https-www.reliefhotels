@@ -16,7 +16,11 @@ export function getServerConfig() {
     process.env.PAYSTACK_PUBLIC_KEY ??
     ""
   ).trim();
+  const sendgridKey = process.env.SENDGRID_API_KEY;
   const resendKey = process.env.RESEND_API_KEY;
+  const emailProvider = (process.env.EMAIL_PROVIDER ?? "sendgrid") as
+    | "sendgrid"
+    | "resend";
   const paystackConfigured =
     isPaystackSecretKey(paystackSecret) && isPaystackPublicKey(paystackPublic);
   /** Simulated payments — never allow silent demo when keys are valid unless DEMO_MODE=true. */
@@ -56,7 +60,11 @@ export function getServerConfig() {
       mode: keyMode,
     },
     email: {
-      configured: Boolean(resendKey),
+      provider: emailProvider,
+      configured:
+        emailProvider === "sendgrid"
+          ? Boolean(sendgridKey)
+          : Boolean(resendKey),
       from:
         process.env.EMAIL_FROM ??
         "Relief Hotels <onboarding@resend.dev>",

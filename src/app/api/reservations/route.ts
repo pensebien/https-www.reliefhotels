@@ -1,4 +1,5 @@
 import { rooms } from "@/content/site";
+import { getServerConfig } from "@/lib/config";
 import { addReservation } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
 import { getRoomAvailability } from "@/lib/room-availability";
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
       id: record.id,
       emailSent: sent,
       notified: false,
-      demo: !process.env.RESEND_API_KEY,
+      demo: !getServerConfig().email.configured,
     });
   } catch (error) {
     console.error("[reservations]", error);
