@@ -23,11 +23,11 @@ export const site = {
   faviconSrc: "/favicon.ico",
   iconSrc: "/icon-32.png",
   appleIconSrc: "/apple-touch-icon.png",
-  phone: "+234 810 065 3664",
-  phoneHref: "tel:+2348100653664",
+  phone: "+234 912 478 4058",
+  phoneHref: "tel:+2349124784058",
   /** wa.me link — digits only, no + or spaces */
   whatsappHref:
-    "https://wa.me/2348100653664?text=" +
+    "https://wa.me/2349124784058?text=" +
     encodeURIComponent(
       "Hello Relief Hotels & Suites — I’d like help with a stay.",
     ),

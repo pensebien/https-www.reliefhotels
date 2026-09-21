@@ -10,8 +10,8 @@ import {
 describe("contact-links", () => {
   it("builds mailto and WhatsApp hrefs", () => {
     assert.equal(toMailtoHref(" guest@example.com "), "mailto:guest@example.com");
-    assert.equal(phoneDigits("+234 810 065 3664"), "2348100653664");
-    assert.equal(toWhatsAppHref("+2348100653664"), "https://wa.me/2348100653664");
-    assert.equal(toTelHref("+2348100653664"), "tel:+2348100653664");
+    assert.equal(phoneDigits("+234 912 478 4058"), "2349124784058");
+    assert.equal(toWhatsAppHref("+2349124784058"), "https://wa.me/2349124784058");
+    assert.equal(toTelHref("+2349124784058"), "tel:+2349124784058");
   });
 });

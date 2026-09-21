@@ -2,6 +2,13 @@
 
 import { BookStayButton } from "@/components/book-stay-button";
 import { rooms, site, tours } from "@/content/site";
+import {
+  buildTelHrefFromDigits,
+  buildWhatsAppHrefFromDigits,
+  formatMaskedPhoneDisplay,
+  formatObfuscatedPhoneDisplay,
+  revealPhoneDigits,
+} from "@/lib/obfuscated-phone";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import {
@@ -34,6 +41,24 @@ function ContactSectionInner() {
   );
   const [emailSent, setEmailSent] = useState(false);
   const [message, setMessage] = useState("");
+
+  // Assembled client-side only, on mount — keeps a dialable number and wa.me
+  // link out of the static/SSR HTML that scrapers read (see @/lib/obfuscated-phone).
+  const [phone, setPhone] = useState<{
+    display: string;
+    telHref: string;
+    waHref: string;
+  }>();
+  const maskedPhoneDisplay = formatMaskedPhoneDisplay("");
+
+  useEffect(() => {
+    const digits = revealPhoneDigits();
+    setPhone({
+      display: formatObfuscatedPhoneDisplay(digits),
+      telHref: buildTelHrefFromDigits(digits),
+      waHref: buildWhatsAppHrefFromDigits(digits),
+    });
+  }, []);
 
   const interestLabel = useMemo(() => {
     if (roomSlug) {
@@ -119,10 +144,13 @@ function ContactSectionInner() {
                 <div className="flex flex-col gap-1">
                   <p className="text-sm text-muted">{t("phone")}</p>
                   <a
-                    href={site.phoneHref}
+                    href={phone?.telHref ?? "#"}
                     className="text-base font-medium text-teal-dark hover:underline"
+                    onClick={(e) => {
+                      if (!phone) e.preventDefault();
+                    }}
                   >
-                    {site.phone}
+                    {phone?.display ?? maskedPhoneDisplay}
                   </a>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -139,13 +167,16 @@ function ContactSectionInner() {
               <div className="flex flex-col gap-1">
                 <p className="text-sm text-muted">{t("whatsapp")}</p>
                 <a
-                  href={site.whatsappHref}
+                  href={phone?.waHref ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex w-fit items-center gap-2 text-base font-medium text-teal-dark hover:underline"
+                  onClick={(e) => {
+                    if (!phone) e.preventDefault();
+                  }}
                 >
                   <WhatsAppGlyph className="h-5 w-5 text-[#25D366]" />
-                  {site.phone}
+                  {phone?.display ?? maskedPhoneDisplay}
                 </a>
                 <p className="text-sm text-muted">{t("whatsappHint")}</p>
               </div>
