@@ -153,7 +153,7 @@
   },
   "whatsapp": {
     "label": "Chat for WhatsApp",
-    "ariaLabel": "Chat for WhatsApp for {phone}"
+    "ariaLabel": "Chat for WhatsApp"
   },
   "contact": {
     "eyebrow": "Contact Us",

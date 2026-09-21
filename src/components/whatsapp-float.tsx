@@ -1,8 +1,9 @@
 "use client";
 
-import { site } from "@/content/site";
 import { cn } from "@/lib/utils";
+import { buildWhatsAppHrefFromDigits, revealPhoneDigits } from "@/lib/obfuscated-phone";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
@@ -17,16 +18,29 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-/** Fixed WhatsApp CTA on public pages. */
+/**
+ * Fixed WhatsApp CTA on public pages. The wa.me link is assembled client-side
+ * only (see `@/lib/obfuscated-phone`) so scrapers reading the static/SSR HTML
+ * never see a dialable number — real visitors get a working link the moment
+ * the page hydrates.
+ */
 export function WhatsAppFloat({ className }: { className?: string }) {
   const t = useTranslations("whatsapp");
+  const [href, setHref] = useState<string>();
+
+  useEffect(() => {
+    setHref(buildWhatsAppHrefFromDigits(revealPhoneDigits()));
+  }, []);
 
   return (
     <a
-      href={site.whatsappHref}
+      href={href ?? "#"}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={t("ariaLabel", { phone: site.phone })}
+      aria-label={t("ariaLabel")}
+      onClick={(e) => {
+        if (!href) e.preventDefault();
+      }}
       className={cn(
         "fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition-transform hover:scale-105 hover:bg-[#1ebe57] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25D366] sm:bottom-6 sm:right-6",
         className,

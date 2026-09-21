@@ -4,13 +4,41 @@ import { BookStayButton } from "@/components/book-stay-button";
 import { site } from "@/content/site";
 import { mainNavLinks } from "@/content/navigation";
 import { Link } from "@/i18n/navigation";
+import {
+  buildTelHrefFromDigits,
+  buildWhatsAppHrefFromDigits,
+  formatMaskedPhoneDisplay,
+  formatObfuscatedPhoneDisplay,
+  revealPhoneDigits,
+} from "@/lib/obfuscated-phone";
 import { ArrowUpRight, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 
 export function SiteFooter() {
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
   const year = new Date().getFullYear();
+
+  // Assembled client-side only, on mount — keeps a dialable number and
+  // wa.me link out of the static/SSR HTML that scrapers read, without
+  // requiring a real visitor to click anything to reveal it.
+  const [phone, setPhone] = useState<{
+    display: string;
+    telHref: string;
+    waHref: string;
+  }>();
+
+  useEffect(() => {
+    const digits = revealPhoneDigits();
+    setPhone({
+      display: formatObfuscatedPhoneDisplay(digits),
+      telHref: buildTelHrefFromDigits(digits),
+      waHref: buildWhatsAppHrefFromDigits(digits),
+    });
+  }, []);
+
+  const maskedDisplay = formatMaskedPhoneDisplay("");
 
   return (
     <footer className="bg-neutral-950 text-white dark:bg-black">
@@ -63,19 +91,28 @@ export function SiteFooter() {
             <div className="space-y-4 text-sm text-white/80">
               <div className="flex items-start gap-3">
                 <Phone className="mt-1 h-4 w-4 text-teal" />
-                <a href={site.phoneHref} className="hover:text-teal">
-                  {site.phone}
+                <a
+                  href={phone?.telHref ?? "#"}
+                  className="hover:text-teal"
+                  onClick={(e) => {
+                    if (!phone) e.preventDefault();
+                  }}
+                >
+                  {phone?.display ?? maskedDisplay}
                 </a>
               </div>
               <div className="flex items-start gap-3">
                 <MessageCircle className="mt-1 h-4 w-4 text-teal" />
                 <a
-                  href={site.whatsappHref}
+                  href={phone?.waHref ?? "#"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-teal"
+                  onClick={(e) => {
+                    if (!phone) e.preventDefault();
+                  }}
                 >
-                  {t("whatsapp")} · {site.phone}
+                  {t("whatsapp")} · {phone?.display ?? maskedDisplay}
                 </a>
               </div>
               <div className="flex items-start gap-3">

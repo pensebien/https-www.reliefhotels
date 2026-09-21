@@ -3,15 +3,15 @@
  * Digits are stored reversed and only assembled in the browser on interaction.
  */
 
-/** Reversed E.164 digits for +234 810 065 3664 (no +). */
-const PHONE_DIGITS_REVERSED = "4663560018432";
+/** Reversed E.164 digits for +234 912 478 4058 (no +). */
+const PHONE_DIGITS_REVERSED = "8504874219432";
 
 export function revealPhoneDigits(): string {
   return PHONE_DIGITS_REVERSED.split("").reverse().join("");
 }
 
 export function formatObfuscatedPhoneDisplay(digits: string): string {
-  // +234 810 065 3664
+  // +234 912 478 4058
   if (digits.length < 13) return digits;
   return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9)}`;
 }
