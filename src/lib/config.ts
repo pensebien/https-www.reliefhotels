@@ -55,14 +55,32 @@ export function getServerConfig() {
       secretKey: paystackSecret,
       mode: keyMode,
     },
+    // Outbound mail goes from the mail. sending subdomain; replies route to the
+    // root-domain Google Workspace groups (docs/flow-diagrams/reservation/).
     email: {
       configured: Boolean(resendKey),
       from:
-        process.env.EMAIL_FROM ??
-        "Relief Hotels <onboarding@resend.dev>",
+        process.env.EMAIL_FROM ||
+        "Relief Hotels <reservations@mail.reliefhotelsandsuites.com>",
       to:
-        process.env.RESERVATION_EMAIL ??
-        "info@reliefhotelsandsuites.com",
+        process.env.RESERVATION_EMAIL ||
+        "reservations@reliefhotelsandsuites.com",
+      reservations: {
+        from:
+          process.env.EMAIL_FROM ||
+          "Relief Hotels <reservations@mail.reliefhotelsandsuites.com>",
+        replyTo:
+          process.env.RESERVATIONS_REPLY_TO ||
+          "reservations@reliefhotelsandsuites.com",
+      },
+      finance: {
+        from:
+          process.env.FINANCE_EMAIL_FROM ||
+          "Relief Hotels Finance <finance@mail.reliefhotelsandsuites.com>",
+        // Reply-To and the BCC archive copy both land in the finance@ Google Group.
+        inbox:
+          process.env.FINANCE_EMAIL || "finance@reliefhotelsandsuites.com",
+      },
     },
     notifications: {
       channel: notifyChannel,

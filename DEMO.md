@@ -100,15 +100,16 @@ For production, set **NEXT_PUBLIC_APP_URL** to your live www domain.
 
 ## 3. Email reservations (10 minutes, optional)
 
-1. Sign up at [https://resend.com](https://resend.com)
-2. Create API key → `RESEND_API_KEY`
+1. Log in to Resend as `admin@reliefhotelsandsuites.com` (sending domain `mail.reliefhotelsandsuites.com`)
+2. Use the **Local Dev** API key locally — the **reservation** key belongs only in Netlify (production)
 3. In `.env.local`:
 
 ```env
-RESEND_API_KEY=re_...
-EMAIL_FROM=Relief Hotels <onboarding@resend.dev>
+RESEND_API_KEY=re_...   # "Local Dev" key
 RESERVATION_EMAIL=your-inbox@company.com
 ```
+
+Senders default to `reservations@mail.reliefhotelsandsuites.com` (reservations) and `finance@mail.reliefhotelsandsuites.com` (payment receipts) — see `docs/flow-diagrams/reservation/`.
 
 4. Homepage → **Contact** → submit form  
 5. Check inbox + demo dashboard (status shows “✉ sent”)

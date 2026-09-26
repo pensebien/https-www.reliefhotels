@@ -42,7 +42,7 @@ Deploy to [Vercel](https://vercel.com) for global CDN, preview URLs, and zero-co
 
 ## Next steps
 
-1. Connect `/api/reservations` to Resend, SendGrid, or your PMS
+1. Verify `mail.reliefhotelsandsuites.com` in Resend (see `docs/flow-diagrams/reservation/`) and set the Paystack webhook URL to `/api/paystack/webhook`
 2. Replace Unsplash placeholders with professional hotel photography
 3. Add payment gateway (Paystack / Flutterwave) for instant bookings
 4. Expand Igbo/Yorùbá translations in `messages/ig.json` and `messages/yo.json`

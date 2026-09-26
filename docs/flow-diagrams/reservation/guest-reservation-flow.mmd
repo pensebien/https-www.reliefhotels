@@ -1,0 +1,28 @@
+flowchart TD
+    %% Main Top Title Node
+    HEADER["<b>GUEST RESERVATION FLOW</b>"]
+
+    %% Connect Top Title Directly to Branches
+    HEADER --> Branch1
+    HEADER --> Branch2
+
+    %% Branch 1: Reservation Confirmation
+    subgraph Branch1 ["1. RESERVATION CONFIRMATION<br/>(Triggered on booking submission)"]
+        direction TB
+        B1_FROM["<b>FROM:</b><br/>reservations@mail.reliefhotelsandsuites.com"]
+        B1_REPLY["<b>Reply-To:</b><br/>reservations@reliefhotelsandsuites.com"]
+        B1_PURPOSE["<b>Purpose:</b><br/>Holds booking reference & room details."]
+        
+        B1_FROM --- B1_REPLY --- B1_PURPOSE
+    end
+
+    %% Branch 2: Payment Receipt
+    subgraph Branch2 ["2. PAYMENT RECEIPT<br/>(Triggered via Paystack Webhook)"]
+        direction TB
+        B2_FROM["<b>FROM:</b><br/>finance@mail.reliefhotelsandsuites.com"]
+        B2_REPLY["<b>Reply-To:</b><br/>finance@reliefhotelsandsuites.com"]
+        B2_BCC["<b>BCC:</b><br/>finance@reliefhotelsandsuites.com"]
+        B2_PURPOSE["<b>Purpose:</b><br/>Proves transaction success."]
+        
+        B2_FROM --- B2_REPLY --- B2_BCC --- B2_PURPOSE
+    end

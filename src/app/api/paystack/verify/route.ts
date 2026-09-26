@@ -1,11 +1,7 @@
 import { getServerConfig } from "@/lib/config";
-import {
-  findPaymentByReference,
-  updatePaymentByReference,
-  updateReservationById,
-} from "@/lib/demo-store";
-import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
+import { findPaymentByReference, updatePaymentByReference } from "@/lib/demo-store";
 import { verifyPayment } from "@/lib/paystack";
+import { confirmPaystackCharge } from "@/lib/paystack-confirm";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -38,47 +34,28 @@ export async function GET(request: Request) {
     }
 
     const result = await verifyPayment(reference, allowDemoBypass);
-
-    if (
-      result.status === "success" &&
-      !result.demo &&
-      existing?.amountKobo &&
-      result.amountKobo > 0 &&
-      result.amountKobo !== existing.amountKobo
-    ) {
-      console.error("[paystack:verify] amount mismatch", {
-        reference,
-        expected: existing.amountKobo,
-        actual: result.amountKobo,
-      });
-      return NextResponse.json(
-        {
-          ok: false,
-          status: "failed",
-          reference,
-          error: "Payment amount does not match reservation deposit",
-        },
-        { status: 409 },
-      );
-    }
-
-    const payment = existing ?? (await findPaymentByReference(reference));
+    const payment = existing;
     let notified = false;
 
     if (result.status === "success") {
-      const updated = await updatePaymentByReference(reference, {
-        status: "success",
-      });
-
-      if (updated?.reservationId) {
-        const confirmed = await updateReservationById(updated.reservationId, {
-          status: "confirmed",
-          paymentReference: reference,
-        });
-        if (confirmed) {
-          notified = await handlePaymentConfirmed(updated, confirmed);
-        }
+      // Fallback for the charge.success webhook (api/paystack/webhook) — same
+      // confirm + receipt path, so the guest gets exactly one receipt.
+      const confirmed = await confirmPaystackCharge(
+        reference,
+        result.demo ? 0 : result.amountKobo,
+      );
+      if (confirmed.outcome === "amount_mismatch") {
+        return NextResponse.json(
+          {
+            ok: false,
+            status: "failed",
+            reference,
+            error: "Payment amount does not match reservation deposit",
+          },
+          { status: 409 },
+        );
       }
+      if (confirmed.outcome === "confirmed") notified = confirmed.notified;
     } else if (result.status === "failed") {
       await updatePaymentByReference(reference, { status: "failed" });
     }

@@ -287,6 +287,8 @@ export function paymentConfirmationHtml(payload: PaymentConfirmationInput): stri
 }
 
 type ResendEmailInput = {
+  /** Defaults to config.email.from. */
+  from?: string;
   to: string[];
   subject: string;
   html: string;
@@ -305,7 +307,7 @@ async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: config.email.from,
+      from: input.from ?? config.email.from,
       to: input.to,
       ...(input.replyTo ? { reply_to: input.replyTo } : {}),
       ...(input.bcc ? { bcc: input.bcc } : {}),
@@ -357,7 +359,9 @@ export async function sendGuestReservationConfirmation(
   }
 
   return sendResendEmail({
+    from: config.email.reservations.from,
     to: [record.email],
+    replyTo: config.email.reservations.replyTo,
     subject: `We've received your reservation request — ${site.name}`,
     html: guestReservationConfirmationHtml(record),
   });
@@ -469,9 +473,12 @@ export async function sendPaymentConfirmationEmail(
     return false;
   }
 
+  // BCC archives every receipt in the finance@ Google Group for the accounting audit trail.
   return sendResendEmail({
+    from: config.email.finance.from,
     to: [payload.email],
-    bcc: [config.email.to],
+    replyTo: config.email.finance.inbox,
+    bcc: [config.email.finance.inbox],
     subject: `[Relief Hotels] Payment received — ${payload.reference}`,
     html: paymentConfirmationHtml(payload),
   });

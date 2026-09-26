@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { after, before, describe, it, mock } from "node:test";
 import {
   sendFeedbackEmail,
+  sendGuestReservationConfirmation,
   sendPaymentConfirmationEmail,
   sendReservationEmail,
 } from "@/lib/email";
@@ -83,6 +84,10 @@ describe("email sending — configured (RESEND_API_KEY set, fetch mocked)", () =
 
   before(() => {
     process.env.RESEND_API_KEY = "re_test_123";
+    delete process.env.EMAIL_FROM;
+    delete process.env.RESERVATIONS_REPLY_TO;
+    delete process.env.FINANCE_EMAIL_FROM;
+    delete process.env.FINANCE_EMAIL;
   });
 
   after(() => {
@@ -109,6 +114,23 @@ describe("email sending — configured (RESEND_API_KEY set, fetch mocked)", () =
     assert.equal(body.reply_to, "ada@example.com");
     assert.ok(body.subject.includes("Ada Okonkwo"));
     assert.ok(body.html.includes("Ada Okonkwo"));
+
+    fetchMock.mock.restore();
+  });
+
+  it("sendGuestReservationConfirmation sends from reservations@mail. with reply-to on the root domain", async () => {
+    const fetchMock = mock.method(globalThis, "fetch", async () =>
+      new Response(JSON.stringify({ id: "email_4" }), { status: 200 }),
+    );
+
+    const sent = await sendGuestReservationConfirmation(baseReservation());
+    assert.equal(sent, true);
+
+    const [, init] = fetchMock.mock.calls[0].arguments as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+    assert.equal(body.from, "Relief Hotels <reservations@mail.reliefhotelsandsuites.com>");
+    assert.deepEqual(body.to, ["ada@example.com"]);
+    assert.equal(body.reply_to, "reservations@reliefhotelsandsuites.com");
 
     fetchMock.mock.restore();
   });
@@ -143,8 +165,10 @@ describe("email sending — configured (RESEND_API_KEY set, fetch mocked)", () =
 
     const [, init] = fetchMock.mock.calls[0].arguments as [string, RequestInit];
     const body = JSON.parse(init.body as string);
+    assert.equal(body.from, "Relief Hotels Finance <finance@mail.reliefhotelsandsuites.com>");
     assert.deepEqual(body.to, ["guest@example.com"]);
-    assert.ok(Array.isArray(body.bcc) && body.bcc.length === 1);
+    assert.equal(body.reply_to, "finance@reliefhotelsandsuites.com");
+    assert.deepEqual(body.bcc, ["finance@reliefhotelsandsuites.com"]);
     assert.ok(body.subject.includes("RH-20260901-abcdef"));
 
     fetchMock.mock.restore();

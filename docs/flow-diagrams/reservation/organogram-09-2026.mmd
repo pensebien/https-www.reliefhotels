@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor Guest as Guest User
+    participant App as Web App / UI
+    participant Server as App Backend
+    participant Paystack as Paystack API
+    participant Resend as Resend API
+    participant Google as Google Workspace
+
+    %% 1. Reservation Confirmation
+    Guest->>App: Submits booking reservation
+    App->>Server: POST /api/reservations
+    Server->>Resend: Send Confirmation Email
+    Note over Resend: FROM: reservations@<br/>mail.reliefhotelsandsuites.com<br/>Reply-To: reservations@<br/>reliefhotelsandsuites.com
+    Resend-->>Guest: Deliver Confirmation Email
+
+    %% 2. Payment Receipt
+    Guest->>App: Initiates payment checkout
+    App->>Paystack: Redirect / Open Modal
+    Guest->>Paystack: Completes transaction
+    Paystack-->>Guest: Success response on UI
+
+    Paystack->>Server: Webhook: charge.success
+    Note over Server: Verify signature &<br/>update DB to Paid
+
+    Server->>Resend: Send Payment Receipt
+    Note over Resend: FROM: finance@<br/>mail.reliefhotelsandsuites.com<br/>Reply-To: finance@<br/>reliefhotelsandsuites.com<br/>BCC: finance@<br/>reliefhotelsandsuites.com
+
+    Resend-->>Guest: Deliver Payment Receipt
+    Resend-->>Google: Forward BCC copy to finance@ Group
