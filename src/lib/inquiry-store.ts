@@ -3,8 +3,8 @@ import {
   dbAddEventInquiry,
 } from "@/lib/db/inquiry-store";
 import { isSupabaseEnabled } from "@/lib/db/client";
+import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
 import path from "path";
 
 export type EventInquiry = {
@@ -51,30 +51,25 @@ type InquiryStore = {
 
 const STORE_FILE = path.join(process.cwd(), "data", "inquiries.json");
 
-async function readStore(): Promise<InquiryStore> {
-  try {
-    const raw = await fs.readFile(STORE_FILE, "utf-8");
-    return normalizeStore(JSON.parse(raw) as InquiryStore);
-  } catch {
-    return {
-      eventInquiries: [],
-      diningReservations: [],
-      guestFeedback: [],
-    };
-  }
-}
+const emptyStore = (): InquiryStore => ({
+  eventInquiries: [],
+  diningReservations: [],
+  guestFeedback: [],
+});
 
 function normalizeStore(store: InquiryStore): InquiryStore {
-  return {
-    eventInquiries: store.eventInquiries ?? [],
-    diningReservations: store.diningReservations ?? [],
-    guestFeedback: store.guestFeedback ?? [],
-  };
+  store.eventInquiries ??= [];
+  store.diningReservations ??= [];
+  store.guestFeedback ??= [];
+  return store;
 }
 
-async function writeStore(store: InquiryStore): Promise<void> {
-  await fs.mkdir(path.dirname(STORE_FILE), { recursive: true });
-  await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2), "utf-8");
+async function readStore(): Promise<InquiryStore> {
+  return normalizeStore(await readJsonFile(STORE_FILE, emptyStore));
+}
+
+function updateStore<R>(fn: (store: InquiryStore) => R): Promise<R> {
+  return updateJsonFile(STORE_FILE, emptyStore, (store) => fn(normalizeStore(store)));
 }
 
 export async function addEventInquiry(
@@ -82,15 +77,15 @@ export async function addEventInquiry(
 ): Promise<EventInquiry> {
   if (isSupabaseEnabled()) return dbAddEventInquiry(data);
 
-  const store = await readStore();
-  const record: EventInquiry = {
-    id: randomUUID(),
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  store.eventInquiries.unshift(record);
-  await writeStore(store);
-  return record;
+  return updateStore((store) => {
+    const record: EventInquiry = {
+      id: randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    store.eventInquiries.unshift(record);
+    return record;
+  });
 }
 
 export async function addDiningReservation(
@@ -98,15 +93,15 @@ export async function addDiningReservation(
 ): Promise<DiningReservation> {
   if (isSupabaseEnabled()) return dbAddDiningReservation(data);
 
-  const store = await readStore();
-  const record: DiningReservation = {
-    id: randomUUID(),
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  store.diningReservations.unshift(record);
-  await writeStore(store);
-  return record;
+  return updateStore((store) => {
+    const record: DiningReservation = {
+      id: randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    store.diningReservations.unshift(record);
+    return record;
+  });
 }
 
 export async function getEventInquiries(): Promise<EventInquiry[]> {
@@ -129,15 +124,15 @@ export async function addGuestFeedback(
     return dbAddGuestFeedback(data);
   }
 
-  const store = await readStore();
-  const record: GuestFeedback = {
-    id: randomUUID(),
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  store.guestFeedback.unshift(record);
-  await writeStore(store);
-  return record;
+  return updateStore((store) => {
+    const record: GuestFeedback = {
+      id: randomUUID(),
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    store.guestFeedback.unshift(record);
+    return record;
+  });
 }
 
 export async function getGuestFeedback(): Promise<GuestFeedback[]> {

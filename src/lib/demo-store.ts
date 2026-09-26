@@ -13,8 +13,8 @@ import type {
   FrontDeskPaymentMethod,
   PaymentChannel,
 } from "@/lib/payment-methods";
+import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
 import path from "path";
 
 export type ReservationRecord = {
@@ -65,20 +65,14 @@ type Store = {
 const STORE_DIR = path.join(process.cwd(), "data");
 const STORE_FILE = path.join(STORE_DIR, "demo-store.json");
 
-async function readStore(): Promise<Store> {
-  try {
-    const raw = await fs.readFile(STORE_FILE, "utf-8");
-    return JSON.parse(raw) as Store;
-  } catch {
-    const initial: Store = { reservations: [], payments: [] };
-    await writeStore(initial);
-    return initial;
-  }
+const emptyStore = (): Store => ({ reservations: [], payments: [] });
+
+function readStore(): Promise<Store> {
+  return readJsonFile(STORE_FILE, emptyStore);
 }
 
-async function writeStore(store: Store): Promise<void> {
-  await fs.mkdir(STORE_DIR, { recursive: true });
-  await fs.writeFile(STORE_FILE, JSON.stringify(store, null, 2), "utf-8");
+function updateStore<R>(fn: (store: Store) => R): Promise<R> {
+  return updateJsonFile(STORE_FILE, emptyStore, fn);
 }
 
 async function fileAddReservation(
@@ -86,29 +80,29 @@ async function fileAddReservation(
     status?: ReservationRecord["status"];
   },
 ): Promise<ReservationRecord> {
-  const store = await readStore();
-  const record: ReservationRecord = {
-    id: randomUUID(),
-    source: "live",
-    status: data.status ?? "pending",
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  store.reservations.unshift(record);
-  await writeStore(store);
-  return record;
+  return updateStore((store) => {
+    const record: ReservationRecord = {
+      id: randomUUID(),
+      source: "live",
+      status: data.status ?? "pending",
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    store.reservations.unshift(record);
+    return record;
+  });
 }
 
 async function fileUpdateReservationById(
   id: string,
   patch: Partial<ReservationRecord>,
 ): Promise<ReservationRecord | null> {
-  const store = await readStore();
-  const index = store.reservations.findIndex((r) => r.id === id);
-  if (index === -1) return null;
-  store.reservations[index] = { ...store.reservations[index], ...patch };
-  await writeStore(store);
-  return store.reservations[index];
+  return updateStore((store) => {
+    const index = store.reservations.findIndex((r) => r.id === id);
+    if (index === -1) return null;
+    store.reservations[index] = { ...store.reservations[index], ...patch };
+    return store.reservations[index];
+  });
 }
 
 async function fileFindReservationById(
@@ -123,19 +117,19 @@ async function fileFindReservationById(
 async function fileAddPayment(
   data: Omit<PaymentRecord, "id" | "source" | "createdAt">,
 ): Promise<PaymentRecord> {
-  const store = await readStore();
-  const existing = store.payments.find((p) => p.reference === data.reference);
-  if (existing) return existing;
+  return updateStore((store) => {
+    const existing = store.payments.find((p) => p.reference === data.reference);
+    if (existing) return existing;
 
-  const record: PaymentRecord = {
-    id: randomUUID(),
-    source: "live",
-    createdAt: new Date().toISOString(),
-    ...data,
-  };
-  store.payments.unshift(record);
-  await writeStore(store);
-  return record;
+    const record: PaymentRecord = {
+      id: randomUUID(),
+      source: "live",
+      createdAt: new Date().toISOString(),
+      ...data,
+    };
+    store.payments.unshift(record);
+    return record;
+  });
 }
 
 export async function addReservation(
@@ -181,12 +175,12 @@ export async function updatePaymentByReference(
     return dbUpdatePaymentByReference(reference, patch);
   }
 
-  const store = await readStore();
-  const index = store.payments.findIndex((p) => p.reference === reference);
-  if (index === -1) return null;
-  store.payments[index] = { ...store.payments[index], ...patch };
-  await writeStore(store);
-  return store.payments[index];
+  return updateStore((store) => {
+    const index = store.payments.findIndex((p) => p.reference === reference);
+    if (index === -1) return null;
+    store.payments[index] = { ...store.payments[index], ...patch };
+    return store.payments[index];
+  });
 }
 
 export async function findPaymentByReference(
