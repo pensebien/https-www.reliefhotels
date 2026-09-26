@@ -15,7 +15,7 @@ Secret keys stay in env (`PAYSTACK_SECRET_KEY`). Public key (`pk_test_…`) is f
 | Test Public Key | → `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` |
 | Test Secret Key | → `PAYSTACK_SECRET_KEY` |
 | **Test Callback URL** | `https://www.reliefhotelsandsuites.com/payment/callback` |
-| Test Webhook URL | leave empty (not implemented) |
+| Test Webhook URL | `https://www.reliefhotelsandsuites.com/api/paystack/webhook` |
 | IP whitelist | leave empty for local/dev |
 
 Do **not** set callback to `reservation.reliefhotelsandsuites.com` (staff only) or bare homepage.

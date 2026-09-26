@@ -11,7 +11,7 @@
  *
  * Paystack dashboard (Test mode):
  *   Callback URL: https://www.reliefhotelsandsuites.com/payment/callback
- *   Webhook URL:  (leave empty — not implemented yet)
+ *   Webhook URL:  https://www.reliefhotelsandsuites.com/api/paystack/webhook
  *   Do not use reservation.reliefhotelsandsuites.com for guest callback
  */
 
