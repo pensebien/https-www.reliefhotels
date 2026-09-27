@@ -176,28 +176,79 @@ export async function deleteRoomBlock(id: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+function tallyByRoom(roomIds: (string | null | undefined)[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const id of roomIds) {
+    if (id) counts[id] = (counts[id] ?? 0) + 1;
+  }
+  return counts;
+}
+
+/**
+ * Occupied units per room (non-cancelled room reservations + room blocks)
+ * overlapping [checkIn, checkOut). With Supabase the overlap filter runs in
+ * the database — two parallel queries for every room type, with no row cap,
+ * so older bookings for future dates are never missed.
+ */
+export async function countOccupiedUnitsByRoom(
+  checkIn: string,
+  checkOut: string,
+): Promise<Record<string, number>> {
+  const supabase = isSupabaseEnabled() ? getSupabaseAdmin() : null;
+
+  if (supabase) {
+    const [resResult, blockResult] = await Promise.all([
+      supabase
+        .from("reservations")
+        .select("room_id")
+        .eq("item_type", "room")
+        .neq("status", "cancelled")
+        .not("room_id", "is", null)
+        .lt("check_in", checkOut)
+        .gt("check_out", checkIn),
+      supabase
+        .from("room_blocks")
+        .select("room_id")
+        .lt("check_in", checkOut)
+        .gt("check_out", checkIn),
+    ]);
+
+    if (resResult.error) throw new Error(resResult.error.message);
+    // Same as listRoomBlocks: a missing/unreadable room_blocks table (migration
+    // 006 not applied) means "no blocks", not "fall back to mock availability".
+    if (blockResult.error) {
+      console.warn("[inventory] room_blocks lookup failed:", blockResult.error.message);
+    }
+
+    return tallyByRoom([
+      ...resResult.data.map((row) => row.room_id as string | null),
+      ...(blockResult.data ?? []).map((row) => row.room_id as string | null),
+    ]);
+  }
+
+  const [{ reservations }, blocks] = await Promise.all([getActivity(), listRoomBlocks()]);
+  return tallyByRoom([
+    ...reservations
+      .filter(
+        (r) =>
+          r.itemType === "room" &&
+          r.status !== "cancelled" &&
+          r.checkIn &&
+          r.checkOut &&
+          datesOverlap(r.checkIn, r.checkOut, checkIn, checkOut),
+      )
+      .map((r) => r.roomId),
+    ...blocks
+      .filter((b) => datesOverlap(b.checkIn, b.checkOut, checkIn, checkOut))
+      .map((b) => b.roomId),
+  ]);
+}
+
 export async function countOccupiedUnits(
   roomId: string,
   checkIn: string,
   checkOut: string,
 ): Promise<number> {
-  const { reservations } = await getActivity();
-  const reserved = reservations.filter(
-    (r) =>
-      r.itemType === "room" &&
-      r.roomId === roomId &&
-      r.status !== "cancelled" &&
-      r.checkIn &&
-      r.checkOut &&
-      datesOverlap(r.checkIn, r.checkOut, checkIn, checkOut),
-  ).length;
-
-  const blocks = await listRoomBlocks();
-  const blocked = blocks.filter(
-    (b) =>
-      b.roomId === roomId &&
-      datesOverlap(b.checkIn, b.checkOut, checkIn, checkOut),
-  ).length;
-
-  return reserved + blocked;
+  const counts = await countOccupiedUnitsByRoom(checkIn, checkOut);
+  return counts[roomId] ?? 0;
 }
