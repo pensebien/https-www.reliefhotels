@@ -8,8 +8,15 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const POLL_INTERVAL_MS = 3000;
-const MAX_POLL_ATTEMPTS = 20; // ~60s before we stop auto-polling and let the guest check manually
+// Card payments confirm in seconds; bank transfers can take minutes to settle.
+// Poll fast for the first minute, then slower, for ~5 minutes in total before
+// handing over to the manual "check again" state. The charge.success webhook
+// confirms (and emails the receipt) even if the guest closes this page.
+const FAST_POLL_MS = 3000;
+const FAST_POLL_ATTEMPTS = 20; // ~60s
+const SLOW_POLL_MS = 10000;
+const MAX_POLL_ATTEMPTS = FAST_POLL_ATTEMPTS + 24; // + ~4 min
+const TRANSFER_HINT_AFTER_ATTEMPTS = 5; // ~15s
 
 type CallbackState = "loading" | "polling" | "stuck" | "success" | "failed";
 
@@ -25,6 +32,9 @@ export function PaymentCallback() {
   const [email, setEmail] = useState<string | null>(null);
   const [managerNotified, setManagerNotified] = useState(false);
   const attemptsRef = useRef(0);
+  // Mirrors attemptsRef so every pending poll re-renders and schedules the next
+  // one — setState("polling") alone is a no-op once already polling.
+  const [attempts, setAttempts] = useState(0);
 
   const verify = useCallback(async () => {
     if (!reference) {
@@ -48,6 +58,7 @@ export function PaymentCallback() {
 
       if (data.status === "pending") {
         attemptsRef.current += 1;
+        setAttempts(attemptsRef.current);
         setState(attemptsRef.current >= MAX_POLL_ATTEMPTS ? "stuck" : "polling");
         return;
       }
@@ -64,12 +75,15 @@ export function PaymentCallback() {
 
   useEffect(() => {
     if (state !== "loading" && state !== "polling") return;
-    const id = window.setTimeout(verify, POLL_INTERVAL_MS);
+    const delay =
+      attempts < FAST_POLL_ATTEMPTS ? FAST_POLL_MS : SLOW_POLL_MS;
+    const id = window.setTimeout(verify, delay);
     return () => window.clearTimeout(id);
-  }, [state, verify]);
+  }, [state, attempts, verify]);
 
   function checkAgain() {
     attemptsRef.current = 0;
+    setAttempts(0);
     setState("loading");
     void verify();
   }
@@ -88,8 +102,10 @@ export function PaymentCallback() {
       <div className="flex flex-col items-center text-center">
         <Loader2 className="h-12 w-12 animate-spin text-teal" aria-hidden />
         <p className="mt-4 text-lg">{t("verifying")}</p>
-        <p className="mt-1 text-sm text-muted" aria-live="polite">
-          {t("verifyingHint")}
+        <p className="mt-1 max-w-md text-sm text-muted" aria-live="polite">
+          {attempts >= TRANSFER_HINT_AFTER_ATTEMPTS
+            ? t("transferHint")
+            : t("verifyingHint")}
         </p>
       </div>
     );

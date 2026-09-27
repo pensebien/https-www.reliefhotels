@@ -5,7 +5,7 @@ import {
   type BookingSearchQuery,
 } from "@/lib/booking-search";
 import {
-  countOccupiedUnits,
+  countOccupiedUnitsByRoom,
   getRoomInventory,
 } from "@/lib/db/inventory-store";
 
@@ -50,23 +50,23 @@ export async function getRoomAvailability(
   const checkOutDate = parseDateString(query.checkOut);
   const nights = nightsBetween(query.checkIn, query.checkOut);
 
-  let inventoryByRoom: Record<string, number>;
-  try {
-    inventoryByRoom = await getRoomInventory();
-  } catch {
-    inventoryByRoom = {};
-  }
+  // One round-trip for all room types, run in parallel — not one per room.
+  const [inventoryResult, occupiedResult] = await Promise.allSettled([
+    getRoomInventory(),
+    countOccupiedUnitsByRoom(query.checkIn, query.checkOut),
+  ]);
+  const inventoryByRoom =
+    inventoryResult.status === "fulfilled" ? inventoryResult.value : {};
+  const occupiedByRoom =
+    occupiedResult.status === "fulfilled" ? occupiedResult.value : null;
 
   const available: AvailableRoom[] = [];
 
   for (const room of rooms) {
     const inventory = inventoryByRoom[room.id] ?? 1;
-    let occupied: number;
-    try {
-      occupied = await countOccupiedUnits(room.id, query.checkIn, query.checkOut);
-    } catch {
-      occupied = mockBookedUnits(room.id, checkInDate, checkOutDate);
-    }
+    const occupied = occupiedByRoom
+      ? (occupiedByRoom[room.id] ?? 0)
+      : mockBookedUnits(room.id, checkInDate, checkOutDate);
     const freeUnits = Math.max(0, inventory - occupied);
 
     if (freeUnits < query.rooms) continue;

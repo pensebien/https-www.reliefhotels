@@ -3,6 +3,7 @@ import { after, before, describe, it } from "node:test";
 import {
   addRoomBlock,
   countOccupiedUnits,
+  countOccupiedUnitsByRoom,
   deleteRoomBlock,
   getRoomInventory,
 } from "@/lib/db/inventory-store";
@@ -38,6 +39,18 @@ describe("room blocks already reduce bookable availability", () => {
 
     const afterCount = await countOccupiedUnits(ROOM_ID, CHECK_IN, CHECK_OUT);
     assert.equal(afterCount, beforeCount + 1);
+  });
+
+  it("countOccupiedUnitsByRoom counts per room and ignores non-overlapping dates", async () => {
+    const overlapping = await countOccupiedUnitsByRoom(CHECK_IN, CHECK_OUT);
+    assert.equal(
+      overlapping[ROOM_ID],
+      await countOccupiedUnits(ROOM_ID, CHECK_IN, CHECK_OUT),
+    );
+
+    // Check-out day of the block is free again (half-open [checkIn, checkOut)).
+    const adjacent = await countOccupiedUnitsByRoom(CHECK_OUT, "2031-03-13");
+    assert.equal(adjacent[ROOM_ID] ?? 0, (overlapping[ROOM_ID] ?? 0) - 1);
   });
 
   it("getRoomAvailability excludes a fully-blocked room from results", async () => {

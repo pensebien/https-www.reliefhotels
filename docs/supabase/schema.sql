@@ -31,6 +31,10 @@ create table if not exists reservations (
 create index if not exists reservations_created_at_idx
   on reservations (created_at desc);
 
+create index if not exists reservations_room_availability_idx
+  on reservations (check_in, check_out, room_id)
+  where item_type = 'room' and status <> 'cancelled';
+
 -- Paystack payments
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
