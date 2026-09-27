@@ -604,8 +604,9 @@
   "payment": {
     "verifying": "Verifying your payment…",
     "verifyingHint": "This usually takes just a few seconds.",
+    "transferHint": "Paid by bank transfer? Confirmation can take a few minutes while your bank completes the transfer. You can safely close this page — we will email your receipt as soon as the payment is confirmed.",
     "stuckTitle": "Still confirming your payment",
-    "stuckDescription": "This is taking longer than usual. Your payment may still be completing — check again in a moment, or reach out with your reference below.",
+    "stuckDescription": "Your payment may still be completing — bank transfers can take a while to settle. You can close this page: we will email your receipt once it is confirmed. Or check again in a moment, or reach out with your reference below.",
     "checkAgain": "Check again",
     "successTitle": "Payment successful",
     "successDescription": "Thank you. Our team will confirm your reservation shortly.",
