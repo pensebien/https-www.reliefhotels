@@ -1,7 +1,7 @@
 import { rooms } from "@/content/site";
-import { addReservation } from "@/lib/demo-store";
+import { reserveRoom } from "@/lib/booking-engine/reserve";
+import { addReservation, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
-import { getRoomAvailability } from "@/lib/room-availability";
 import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
 
@@ -18,6 +18,17 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    const guest = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      phone: data.phone,
+      stayPreference: data.stayPreference,
+      message: data.message,
+    };
+
+    let record: ReservationRecord;
+    let quote: { totalNgn: number; depositNgn: number } | undefined;
 
     if (data.itemType === "room") {
       const roomId = data.roomId;
@@ -40,44 +51,43 @@ export async function POST(request: Request) {
         );
       }
 
-      const availability = await getRoomAvailability({
-        checkIn: data.checkIn,
-        checkOut: data.checkOut,
-        rooms: 1,
-        guests: data.guests,
-      });
-
-      const match = availability.available.find(
-        (entry) => entry.id === room.id || entry.slug === room.slug,
+      // Server re-quotes (price, restrictions, coupon) and checks
+      // availability atomically with the insert — client nights/prices are
+      // never trusted.
+      const result = await reserveRoom(
+        {
+          roomId: room.id,
+          checkIn: data.checkIn,
+          checkOut: data.checkOut,
+          guests: data.guests,
+          rooms: data.rooms,
+          couponCode: data.couponCode || undefined,
+          extraIds: data.extraIds,
+        },
+        guest,
       );
 
-      if (!match) {
+      if (!result.ok) {
         return NextResponse.json(
-          {
-            error:
-              "This room is not available for the selected dates. Please choose different dates.",
-          },
-          { status: 409 },
+          { error: result.message, code: result.code },
+          { status: result.status },
         );
       }
+      record = result.record;
+      quote = result.quote;
+    } else {
+      record = await addReservation({
+        ...guest,
+        itemType: data.itemType,
+        roomId: data.roomId,
+        checkIn: data.checkIn,
+        checkOut: data.checkOut,
+        nights: data.nights,
+        guests: data.guests,
+        emailSent: false,
+        status: "pending",
+      });
     }
-
-    const record = await addReservation({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-      phone: data.phone,
-      itemType: data.itemType,
-      roomId: data.roomId,
-      checkIn: data.checkIn,
-      checkOut: data.checkOut,
-      nights: data.nights,
-      guests: data.guests,
-      stayPreference: data.stayPreference,
-      message: data.message,
-      emailSent: false,
-      status: "pending",
-    });
 
     const [sent] = await Promise.all([
       sendReservationEmail(record),
@@ -93,6 +103,13 @@ export async function POST(request: Request) {
       emailSent: sent,
       notified: false,
       demo: !process.env.RESEND_API_KEY,
+      ...(quote
+        ? {
+            totalNgn: quote.totalNgn,
+            depositNgn: quote.depositNgn,
+            holdExpiresAt: record.holdExpiresAt,
+          }
+        : {}),
     });
   } catch (error) {
     console.error("[reservations]", error);

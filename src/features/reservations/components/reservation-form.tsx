@@ -20,6 +20,7 @@ export function ReservationForm(props: ReservationFlowProps) {
   const {
     itemLabel,
     priceFrom,
+    extras = [],
     useDemoTestAmount = false,
   } = props;
 
@@ -42,7 +43,22 @@ export function ReservationForm(props: ReservationFlowProps) {
     checkOut: stayCheckOut,
     updateNights,
     updateGuests,
+    units,
+    updateUnits,
+    maxGuests,
+    extraIds,
+    toggleExtra,
+    couponInput,
+    setCouponInput,
+    couponCode,
+    couponError,
+    applyCoupon,
+    removeCoupon,
+    quote,
+    quoteError,
+    quoteLoading,
   } = useReservationFlow(props);
+  const canContinue = !quoteError && !quoteLoading;
 
   function validateStep1(): boolean {
     const parsed = reservationFormSchema.safeParse(formData);
@@ -65,6 +81,7 @@ export function ReservationForm(props: ReservationFlowProps) {
 
   function onContinue(e: FormEvent) {
     e.preventDefault();
+    if (!canContinue) return;
     if (validateStep1()) {
       setStep(2);
     }
@@ -143,9 +160,93 @@ export function ReservationForm(props: ReservationFlowProps) {
           editableStay={step === 1}
           onNightsChange={updateNights}
           onGuestsChange={updateGuests}
+          rooms={units}
+          maxGuests={maxGuests}
+          onRoomsChange={updateUnits}
+          quote={quote}
+          quoteError={quoteError?.message}
           footnote={step === 2 ? t("managerNotifyAfterPayment") : undefined}
         />
       </div>
+
+      {step === 1 ? (
+        <div className="mt-6 space-y-5">
+          {extras.length > 0 ? (
+            <fieldset className="space-y-3">
+              <legend className={labelClassName}>{t("extrasTitle")}</legend>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {extras.map((extra) => {
+                  const checked = extraIds.includes(extra.id);
+                  return (
+                    <label
+                      key={extra.id}
+                      className={cn(
+                        "flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3 transition-colors",
+                        checked ? "border-teal bg-teal/10" : "border-border hover:border-teal/50",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleExtra(extra.id)}
+                        className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
+                      />
+                      <span className="text-sm leading-snug">
+                        <span className="block font-medium">{extra.label}</span>
+                        <span className="block text-muted">
+                          {formatNaira(extra.priceNgn)} {t(`extraPricing.${extra.pricing}`)}
+                        </span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+
+          <div className="space-y-2">
+            <label htmlFor="res-coupon" className={labelClassName}>
+              {t("promoCode")}
+            </label>
+            {couponCode ? (
+              <p className="flex items-center gap-3 text-sm">
+                <span className="rounded-full bg-teal/10 px-3 py-1 font-medium text-teal-dark">
+                  {couponCode}
+                </span>
+                <button type="button" onClick={removeCoupon} className="text-muted underline">
+                  {t("removePromo")}
+                </button>
+              </p>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  id="res-coupon"
+                  type="text"
+                  autoComplete="off"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      applyCoupon();
+                    }
+                  }}
+                  className={cn(inputClassName, "uppercase")}
+                />
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  disabled={!couponInput.trim()}
+                  className="shrink-0 rounded-xl border border-border px-5 text-sm font-medium hover:border-teal disabled:opacity-50"
+                >
+                  {t("applyPromo")}
+                </button>
+              </div>
+            )}
+            {couponError ? <p className="text-xs text-red-600">{couponError}</p> : null}
+          </div>
+        </div>
+      ) : null}
 
       {(errorMessage || status === "error") && (
         <p className="mt-6 text-sm text-red-600 dark:text-red-400">
@@ -293,7 +394,8 @@ export function ReservationForm(props: ReservationFlowProps) {
           <div className="mt-6">
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal px-6 py-3.5 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark"
+              disabled={!canContinue}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-teal px-6 py-3.5 text-sm font-medium text-gray-950 transition-colors hover:bg-teal-dark disabled:opacity-60"
             >
               {t("continueToPayment")}
               <ArrowRight className="h-4 w-4" />

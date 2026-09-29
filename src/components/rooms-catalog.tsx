@@ -16,7 +16,7 @@ import {
   parseBookingSearchParams,
   parseDateString,
 } from "@/lib/booking-search";
-import type { AvailableRoom } from "@/lib/room-availability";
+import type { AvailableRoom, RestrictedRoom } from "@/lib/room-availability";
 import { Link } from "@/i18n/navigation";
 import { contactSectionHref } from "@/lib/contact-href";
 import { formatNaira } from "@/lib/utils";
@@ -51,6 +51,11 @@ export function RoomsCatalog() {
   const [availableById, setAvailableById] = useState<Map<string, AvailableRoom>>(
     () => new Map(),
   );
+  // Room types with free units that a rule blocks for this stay (min stay,
+  // capacity, closed to arrival) — shown with the reason, not silently hidden.
+  const [restrictedById, setRestrictedById] = useState<Map<string, string>>(
+    () => new Map(),
+  );
 
   // Switching category tabs only changes the `category` param, which produces a
   // new `bookingQuery` object even though checkIn/checkOut/rooms/guests are the
@@ -63,6 +68,7 @@ export function RoomsCatalog() {
   useEffect(() => {
     if (!bookingQueryKey) {
       setAvailableById(new Map());
+      setRestrictedById(new Map());
       setFetchError(false);
       setLoading(false);
       return;
@@ -76,13 +82,16 @@ export function RoomsCatalog() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error ?? "fetch failed");
-        return data as { available: AvailableRoom[] };
+        return data as { available: AvailableRoom[]; restricted?: RestrictedRoom[] };
       })
       .then((data) => {
         if (cancelled) return;
         const map = new Map<string, AvailableRoom>();
         for (const room of data.available) map.set(room.id, room);
         setAvailableById(map);
+        setRestrictedById(
+          new Map((data.restricted ?? []).map((r) => [r.id, r.message])),
+        );
       })
       .catch(() => {
         if (!cancelled) setFetchError(true);
@@ -98,9 +107,10 @@ export function RoomsCatalog() {
 
   const catalogRooms = useMemo(() => {
     if (!bookingQuery) return [];
-    const ids = availableById;
-    return rooms.filter((room) => ids.has(room.id));
-  }, [availableById, bookingQuery]);
+    return rooms.filter(
+      (room) => availableById.has(room.id) || restrictedById.has(room.id),
+    );
+  }, [availableById, bookingQuery, restrictedById]);
 
   const filteredRooms = useMemo(
     () =>
@@ -189,6 +199,7 @@ export function RoomsCatalog() {
                   t={t}
                   currencyLocale={currencyLocale}
                   availableById={availableById}
+                  restrictedById={restrictedById}
                   bookingQuery={bookingQuery}
                 />
               </div>
@@ -200,6 +211,7 @@ export function RoomsCatalog() {
             t={t}
             currencyLocale={currencyLocale}
             availableById={availableById}
+            restrictedById={restrictedById}
             bookingQuery={bookingQuery}
           />
         )}
@@ -213,12 +225,14 @@ function RoomGrid({
   t,
   currencyLocale,
   availableById,
+  restrictedById,
   bookingQuery,
 }: {
   rooms: readonly Room[];
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availableById: Map<string, AvailableRoom>;
+  restrictedById: Map<string, string>;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
 }) {
   const [detailRoom, setDetailRoom] = useState<Room | null>(null);
@@ -239,6 +253,7 @@ function RoomGrid({
             t={t}
             currencyLocale={currencyLocale}
             availability={availableById.get(room.id)}
+            restriction={restrictedById.get(room.id)}
             bookingQuery={bookingQuery}
             onViewDetails={() => setDetailRoom(room)}
           />
@@ -262,6 +277,7 @@ function RoomCard({
   t,
   currencyLocale,
   availability,
+  restriction,
   bookingQuery,
   onViewDetails,
 }: {
@@ -269,6 +285,7 @@ function RoomCard({
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availability?: AvailableRoom;
+  restriction?: string;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
   onViewDetails: () => void;
 }) {
@@ -322,6 +339,11 @@ function RoomCard({
             </>
           )}
         </p>
+        {restriction ? (
+          <p className="mt-2 text-sm font-medium text-amber-800" role="note">
+            {t("restrictedForDates", { reason: restriction })}
+          </p>
+        ) : null}
         {availability && availability.availableUnits <= 3 && (
           <p className="mt-2 text-sm font-medium text-amber-800">
             {t("limitedAvailability", { count: availability.availableUnits })}
@@ -335,12 +357,21 @@ function RoomCard({
           >
             {t("viewDetails")}
           </button>
-          <Link
-            href={bookHref}
-            className="inline-flex items-center justify-center rounded-full bg-teal px-2 py-2.5 text-center text-xs font-medium leading-tight text-gray-950 hover:bg-teal-dark sm:px-3 sm:text-sm"
-          >
-            {t("payDeposit")}
-          </Link>
+          {restriction ? (
+            <span
+              aria-disabled
+              className="inline-flex items-center justify-center rounded-full bg-muted/30 px-2 py-2.5 text-center text-xs font-medium leading-tight text-muted sm:px-3 sm:text-sm"
+            >
+              {t("payDeposit")}
+            </span>
+          ) : (
+            <Link
+              href={bookHref}
+              className="inline-flex items-center justify-center rounded-full bg-teal px-2 py-2.5 text-center text-xs font-medium leading-tight text-gray-950 hover:bg-teal-dark sm:px-3 sm:text-sm"
+            >
+              {t("payDeposit")}
+            </Link>
+          )}
           <Link
             href={contactSectionHref({ room: room.slug })}
             className="inline-flex items-center justify-center rounded-full border border-border px-2 py-2.5 text-center text-xs font-medium leading-tight transition-colors hover:border-teal sm:px-3 sm:text-sm"

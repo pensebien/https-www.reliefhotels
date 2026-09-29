@@ -1,5 +1,6 @@
 "use client";
 
+import type { StayQuote } from "@/lib/booking-engine/quote";
 import { formatNaira } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -18,6 +19,12 @@ type BookingSummaryProps = {
   onNightsChange?: (nights: number) => void;
   onGuestsChange?: (guests: number) => void;
   footnote?: string;
+  rooms?: number;
+  maxGuests?: number;
+  onRoomsChange?: (rooms: number) => void;
+  /** Server quote; when present its lines replace the flat-rate estimate. */
+  quote?: StayQuote | null;
+  quoteError?: string | null;
 };
 
 function formatStayDate(value: string): string {
@@ -86,6 +93,41 @@ function Stepper({
   );
 }
 
+function QuoteLines({ quote }: { quote: StayQuote }) {
+  const t = useTranslations("booking");
+  const nightly = new Set(quote.perNight.map((n) => n.nightlyNgn));
+  const lines: [string, number][] = [
+    [
+      nightly.size === 1
+        ? t("roomLine", {
+            nights: quote.nights,
+            rooms: quote.rooms,
+            rate: formatNaira(quote.perNight[0].nightlyNgn),
+          })
+        : t("roomLineVaried", { nights: quote.nights, rooms: quote.rooms }),
+      quote.roomSubtotalNgn,
+    ],
+  ];
+  if (quote.longStayDiscountNgn) lines.push([t("longStayLine"), -quote.longStayDiscountNgn]);
+  if (quote.couponDiscountNgn) {
+    lines.push([t("couponLine", { code: quote.couponCode ?? "" }), -quote.couponDiscountNgn]);
+  }
+  for (const extra of quote.extras) lines.push([extra.label, extra.totalNgn]);
+
+  return (
+    <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm sm:col-span-2">
+      {lines.map(([label, amount]) => (
+        <div key={label} className="flex justify-between gap-4">
+          <span className="text-muted">{label}</span>
+          <span className={amount < 0 ? "text-teal-dark" : "text-foreground"}>
+            {amount < 0 ? `− ${formatNaira(-amount)}` : formatNaira(amount)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function BookingSummary({
   itemLabel,
   checkIn,
@@ -99,9 +141,15 @@ export function BookingSummary({
   onNightsChange,
   onGuestsChange,
   footnote,
+  rooms = 1,
+  maxGuests = 12,
+  onRoomsChange,
+  quote,
+  quoteError,
 }: BookingSummaryProps) {
   const t = useTranslations("booking");
-  const totalEstimate = calculateTotalEstimateNgn(priceFrom, nights);
+  const depositPct = quote?.depositPct ?? 20;
+  const totalEstimate = quote?.totalNgn ?? calculateTotalEstimateNgn(priceFrom, nights) * rooms;
 
   return (
     <div
@@ -135,9 +183,19 @@ export function BookingSummary({
               label={t("guests")}
               value={guests}
               min={1}
-              max={12}
+              max={maxGuests}
               onChange={onGuestsChange}
             />
+            {onRoomsChange ? (
+              <Stepper
+                id="booking-rooms"
+                label={t("rooms")}
+                value={rooms}
+                min={1}
+                max={4}
+                onChange={onRoomsChange}
+              />
+            ) : null}
           </>
         ) : (
           <>
@@ -153,8 +211,17 @@ export function BookingSummary({
               </dt>
               <dd className="mt-1 font-medium text-foreground">{guests}</dd>
             </div>
+            {rooms > 1 ? (
+              <div>
+                <dt className="text-xs font-medium uppercase tracking-wider text-muted">
+                  {t("rooms")}
+                </dt>
+                <dd className="mt-1 font-medium text-foreground">{rooms}</dd>
+              </div>
+            ) : null}
           </>
         )}
+        {quote ? <QuoteLines quote={quote} /> : null}
         <div className="sm:col-span-2">
           <dt className="text-xs font-medium uppercase tracking-wider text-muted">
             {t("totalStayEstimate")}
@@ -164,6 +231,11 @@ export function BookingSummary({
           </dd>
         </div>
       </dl>
+      {quoteError ? (
+        <p className="mt-3 text-sm text-red-600 dark:text-red-400" role="alert">
+          {quoteError}
+        </p>
+      ) : null}
 
       <div
         className={
@@ -173,12 +245,12 @@ export function BookingSummary({
         }
       >
         <p className="text-xs font-medium uppercase tracking-wider text-muted">
-          {t("depositDueNow")}
+          {t("depositDueNow", { pct: depositPct })}
         </p>
         <p className="mt-1 text-2xl font-semibold text-teal-dark">
           {formatNaira(depositNgn)}
         </p>
-        <p className="mt-1 text-xs text-muted">{t("depositNote")}</p>
+        <p className="mt-1 text-xs text-muted">{t("depositNote", { pct: depositPct })}</p>
         {footnote ? (
           <p className="mt-3 border-t border-teal/20 pt-3 text-xs text-muted">
             {footnote}

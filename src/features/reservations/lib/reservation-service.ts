@@ -33,6 +33,7 @@ export function buildReservationPayload(
     pluralize(stayContext.nights, "night"),
     pluralize(stayContext.guests, "guest"),
   );
+  if (stayContext.rooms > 1) summaryParts.push(pluralize(stayContext.rooms, "room"));
 
   let message = formData.message.trim();
 
@@ -52,6 +53,9 @@ export function buildReservationPayload(
     checkOut: stayContext.checkOut,
     nights: stayContext.nights,
     guests: stayContext.guests,
+    rooms: stayContext.rooms,
+    couponCode: stayContext.couponCode,
+    extraIds: stayContext.extraIds,
     stayPreference: summaryParts.join(" · "),
     message: message || "No special requests",
   };

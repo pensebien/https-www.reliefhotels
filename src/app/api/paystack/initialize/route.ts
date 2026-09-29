@@ -1,4 +1,6 @@
 import { calculateDepositNgn } from "@/lib/booking-deposit";
+import { quoteStay } from "@/lib/booking-engine/quote";
+import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { getServerConfig } from "@/lib/config";
 import { findReservationById, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
@@ -60,9 +62,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
 
-    const amountNgn = demoAmountNgn ?? calculateDepositNgn(item.priceFrom, nights);
+    // Price from the stored reservation, never from client-sent nights —
+    // otherwise a 7-night booking could pay a 1-night deposit. Booking-engine
+    // reservations carry the deposit locked in when they were created.
+    const rateConfig = await getRateConfig();
+    let depositNgn: number;
+    let chargedNights = reservation.nights ?? nights;
+    let depositPct = rateConfig.depositPct;
+    if (reservation.quotedDepositNgn !== undefined) {
+      depositNgn = reservation.quotedDepositNgn;
+    } else if (reservation.checkIn && reservation.checkOut) {
+      const quote = quoteStay(
+        {
+          roomId: item.id,
+          checkIn: reservation.checkIn,
+          checkOut: reservation.checkOut,
+          guests: reservation.guests,
+          rooms: reservation.units,
+        },
+        rateConfig,
+      );
+      if (!quote.ok) {
+        return NextResponse.json({ error: quote.message }, { status: 409 });
+      }
+      depositNgn = quote.depositNgn;
+      chargedNights = quote.nights;
+      depositPct = quote.depositPct;
+    } else {
+      depositNgn = calculateDepositNgn(item.priceFrom, chargedNights);
+      depositPct = 20;
+    }
+
+    if (reservation.holdExpiresAt) {
+      if (new Date(reservation.holdExpiresAt).getTime() <= Date.now()) {
+        return NextResponse.json(
+          {
+            error:
+              "Your room hold has expired. Please search again to re-check availability.",
+            code: "hold_expired",
+          },
+          { status: 409 },
+        );
+      }
+      // Guest is paying now — keep the room held while Paystack completes.
+      await updateReservationById(reservationId, {
+        holdExpiresAt: new Date(
+          Date.now() + rateConfig.holdMinutes * 60_000,
+        ).toISOString(),
+      });
+    }
+
+    const amountNgn = demoAmountNgn ?? depositNgn;
     const amountKobo = amountNgn * 100;
-    const itemLabel = `${itemId} — ${pluralize(nights, "night")} deposit (20%)`;
+    const itemLabel = `${itemId} — ${pluralize(chargedNights, "night")} deposit (${depositPct}%)`;
 
     const result = await initializePayment({
       email,
@@ -71,7 +123,7 @@ export async function POST(request: Request) {
       itemId,
       itemLabel,
       reservationId,
-      metadata: { nights: String(nights) },
+      metadata: { nights: String(chargedNights) },
     });
 
     await updateReservationById(reservationId, {

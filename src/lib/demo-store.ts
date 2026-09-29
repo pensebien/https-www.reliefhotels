@@ -5,6 +5,7 @@ import {
   dbFindPaymentByReference,
   dbFindReservationById,
   dbGetBookingActivity,
+  dbListPaymentsForReservation,
   dbUpdatePaymentByReference,
   dbUpdateReservationById,
 } from "@/lib/db/booking-store";
@@ -37,7 +38,37 @@ export type ReservationRecord = {
   source: "live" | "demo";
   createdAt: string;
   emailSent: boolean;
+  /** Rooms of this type in one booking (booking engine); absent = 1. */
+  units?: number;
+  couponCode?: string;
+  extraIds?: string[];
+  /** Price locked at booking time — payments never re-derive it from today's rates. */
+  quotedTotalNgn?: number;
+  quotedDepositNgn?: number;
+  /** Unpaid online bookings stop holding the room after this instant. */
+  holdExpiresAt?: string;
+  cancelledAt?: string;
 };
+
+export type NewReservation = Omit<
+  ReservationRecord,
+  "id" | "source" | "createdAt" | "status"
+> & {
+  status?: ReservationRecord["status"];
+};
+
+/**
+ * Whether a reservation takes a room out of inventory at `now`: anything not
+ * cancelled, except an unpaid online booking whose payment hold has lapsed.
+ * Mirrored in SQL by reserve_room() and countOccupiedUnitsByRoom().
+ */
+export function holdsInventory(r: ReservationRecord, now = Date.now()): boolean {
+  if (r.status === "cancelled") return false;
+  if (r.status === "pending" && r.holdExpiresAt) {
+    return new Date(r.holdExpiresAt).getTime() > now;
+  }
+  return true;
+}
 
 export type PaymentRecord = {
   id: string;
@@ -75,19 +106,36 @@ function updateStore<R>(fn: (store: Store) => R): Promise<R> {
   return updateJsonFile(STORE_FILE, emptyStore, fn);
 }
 
-async function fileAddReservation(
-  data: Omit<ReservationRecord, "id" | "source" | "createdAt" | "status"> & {
-    status?: ReservationRecord["status"];
-  },
-): Promise<ReservationRecord> {
+function newRecord(data: NewReservation): ReservationRecord {
+  return {
+    id: randomUUID(),
+    source: "live",
+    status: data.status ?? "pending",
+    createdAt: new Date().toISOString(),
+    ...data,
+  };
+}
+
+async function fileAddReservation(data: NewReservation): Promise<ReservationRecord> {
   return updateStore((store) => {
-    const record: ReservationRecord = {
-      id: randomUUID(),
-      source: "live",
-      status: data.status ?? "pending",
-      createdAt: new Date().toISOString(),
-      ...data,
-    };
+    const record = newRecord(data);
+    store.reservations.unshift(record);
+    return record;
+  });
+}
+
+/**
+ * File-mode check-and-insert under the store's per-file lock, so two
+ * concurrent bookings can't both take the last room. `canAdd` sees every
+ * reservation (live + seeded demo). Supabase mode uses reserve_room() instead.
+ */
+export async function fileAddReservationIf(
+  data: NewReservation,
+  canAdd: (existing: ReservationRecord[]) => boolean,
+): Promise<ReservationRecord | null> {
+  return updateStore((store) => {
+    if (!canAdd([...store.reservations, ...demoReservations])) return null;
+    const record = newRecord(data);
     store.reservations.unshift(record);
     return record;
   });
@@ -133,9 +181,7 @@ async function fileAddPayment(
 }
 
 export async function addReservation(
-  data: Omit<ReservationRecord, "id" | "source" | "createdAt" | "status"> & {
-    status?: ReservationRecord["status"];
-  },
+  data: NewReservation,
 ): Promise<ReservationRecord> {
   if (isSupabaseEnabled()) return dbAddReservation(data);
   return fileAddReservation(data);
@@ -181,6 +227,15 @@ export async function updatePaymentByReference(
     store.payments[index] = { ...store.payments[index], ...patch };
     return store.payments[index];
   });
+}
+
+/** Successful payments recorded against a reservation (deposit + any balance). */
+export async function listPaymentsForReservation(
+  reservationId: string,
+): Promise<PaymentRecord[]> {
+  if (isSupabaseEnabled()) return dbListPaymentsForReservation(reservationId);
+  const { payments } = await getActivity();
+  return payments.filter((p) => p.reservationId === reservationId);
 }
 
 export async function findPaymentByReference(

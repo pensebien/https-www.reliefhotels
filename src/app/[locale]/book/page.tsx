@@ -1,6 +1,7 @@
 import { ConciergeContactPrompt } from "@/components/concierge-contact-prompt";
 import { ReservationForm } from "@/features/reservations";
 import { rooms } from "@/content/site";
+import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -87,6 +88,13 @@ export default async function BookPage({
     bookingQuery?.guests ??
     Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
 
+  const stayRooms = bookingQuery?.rooms ?? 1;
+  const rateConfig = await getRateConfig();
+  const policy = rateConfig.rooms.find((r) => r.roomId === room.id);
+  const extras = rateConfig.extras
+    .filter((e) => e.active !== false && (!e.roomIds || e.roomIds.includes(room.id)))
+    .map(({ id, label, priceNgn, pricing }) => ({ id, label, priceNgn, pricing }));
+
   const tr = await getTranslations("rooms");
   const labelKey = room.nameKey.split(".")[1];
   const itemLabel = tr(`${labelKey}.name`);
@@ -112,6 +120,9 @@ export default async function BookPage({
           checkOut={stayCheckOut}
           nights={nights}
           guests={guests}
+          rooms={stayRooms}
+          maxGuestsPerUnit={policy?.maxGuestsPerUnit}
+          extras={extras}
           priceFrom={room.priceFrom}
         />
         <ConciergeContactPrompt />

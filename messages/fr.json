@@ -377,9 +377,9 @@
   "booking": {
     "step1Title": "Vos informations",
     "step2Title": "Payer l'acompte",
-    "depositDueNow": "Acompte de 20 % à payer maintenant",
+    "depositDueNow": "Acompte de {pct} % à payer maintenant",
     "totalStayEstimate": "Estimation totale du séjour",
-    "depositNote": "Acompte chambre de 20 % à payer maintenant. Les visites et expériences locales sont informatives — non facturées en ligne.",
+    "depositNote": "Acompte chambre de {pct} % à payer maintenant. Les visites et expériences locales sont informatives — non facturées en ligne.",
     "experienceInterests": "Expériences à Calabar (optionnel)",
     "experienceInterestsHint": "Indiquez ce que vous aimeriez explorer — notre équipe vous conseillera. Cela n'ajoute rien à votre paiement aujourd'hui.",
     "managerNotifyAfterPayment": "Notre responsable sera informé après votre paiement et confirmera votre réservation.",

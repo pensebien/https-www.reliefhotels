@@ -16,7 +16,11 @@ export const reservationSchema = z
     checkIn: dateSchema.optional(),
     checkOut: dateSchema.optional(),
     guests: z.number().int().min(1).max(20).default(1),
-    nights: z.number().int().min(1).max(30).optional(),
+    nights: z.number().int().min(1).max(365).optional(),
+    /** Rooms of this type (booking engine); server re-quotes and re-checks availability. */
+    rooms: z.number().int().min(1).max(4).optional(),
+    couponCode: z.string().trim().max(40).optional(),
+    extraIds: z.array(z.string().max(60)).max(20).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.itemType !== "room") return;

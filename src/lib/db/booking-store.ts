@@ -1,5 +1,9 @@
 import { getSupabaseAdmin } from "@/lib/db/client";
-import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
+import type {
+  NewReservation,
+  PaymentRecord,
+  ReservationRecord,
+} from "@/lib/demo-store";
 
 type ReservationRow = {
   id: string;
@@ -21,6 +25,14 @@ type ReservationRow = {
   email_sent: boolean;
   staff_notes: string | null;
   created_at: string;
+  // Migration 016 — absent (undefined) on databases that predate it.
+  units?: number | null;
+  coupon_code?: string | null;
+  extra_ids?: string[] | null;
+  quoted_total_ngn?: number | null;
+  quoted_deposit_ngn?: number | null;
+  hold_expires_at?: string | null;
+  cancelled_at?: string | null;
 };
 
 type PaymentRow = {
@@ -62,6 +74,13 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     emailSent: row.email_sent,
     staffNotes: row.staff_notes ?? undefined,
     createdAt: row.created_at,
+    units: row.units ?? undefined,
+    couponCode: row.coupon_code ?? undefined,
+    extraIds: row.extra_ids ?? undefined,
+    quotedTotalNgn: row.quoted_total_ngn ?? undefined,
+    quotedDepositNgn: row.quoted_deposit_ngn ?? undefined,
+    holdExpiresAt: row.hold_expires_at ?? undefined,
+    cancelledAt: row.cancelled_at ?? undefined,
   };
 }
 
@@ -109,42 +128,107 @@ function reservationPatchToRow(
   }
   if (patch.emailSent !== undefined) update.email_sent = patch.emailSent;
   if (patch.staffNotes !== undefined) update.staff_notes = patch.staffNotes;
+  if (patch.units !== undefined) update.units = patch.units;
+  if (patch.couponCode !== undefined) update.coupon_code = patch.couponCode;
+  if (patch.extraIds !== undefined) update.extra_ids = patch.extraIds;
+  if (patch.quotedTotalNgn !== undefined) {
+    update.quoted_total_ngn = patch.quotedTotalNgn;
+  }
+  if (patch.quotedDepositNgn !== undefined) {
+    update.quoted_deposit_ngn = patch.quotedDepositNgn;
+  }
+  if (patch.holdExpiresAt !== undefined) {
+    update.hold_expires_at = patch.holdExpiresAt;
+  }
+  if (patch.cancelledAt !== undefined) update.cancelled_at = patch.cancelledAt;
   return update;
 }
 
+/**
+ * Insert row for a new reservation. Booking-engine columns are only sent when
+ * set, so staff/front-desk inserts keep working on databases without
+ * migration 016.
+ */
+function newReservationRow(data: NewReservation): Record<string, unknown> {
+  return {
+    first_name: data.firstName,
+    last_name: data.lastName,
+    email: data.email,
+    phone: data.phone ?? null,
+    check_in: data.checkIn ?? null,
+    check_out: data.checkOut ?? null,
+    room_id: data.roomId ?? null,
+    guests: data.guests,
+    nights: data.nights ?? null,
+    item_type: data.itemType,
+    payment_reference: data.paymentReference ?? null,
+    stay_preference: data.stayPreference,
+    message: data.message,
+    status: data.status ?? "pending",
+    source: "live",
+    email_sent: data.emailSent,
+    ...reservationPatchToRow({
+      units: data.units,
+      couponCode: data.couponCode,
+      extraIds: data.extraIds,
+      quotedTotalNgn: data.quotedTotalNgn,
+      quotedDepositNgn: data.quotedDepositNgn,
+      holdExpiresAt: data.holdExpiresAt,
+    }),
+  };
+}
+
 export async function dbAddReservation(
-  data: Omit<ReservationRecord, "id" | "source" | "createdAt" | "status"> & {
-    status?: ReservationRecord["status"];
-  },
+  data: NewReservation,
 ): Promise<ReservationRecord> {
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error("Supabase not configured");
 
   const { data: row, error } = await supabase
     .from("reservations")
-    .insert({
-      first_name: data.firstName,
-      last_name: data.lastName,
-      email: data.email,
-      phone: data.phone ?? null,
-      check_in: data.checkIn ?? null,
-      check_out: data.checkOut ?? null,
-      room_id: data.roomId ?? null,
-      guests: data.guests,
-      nights: data.nights ?? null,
-      item_type: data.itemType,
-      payment_reference: data.paymentReference ?? null,
-      stay_preference: data.stayPreference,
-      message: data.message,
-      status: data.status ?? "pending",
-      source: "live",
-      email_sent: data.emailSent,
-    })
+    .insert(newReservationRow(data))
     .select()
     .single();
 
   if (error || !row) throw new Error(error?.message ?? "Insert reservation failed");
   return mapReservation(row as ReservationRow);
+}
+
+/**
+ * Check-and-insert in one transaction under a per-room advisory lock
+ * (reserve_room(), migration 016). Returns null when the room sold out
+ * between the guest's search and their submit.
+ */
+export async function dbReserveRoom(
+  data: NewReservation,
+  defaultInventory: number,
+): Promise<ReservationRecord | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data: rows, error } = await supabase.rpc("reserve_room", {
+    p_reservation: newReservationRow(data),
+    p_default_inventory: defaultInventory,
+  });
+
+  if (error) throw new Error(error.message);
+  const row = (rows as ReservationRow[] | null)?.[0];
+  return row ? mapReservation(row) : null;
+}
+
+export async function dbCountCouponRedemptions(code: string): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { count, error } = await supabase
+    .from("reservations")
+    .select("id", { count: "exact", head: true })
+    .eq("coupon_code", code)
+    .neq("status", "cancelled");
+
+  // Pre-016 databases have no coupon_code column, so nothing was redeemed.
+  if (error) return 0;
+  return count ?? 0;
 }
 
 export async function dbUpdateReservationById(
@@ -291,6 +375,22 @@ export async function dbFindPaymentByReference(
   if (error) throw new Error(error.message);
   if (!row) return undefined;
   return mapPayment(row as PaymentRow);
+}
+
+export async function dbListPaymentsForReservation(
+  reservationId: string,
+): Promise<PaymentRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data, error } = await supabase
+    .from("payments")
+    .select()
+    .eq("reservation_id", reservationId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return (data as PaymentRow[]).map(mapPayment);
 }
 
 export async function dbGetBookingActivity(): Promise<{

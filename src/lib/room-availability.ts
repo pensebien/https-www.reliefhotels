@@ -1,4 +1,6 @@
 import { rooms } from "@/content/site";
+import { quoteStay, type QuoteErrorCode } from "@/lib/booking-engine/quote";
+import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import {
   nightsBetween,
   parseDateString,
@@ -20,6 +22,13 @@ export type AvailableRoom = {
   totalFrom: number;
 };
 
+/** A room type with free units that the stay can't be sold on, and why. */
+export type RestrictedRoom = {
+  id: string;
+  code: QuoteErrorCode;
+  message: string;
+};
+
 export type RoomAvailabilityResult = {
   checkIn: string;
   checkOut: string;
@@ -27,6 +36,7 @@ export type RoomAvailabilityResult = {
   roomsRequested: number;
   guests: number;
   available: AvailableRoom[];
+  restricted: RestrictedRoom[];
 };
 
 /** Fallback mock when inventory lookup fails — keeps demo usable offline. */
@@ -55,12 +65,14 @@ export async function getRoomAvailability(
     getRoomInventory(),
     countOccupiedUnitsByRoom(query.checkIn, query.checkOut),
   ]);
+  const rateConfig = await getRateConfig();
   const inventoryByRoom =
     inventoryResult.status === "fulfilled" ? inventoryResult.value : {};
   const occupiedByRoom =
     occupiedResult.status === "fulfilled" ? occupiedResult.value : null;
 
   const available: AvailableRoom[] = [];
+  const restricted: RestrictedRoom[] = [];
 
   for (const room of rooms) {
     const inventory = inventoryByRoom[room.id] ?? 1;
@@ -71,6 +83,22 @@ export async function getRoomAvailability(
 
     if (freeUnits < query.rooms) continue;
 
+    // Hide room types the stay can't be sold on (capacity, min-stay, closed to arrival).
+    const quote = quoteStay(
+      {
+        roomId: room.id,
+        checkIn: query.checkIn,
+        checkOut: query.checkOut,
+        guests: query.guests,
+        rooms: query.rooms,
+      },
+      rateConfig,
+    );
+    if (!quote.ok) {
+      restricted.push({ id: room.id, code: quote.code, message: quote.message });
+      continue;
+    }
+
     available.push({
       id: room.id,
       slug: room.slug,
@@ -79,7 +107,7 @@ export async function getRoomAvailability(
       currency: room.currency,
       availableUnits: freeUnits,
       nights,
-      totalFrom: room.priceFrom * nights,
+      totalFrom: quote.totalNgn,
     });
   }
 
@@ -90,5 +118,6 @@ export async function getRoomAvailability(
     roomsRequested: query.rooms,
     guests: query.guests,
     available,
+    restricted,
   };
 }

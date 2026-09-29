@@ -4,7 +4,8 @@ import {
   parseDateString,
   toDateString,
 } from "@/lib/booking-search";
-import { useCallback, useMemo, useState } from "react";
+import type { QuoteErrorCode, StayQuote } from "@/lib/booking-engine/quote";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { reservationFormSchema } from "../lib/reservation-schema";
 import {
   buildReservationPayload,
@@ -31,6 +32,8 @@ const MIN_NIGHTS = 1;
 const MAX_NIGHTS = 30;
 const MIN_GUESTS = 1;
 const MAX_GUESTS = 12;
+const MAX_ROOMS = 4;
+const QUOTE_DEBOUNCE_MS = 250;
 
 function addDaysYmd(ymd: string, days: number): string {
   const date = parseDateString(ymd);
@@ -47,12 +50,22 @@ export function useReservationFlow(options: ReservationFlowProps) {
     nights: initialNights,
     guests: initialGuests,
     priceFrom,
+    rooms: initialRooms = 1,
+    maxGuestsPerUnit = MAX_GUESTS,
     useDemoTestAmount = false,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
   const [nights, setNights] = useState(initialNights);
   const [guests, setGuests] = useState(initialGuests);
+  const [units, setUnits] = useState(initialRooms);
+  const [extraIds, setExtraIds] = useState<string[]>([]);
+  const [couponInput, setCouponInput] = useState("");
+  const [couponCode, setCouponCode] = useState<string | undefined>();
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<StayQuote | null>(null);
+  const [quoteError, setQuoteError] = useState<{ code: QuoteErrorCode; message: string } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkOut, setCheckOut] = useState(
     initialCheckOut ??
       (initialCheckIn ? addDaysYmd(initialCheckIn, initialNights) : undefined),
@@ -74,15 +87,87 @@ export function useReservationFlow(options: ReservationFlowProps) {
       checkOut,
       nights,
       guests,
+      rooms: units,
       priceFrom,
+      couponCode,
+      extraIds,
     }),
-    [checkIn, checkOut, guests, itemId, itemLabel, nights, priceFrom],
+    [checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, units],
   );
 
+  // Live server quote — the same engine the reservation and payment routes
+  // use, so what the guest sees is what they are charged.
+  useEffect(() => {
+    if (!checkIn || !checkOut) return;
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setQuoteLoading(true);
+      try {
+        const res = await fetch("/api/booking/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            roomId: itemId,
+            checkIn,
+            checkOut,
+            guests,
+            rooms: units,
+            couponCode,
+            extraIds,
+          }),
+        });
+        const body = await res.json();
+        if (res.ok) {
+          setQuote(body as StayQuote);
+          setQuoteError(null);
+        } else if (body.code === "invalid_coupon") {
+          setCouponError(body.error);
+          setCouponCode(undefined);
+        } else {
+          setQuote(null);
+          setQuoteError({ code: body.code, message: body.error ?? "Unable to price this stay" });
+        }
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") setQuote(null);
+      } finally {
+        if (!controller.signal.aborted) setQuoteLoading(false);
+      }
+    }, QUOTE_DEBOUNCE_MS);
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [checkIn, checkOut, couponCode, extraIds, guests, itemId, units]);
+
   const depositNgn = useMemo(
-    () => calculateDepositNgn(priceFrom, nights),
-    [nights, priceFrom],
+    () => quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
+    [nights, priceFrom, quote, units],
   );
+
+  const maxGuests = Math.min(MAX_GUESTS, maxGuestsPerUnit * units);
+
+  const updateUnits = useCallback((next: number) => {
+    setUnits(Math.min(MAX_ROOMS, Math.max(1, next)));
+  }, []);
+
+  const toggleExtra = useCallback((id: string) => {
+    setExtraIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }, []);
+
+  const applyCoupon = useCallback(() => {
+    const code = couponInput.trim().toUpperCase();
+    setCouponError(null);
+    setCouponCode(code || undefined);
+  }, [couponInput]);
+
+  const removeCoupon = useCallback(() => {
+    setCouponCode(undefined);
+    setCouponInput("");
+    setCouponError(null);
+  }, []);
 
   const updateNights = useCallback(
     (next: number) => {
@@ -180,7 +265,6 @@ export function useReservationFlow(options: ReservationFlowProps) {
             itemType: "room",
             itemId,
             reservationId,
-            nights,
             ...(useDemoTestAmount ? { demoAmountNgn: 5000 } : {}),
           }),
         });
@@ -204,7 +288,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
         );
       }
     },
-    [formData.email, itemId, nights, useDemoTestAmount],
+    [formData.email, itemId, useDemoTestAmount],
   );
 
   const handleReserveAndPay = useCallback(async () => {
@@ -230,6 +314,20 @@ export function useReservationFlow(options: ReservationFlowProps) {
     checkOut,
     updateNights,
     updateGuests,
+    units,
+    updateUnits,
+    maxGuests,
+    extraIds,
+    toggleExtra,
+    couponInput,
+    setCouponInput,
+    couponCode,
+    couponError,
+    applyCoupon,
+    removeCoupon,
+    quote,
+    quoteError,
+    quoteLoading,
     submitReservation,
     initiatePayment,
     handleReserveAndPay,
