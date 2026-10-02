@@ -1,0 +1,45 @@
+%% Guest: search → quote → reserve → pay → manage / cancel (booking engine v2).
+flowchart TD
+    classDef guest fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef bad fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    classDef good fill:#dcfce7,stroke:#16a34a,color:#14532d
+
+    A["Guest picks dates, guests, rooms<br/>/rooms"]:::guest --> B["GET /api/rooms/availability"]:::system
+    B --> C{"Room type free<br/>and rules pass?"}:::system
+    C -->|"no free units"| C1["Room not listed"]:::bad
+    C -->|"rule fails: min stay, capacity,<br/>closed to arrival"| C2["Card shows reason<br/>Book button disabled"]:::bad
+    C -->|"yes"| D["Card shows real stay total"]:::good
+    D --> E["/book page: live quote<br/>POST /api/booking/quote"]:::guest
+    E --> E1["Line items: nightly rates, long-stay discount,<br/>promo code, extras, total, deposit %"]:::system
+    E1 --> F{"Quote OK?"}:::system
+    F -->|"invalid promo"| F1["Promo error, quote without it"]:::bad
+    F -->|"over capacity / min stay"| F2["Error shown,<br/>Continue disabled"]:::bad
+    F -->|"yes"| G["Guest enters details,<br/>accepts terms"]:::guest
+    G --> H["POST /api/reservations"]:::system
+    H --> I["Server re-quotes:<br/>ignores client nights and prices"]:::system
+    I --> J{"reserve_room:<br/>still a free unit?"}:::system
+    J -->|"no — someone just took it"| J1["409: choose other dates"]:::bad
+    J -->|"yes"| K["Reservation saved: pending<br/>price + deposit locked<br/>room held 60 min"]:::good
+    K --> L["Emails: guest confirmation<br/>with Manage-your-booking link,<br/>manager alert"]:::system
+    K --> M["POST /api/paystack/initialize"]:::system
+    M --> N{"Hold still valid?"}:::system
+    N -->|"expired"| N1["409: search again"]:::bad
+    N -->|"yes"| O["Hold extended,<br/>charge locked deposit"]:::system
+    O --> P["Paystack checkout"]:::guest
+    P --> Q["Webhook charge.success<br/>or callback verify"]:::system
+    Q --> R{"Hold had expired<br/>before payment?"}:::system
+    R -->|"yes"| R1["Confirmed + staff note:<br/>check a room is still free"]:::bad
+    R -->|"no"| S["Reservation confirmed<br/>receipt email, manager SMS/WhatsApp,<br/>RAYZA sync"]:::good
+
+    S --> T["Guest opens Manage link<br/>/booking/manage?id=…&t=…"]:::guest
+    L -.-> T
+    T --> U{"Token valid?"}:::system
+    U -->|"no"| U1["Booking not found"]:::bad
+    U -->|"yes"| V["Sees stay, total, paid, outstanding"]:::system
+    V --> W["Pay deposit or balance<br/>POST /api/booking/manage/pay"]:::guest
+    V --> X{"Cancel allowed?<br/>active, before check-in,<br/>guest cancel enabled"}:::system
+    X -->|"no"| X1["Contact the hotel"]:::bad
+    X -->|"yes"| Y["POST /api/booking/manage/cancel"]:::guest
+    Y --> Z["Status cancelled, room freed<br/>refund due = paid × refund %<br/>if inside free window, else 0"]:::system
+    Z --> Z1["Emails: guest + front desk<br/>refund processed manually"]:::system

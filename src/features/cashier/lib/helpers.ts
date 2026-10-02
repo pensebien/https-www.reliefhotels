@@ -31,15 +31,19 @@ const roomsById = new Map<string, (typeof rooms)[number]>(
 );
 
 /**
- * Suggested front-desk collect amount = 20% deposit (same as online Paystack),
- * aligned with the primary KPI path (paid bookings). Cashier may override.
+ * Suggested front-desk collect amount = the deposit locked when the booking
+ * was made (booking engine: seasons, discounts, promo, extras, rooms), so the
+ * desk charges what the guest was quoted online. Older bookings without a
+ * locked quote fall back to catalog price × nights × rooms × 20%. Cashier may
+ * override.
  */
 export function suggestedDepositNgn(reservation: CashierReservation): number | null {
+  if (reservation.quotedDepositNgn !== undefined) return reservation.quotedDepositNgn;
   if (!reservation.roomId) return null;
   const room = roomsById.get(reservation.roomId);
   if (!room) return null;
   const nights = computeNights(reservation) ?? 1;
-  return calculateDepositNgn(room.priceFrom, nights);
+  return calculateDepositNgn(room.priceFrom, nights) * (reservation.units ?? 1);
 }
 
 export function guestFullName(reservation: CashierReservation): string {

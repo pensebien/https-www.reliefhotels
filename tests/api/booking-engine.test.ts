@@ -227,4 +227,46 @@ describe("Booking engine API", () => {
     assert.equal(saved.status, 200);
     assert.equal(((await saved.json()) as { config: { holdMinutes: number } }).config.holdMinutes, 45);
   });
+
+  it("walk-ins: no overbooking, stay rules enforced, staff can override rules", async () => {
+    const { POST } = await import("@/app/api/demo/reservations/route");
+    const walkIn = (overrides: Record<string, unknown>) =>
+      POST(
+        json(`http://localhost/api/demo/reservations?key=${KEY}`, {
+          firstName: "Walk",
+          lastName: "In",
+          email: `walkin-${Date.now()}@example.com`,
+          roomId: "presidential-suite",
+          guests: 2,
+          status: "confirmed",
+          paymentMethod: "cash",
+          ...overrides,
+        }),
+      );
+
+    const stay = uniqueStay();
+    const online = await reserve({ roomId: "presidential-suite", ...stay });
+    assert.equal(online.res.status, 200);
+
+    const clash = await walkIn(stay);
+    assert.equal(clash.status, 409, "desk must not double-book the last room");
+    assert.equal(((await clash.json()) as { overridable?: boolean }).overridable, false);
+
+    const crowded = await walkIn({ ...uniqueStay(), roomId: "guest-room", guests: 3 });
+    const crowdedBody = (await crowded.json()) as { code?: string; overridable?: boolean };
+    assert.equal(crowded.status, 422);
+    assert.equal(crowdedBody.code, "over_capacity");
+    assert.equal(crowdedBody.overridable, true);
+
+    const overridden = await walkIn({ ...uniqueStay(), roomId: "guest-room", guests: 3, overrideRules: true });
+    const body = (await overridden.json()) as {
+      depositNgn?: number;
+      reservation?: { holdExpiresAt?: string; quotedDepositNgn?: number; status?: string; message?: string };
+    };
+    assert.equal(overridden.status, 200);
+    assert.equal(body.reservation?.status, "confirmed");
+    assert.equal(body.reservation?.holdExpiresAt, undefined, "desk bookings don't expire");
+    assert.equal(body.depositNgn, body.reservation?.quotedDepositNgn);
+    assert.match(body.reservation?.message ?? "", /Stay rules overridden by staff/);
+  });
 });

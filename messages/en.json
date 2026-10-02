@@ -760,7 +760,7 @@
       "manualConfirmPrompt": "Confirm you've verified the guest actually paid? This marks the deposit as received and confirms the reservation.",
       "manualConfirmError": "Could not confirm payment. Try again.",
       "backToForm": "Back to form",
-      "staySummary": "{nights, plural, one {# night} other {# nights}} · suggested 20% deposit {deposit}",
+      "staySummary": "{nights, plural, one {# night} other {# nights}} · suggested {pct}% deposit {deposit}",
       "cancel": "Cancel",
       "submit": "Save reservation",
       "errors": {
@@ -769,7 +769,8 @@
         "guests": "Enter 1–20 guests",
         "depositNeedsConfirmed": "Confirm the reservation when deposit is received",
         "submit": "Could not save reservation. Try again."
-      }
+      },
+      "overrideRules": "Override stay rules for this booking (guest limit, minimum stay, closed dates). Availability is still checked."
     },
     "keyPlaceholder": "Dashboard key",
     "unlock": "Load data",

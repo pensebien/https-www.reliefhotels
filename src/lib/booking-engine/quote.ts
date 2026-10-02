@@ -27,7 +27,20 @@ export type QuoteInput = {
   extraIds?: string[];
   /** Non-cancelled reservations already using couponCode (for maxRedemptions). */
   couponRedemptions?: number;
+  /**
+   * Staff override: price the stay but skip stay rules (capacity, min/max
+   * stay, closed to arrival). Never exposed to guests; never skips availability.
+   */
+  ignoreRestrictions?: boolean;
 };
+
+/** Codes a staff member may deliberately override for a walk-in. */
+export const OVERRIDABLE_RULE_CODES: readonly QuoteErrorCode[] = [
+  "over_capacity",
+  "min_stay",
+  "max_stay",
+  "closed_to_arrival",
+];
 
 export type NightLine = { date: string; nightlyNgn: number; seasonId?: string };
 
@@ -147,7 +160,9 @@ export function quoteStay(
     return fail("invalid_dates", "Check-out must be after check-in");
   }
 
-  if (input.guests > policy.maxGuestsPerUnit * units) {
+  const enforce = !input.ignoreRestrictions;
+
+  if (enforce && input.guests > policy.maxGuestsPerUnit * units) {
     return fail(
       "over_capacity",
       `This room sleeps up to ${policy.maxGuestsPerUnit} guests per room`,
@@ -161,15 +176,15 @@ export function quoteStay(
   }
 
   const arrivalSeason = seasonFor(config, policy.roomId, input.checkIn);
-  if (arrivalSeason?.closedToArrival) {
+  if (enforce && arrivalSeason?.closedToArrival) {
     return fail("closed_to_arrival", `Arrivals are closed on ${input.checkIn}`);
   }
 
   const minNights = Math.max(policy.minNights, arrivalSeason?.minNights ?? 1);
-  if (nights < minNights && !coupon?.bypassMinStay) {
+  if (enforce && nights < minNights && !coupon?.bypassMinStay) {
     return fail("min_stay", `Minimum stay for these dates is ${minNights} nights`);
   }
-  if (nights > policy.maxNights) {
+  if (enforce && nights > policy.maxNights) {
     return fail("max_stay", `Maximum stay is ${policy.maxNights} nights`);
   }
 

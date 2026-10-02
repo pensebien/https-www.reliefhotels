@@ -1,0 +1,46 @@
+%% Booking engine v2 — who does what (PR #43). Arrows point from who acts to what changes.
+%% Per-role detail: 01-guest … 05-housekeeping; deployment: 06-tech-netlify-setup.
+flowchart TB
+    classDef guest fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    classDef staff fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef tech fill:#fef3c7,stroke:#d97706,color:#78350f
+    classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef ext fill:#ede9fe,stroke:#7c3aed,color:#3b0764
+
+    Manager["Manager<br/>sets rates + rules"]:::staff
+    Guest["Guest<br/>books online"]:::guest
+    Cashier["Cashier<br/>desk payments, check-out"]:::staff
+    FnB["F&B staff<br/>room charges"]:::staff
+    Cleaner["Cleaner head<br/>cleans rooms"]:::staff
+
+    Rules[("Rate rules")]:::system
+    Engine["Pricing engine"]:::system
+    Reserve["Race-safe booking<br/>reserve_room"]:::system
+    Manage["Manage-booking link"]:::system
+    Res[("Reservations + payments")]:::system
+    Folio[("Folio charges")]:::system
+    Blocks[("Room blocks")]:::system
+
+    Paystack["Paystack"]:::ext
+    Moniepoint["Moniepoint"]:::ext
+    Resend["Resend email"]:::ext
+
+    Manager --> Rules --> Engine
+    Guest -->|"quote"| Engine
+    Guest -->|"book"| Reserve
+    Guest -->|"view / pay / cancel"| Manage
+    Engine --> Reserve --> Res
+    Manage --> Res
+    Guest -->|"pay"| Paystack
+    Cashier -->|"card / transfer"| Moniepoint
+    Cashier -->|"cash, check-out"| Res
+    Paystack -->|"webhook"| Res
+    Moniepoint -->|"webhook"| Res
+    Res -->|"emails + manage link"| Resend
+    FnB --> Folio
+    Folio -->|"settled at check-out"| Res
+    Cashier -->|"check-out blocks room"| Blocks
+    Cleaner -->|"mark clean"| Blocks
+    Blocks -->|"fewer free rooms"| Reserve
+
+    Tech["Tech person: Netlify env vars, migration 016,<br/>webhooks, BOOKING_LINK_SECRET — see 06"]:::tech

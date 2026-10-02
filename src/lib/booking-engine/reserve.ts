@@ -69,11 +69,23 @@ const SOLD_OUT: ReserveResult = {
     "This room is not available for the selected dates. Please choose different dates.",
 };
 
+export type ReserveOptions = {
+  /** Initial status; the front desk may create confirmed bookings. Default pending. */
+  status?: ReservationRecord["status"];
+  /**
+   * Whether an unpaid booking's room hold expires (online checkout). Front-desk
+   * bookings hold indefinitely, as before, until staff change their status.
+   */
+  expiringHold?: boolean;
+};
+
 export async function reserveRoom(
   stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
-    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds">,
+    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions">,
   guest: GuestDetails,
+  options: ReserveOptions = {},
 ): Promise<ReserveResult> {
+  const { status = "pending", expiringHold = true } = options;
   const config = await getRateConfig();
   const quote = await quoteStayLive(stay, config);
   if (!quote.ok) {
@@ -93,9 +105,11 @@ export async function reserveRoom(
     extraIds: quote.extras.length ? quote.extras.map((e) => e.id) : undefined,
     quotedTotalNgn: quote.totalNgn,
     quotedDepositNgn: quote.depositNgn,
-    holdExpiresAt: new Date(Date.now() + config.holdMinutes * 60_000).toISOString(),
+    holdExpiresAt: expiringHold
+      ? new Date(Date.now() + config.holdMinutes * 60_000).toISOString()
+      : undefined,
     emailSent: false,
-    status: "pending",
+    status,
   };
 
   const record = isSupabaseEnabled()

@@ -1,0 +1,19 @@
+%% Cleaners: rooms are unavailable to guests while blocked.
+%% Role: cleaner_head (manager can add blocks; calendar is read-only for cleaners).
+flowchart TD
+    classDef staff fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef good fill:#dcfce7,stroke:#16a34a,color:#14532d
+
+    A["Cashier checks a guest out"]:::system --> B["Housekeeping block created<br/>today → tomorrow"]:::system
+    B --> C["Room removed from availability<br/>engine and reserve_room count blocks"]:::system
+    C --> D["Sign in: role cleaner_head<br/>/staff/housekeeping"]:::staff
+    D --> E["See rooms waiting to be cleaned"]:::staff
+    E --> F["Clean the room"]:::staff
+    F --> G["Mark clean → block removed"]:::staff
+    G --> H["Room bookable again online<br/>and at the desk"]:::good
+
+    D --> I["Maintenance issue?<br/>Add maintenance block with dates + reason"]:::staff
+    I --> C
+    I --> J["Fixed → remove block"]:::staff
+    J --> H

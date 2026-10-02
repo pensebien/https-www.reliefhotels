@@ -159,6 +159,17 @@ export function StaffCreateReservationDialog({
   >(null);
   const [confirmingManually, setConfirmingManually] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  /**
+   * Engine quote for the current stay, keyed by its inputs so a result for
+   * an older room/date/guest choice is simply ignored. ruleError is a stay
+   * rule staff may override (never availability).
+   */
+  const [quoteState, setQuoteState] = useState<{
+    key: string;
+    deposit?: { ngn: number; pct: number };
+    ruleError?: string;
+    override?: boolean;
+  } | null>(null);
 
   const selectedRoom = roomOptions.find((room) => room.id === form.roomId);
   const collectsDeposit = form.paymentMethod !== "none";
@@ -180,10 +191,53 @@ export function StaffCreateReservationDialog({
     }
   }, [form.checkIn, form.checkOut]);
 
+  // Preview from the same engine the server charges with; catalog 20% is
+  // only a fallback while it loads or when a stay rule blocks the quote.
+  const quoteKey = `${form.roomId}|${form.checkIn}|${form.checkOut}|${form.guests}`;
+  const currentQuote = quoteState?.key === quoteKey ? quoteState : null;
+  const ruleError = currentQuote?.ruleError ?? null;
+  const overrideRules = Boolean(currentQuote?.override);
   const depositNgn =
-    selectedRoom && nights > 0
-      ? calculateDepositNgn(selectedRoom.priceFrom, nights)
-      : 0;
+    currentQuote?.deposit?.ngn ??
+    (selectedRoom && nights > 0 ? calculateDepositNgn(selectedRoom.priceFrom, nights) : 0);
+  const depositPct = currentQuote?.deposit?.pct ?? 20;
+
+  function setRuleError(message: string) {
+    setQuoteState({ key: quoteKey, ...currentQuote, ruleError: message, override: false });
+  }
+
+  function setOverrideRules(override: boolean) {
+    setQuoteState({ key: quoteKey, ...currentQuote, override });
+  }
+
+  useEffect(() => {
+    if (!open || !form.roomId || nights <= 0) return;
+    const guests = Number(form.guests);
+    if (!Number.isInteger(guests) || guests < 1) return;
+    const controller = new AbortController();
+    fetch("/api/booking/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        roomId: form.roomId,
+        checkIn: form.checkIn,
+        checkOut: form.checkOut,
+        guests,
+      }),
+    })
+      .then(async (res) => {
+        const body = await res.json();
+        const key = `${form.roomId}|${form.checkIn}|${form.checkOut}|${form.guests}`;
+        if (res.ok) {
+          setQuoteState({ key, deposit: { ngn: body.depositNgn, pct: body.depositPct } });
+        } else if (body.code && body.code !== "invalid_dates") {
+          setQuoteState({ key, ruleError: body.error });
+        }
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [open, form.roomId, form.checkIn, form.checkOut, form.guests, nights]);
 
   const pollTerminalStatus = useCallback(
     async (reference: string) => {
@@ -402,20 +456,25 @@ export function StaffCreateReservationDialog({
             message: form.message.trim() || undefined,
             status: form.status,
             paymentMethod: form.paymentMethod,
-            depositAmountNgn: collectsDeposit ? depositNgn : undefined,
+            overrideRules: overrideRules || undefined,
           }),
         },
       );
 
       const body = (await res.json().catch(() => null)) as {
         error?: string;
+        overridable?: boolean;
         paymentPending?: boolean;
         paymentReference?: string;
         paymentMethod?: StaffPaymentOption;
       } | null;
 
       if (!res.ok) {
-        setSubmitError(body?.error ?? t("createReservation.errors.submit"));
+        if (body?.overridable) {
+          setRuleError(body.error ?? t("createReservation.errors.submit"));
+        } else {
+          setSubmitError(body?.error ?? t("createReservation.errors.submit"));
+        }
         return;
       }
 
@@ -688,6 +747,7 @@ export function StaffCreateReservationDialog({
                 <p className="rounded-lg bg-muted/10 px-3 py-2 text-sm text-muted">
                   {t("createReservation.staySummary", {
                     nights,
+                    pct: depositPct,
                     deposit: formatNaira(depositNgn),
                   })}
                 </p>
@@ -798,6 +858,23 @@ export function StaffCreateReservationDialog({
                     <option value="pending">{t("filters.pending")}</option>
                   </select>
                 </Field>
+              ) : null}
+
+              {ruleError ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-3 text-sm dark:border-amber-700 dark:bg-amber-950/30">
+                  <p className="text-amber-800 dark:text-amber-200" role="alert">
+                    {ruleError}
+                  </p>
+                  <label className="mt-2 flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4 accent-teal"
+                      checked={overrideRules}
+                      onChange={(e) => setOverrideRules(e.target.checked)}
+                    />
+                    <span>{t("createReservation.overrideRules")}</span>
+                  </label>
+                </div>
               ) : null}
 
               {submitError ? (
