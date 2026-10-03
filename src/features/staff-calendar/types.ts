@@ -1,3 +1,4 @@
+import type { UnitSetup } from "@/lib/inventory-units";
 // Thin local types for the dedicated staff occupancy calendar page.
 // The activity payload mirrors GET /api/demo/activity (src/app/api/demo/activity/route.ts)
 // and is compatible with CalendarReservation / EventInquiry from src/lib/inventory-calendar.ts
@@ -24,6 +25,7 @@ export type StaffCalendarActivityResponse = {
   payments: StaffCalendarPayment[];
   eventInquiries?: EventInquiry[];
   roomBlocks?: RoomBlock[];
+  unitSetup?: UnitSetup;
   moniepoint?: {
     configured: boolean;
     terminalConfigured: boolean;

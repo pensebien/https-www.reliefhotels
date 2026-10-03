@@ -5,6 +5,7 @@ import {
   RoomCategoryTabs,
 } from "@/components/room-category-tabs";
 import { RoomDetailModal } from "@/components/room-detail-modal";
+import { useRoomCatalog } from "@/hooks/use-room-catalog";
 import {
   roomCategories,
   rooms,
@@ -26,6 +27,8 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type Room = (typeof rooms)[number];
+/** A catalog room as displayed — photos may come from staff room setup. */
+type DisplayRoom = Omit<Room, "image" | "gallery"> & { image: string; gallery: readonly string[] };
 
 function formatStayDate(value: string, locale: string) {
   const localeTag = locale === "fr" ? "fr-FR" : "en-US";
@@ -235,7 +238,13 @@ function RoomGrid({
   restrictedById: Map<string, string>;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
 }) {
-  const [detailRoom, setDetailRoom] = useState<Room | null>(null);
+  const [detailRoom, setDetailRoom] = useState<DisplayRoom | null>(null);
+  const catalog = useRoomCatalog();
+  // Staff-uploaded photos (room setup) replace the built-in ones when present.
+  const withPhotos = (room: Room): DisplayRoom => {
+    const photos = catalog.get(room.id)?.photos;
+    return photos?.length ? { ...room, image: photos[0], gallery: photos } : room;
+  };
   const detailAvailability = detailRoom
     ? availableById.get(detailRoom.id)
     : undefined;
@@ -249,13 +258,13 @@ function RoomGrid({
         {roomList.map((room) => (
           <RoomCard
             key={room.id}
-            room={room}
+            room={withPhotos(room)}
             t={t}
             currencyLocale={currencyLocale}
             availability={availableById.get(room.id)}
             restriction={restrictedById.get(room.id)}
             bookingQuery={bookingQuery}
-            onViewDetails={() => setDetailRoom(room)}
+            onViewDetails={() => setDetailRoom(withPhotos(room))}
           />
         ))}
       </div>
@@ -281,7 +290,7 @@ function RoomCard({
   bookingQuery,
   onViewDetails,
 }: {
-  room: Room;
+  room: DisplayRoom;
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availability?: AvailableRoom;

@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         stayPreference,
         message,
       },
-      { status: reservationStatus, expiringHold: false },
+      { status: reservationStatus, expiringHold: false, channel: "desk" },
     );
 
     if (!reserved.ok) {

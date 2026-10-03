@@ -1,5 +1,6 @@
 "use client";
 
+import type { UnitSetup } from "@/lib/inventory-units";
 import type { RoomBlock } from "@/lib/db/inventory-store";
 import type { EventInquiry } from "@/lib/inquiry-store";
 import {
@@ -51,6 +52,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   reservations,
   eventInquiries,
   roomBlocks = [],
+  unitSetup,
   paymentsByReservation,
   unitLabels,
   dashboardKey,
@@ -62,6 +64,7 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
   reservations: CalendarReservation[];
   eventInquiries: EventInquiry[];
   roomBlocks?: RoomBlock[];
+  unitSetup?: UnitSetup;
   paymentsByReservation: Map<string, PaymentLookup[]>;
   unitLabels: Record<string, string>;
   dashboardKey?: string;
@@ -95,8 +98,9 @@ export const InventoryCalendarView = memo(function InventoryCalendarView({
         roomBlocks,
         weekAnchor,
         unitLabels,
+        unitSetup,
       }),
-    [eventInquiries, reservations, roomBlocks, unitLabels, weekAnchor],
+    [eventInquiries, reservations, roomBlocks, unitLabels, unitSetup, weekAnchor],
   );
 
   const categoryRows = useMemo(() => {

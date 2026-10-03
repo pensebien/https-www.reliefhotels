@@ -66,3 +66,4 @@ next-env.d.ts
 # local QA tooling (InboxTap email-capture server) — not part of this repo
 /inboxtap/
 /inboxtap.dev/
+/public/uploads/

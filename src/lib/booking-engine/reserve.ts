@@ -29,6 +29,7 @@ import {
   type ReservationRecord,
 } from "@/lib/demo-store";
 import { getRoomAvailability } from "@/lib/room-availability";
+import { getRoomSetup } from "@/lib/room-setup";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
 
@@ -77,6 +78,8 @@ export type ReserveOptions = {
    * bookings hold indefinitely, as before, until staff change their status.
    */
   expiringHold?: boolean;
+  /** "online" (default) enforces the room type's bookable-online switch; the desk ignores it. */
+  channel?: "online" | "desk";
 };
 
 export async function reserveRoom(
@@ -85,7 +88,18 @@ export async function reserveRoom(
   guest: GuestDetails,
   options: ReserveOptions = {},
 ): Promise<ReserveResult> {
-  const { status = "pending", expiringHold = true } = options;
+  const { status = "pending", expiringHold = true, channel = "online" } = options;
+  if (channel === "online") {
+    const setup = await getRoomSetup();
+    if (setup.rooms.find((r) => r.roomId === stay.roomId)?.bookableOnline === false) {
+      return {
+        ok: false,
+        status: 422,
+        code: "not_bookable_online",
+        message: "This room can't be booked online. Please contact the hotel.",
+      };
+    }
+  }
   const config = await getRateConfig();
   const quote = await quoteStayLive(stay, config);
   if (!quote.ok) {

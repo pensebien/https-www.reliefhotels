@@ -1189,7 +1189,8 @@
       "housekeeping": "Housekeeping",
       "accounting": "Accounting",
       "taxSettings": "Tax settings",
-      "rateSettings": "Rates & restrictions"
+      "rateSettings": "Rates & restrictions",
+      "roomSettings": "Room setup"
     },
     "roles": {
       "cashier": "Cashier",
@@ -1435,5 +1436,31 @@
     "perStay": "Per stay",
     "perNight": "Per night",
     "perGuestNight": "Per guest per night"
+  },
+  "staffRoomSettings": {
+    "metaTitle": "Room setup",
+    "eyebrow": "Booking engine",
+    "title": "Room setup",
+    "subtitle": "How many rooms of each type you have, their room numbers, whether guests can book them online, and the photos guests see.",
+    "backToPortal": "Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Unlock",
+    "loading": "Loading room setup…",
+    "bookableOnline": "Bookable online",
+    "inventory": "Rooms of this type",
+    "roomNumbers": "Room numbers",
+    "roomNumbersHint": "Separate with commas — exactly {count, plural, one {# number} other {# numbers}}, e.g. 101, 102, 103.",
+    "photos": "Photos guests see",
+    "noPhotos": "No photos uploaded — the website shows its built-in photos.",
+    "mainPhoto": "Main photo",
+    "makeMain": "Make main",
+    "removePhoto": "Remove photo",
+    "addPhoto": "Upload photo",
+    "uploading": "Uploading…",
+    "uploadFailed": "The photo could not be uploaded.",
+    "save": "Save room setup",
+    "saving": "Saving…",
+    "saved": "Saved. The calendar and booking engine use these numbers now.",
+    "saveHint": "Uploaded photos appear on the website after you save."
   }
 }

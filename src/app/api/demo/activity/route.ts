@@ -5,6 +5,7 @@ import { getActivity } from "@/lib/demo-store";
 import { getEventInquiries, getGuestFeedback } from "@/lib/inquiry-store";
 import { getMoniepointPublicConfig } from "@/lib/moniepoint";
 import { getPaystackTerminalPublicConfig } from "@/lib/paystack-terminal";
+import { getRoomSetup } from "@/lib/room-setup";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
 
@@ -20,6 +21,10 @@ export async function GET(request: Request) {
     const guestFeedback = await getGuestFeedback();
     const storageHealth = await checkStorageHealth();
     const roomBlocks = await listRoomBlocks();
+    const roomSetup = await getRoomSetup();
+    const unitSetup = Object.fromEntries(
+      roomSetup.rooms.map((r) => [r.roomId, { inventory: r.inventory, unitLabels: r.unitLabels }]),
+    );
 
     return NextResponse.json({
       ok: true,
@@ -39,6 +44,7 @@ export async function GET(request: Request) {
       eventInquiries,
       guestFeedback,
       roomBlocks,
+      unitSetup,
     });
   } catch (error) {
     const message =

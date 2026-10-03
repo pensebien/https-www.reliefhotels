@@ -1,5 +1,6 @@
 "use client";
 
+import type { UnitSetup } from "@/lib/inventory-units";
 import { DashboardFiltersPanel } from "@/components/dashboard-filters-panel";
 import { InventoryCalendarView } from "@/components/staff/inventory-calendar-view";
 import { DashboardInboxView } from "@/components/staff/dashboard-inbox-view";
@@ -100,6 +101,7 @@ type Activity = {
   eventInquiries?: EventInquiryRow[];
   guestFeedback?: GuestFeedbackRow[];
   roomBlocks?: RoomBlock[];
+  unitSetup?: UnitSetup;
 };
 
 type DashboardView = "calendar" | "lists";
@@ -640,6 +642,7 @@ export function DemoDashboard({
               reservations={filteredReservations}
               eventInquiries={data.eventInquiries ?? []}
               roomBlocks={data.roomBlocks ?? []}
+              unitSetup={data.unitSetup}
               paymentsByReservation={paymentsByReservation}
               unitLabels={unitLabels}
               dashboardKey={key}

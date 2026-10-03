@@ -1,5 +1,6 @@
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { getActivity, holdsInventory } from "@/lib/demo-store";
+import { DEFAULT_INVENTORY, getRoomSetup } from "@/lib/room-setup";
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
@@ -16,12 +17,6 @@ export type RoomBlock = {
   createdAt: string;
 };
 
-const DEFAULT_INVENTORY: Record<string, number> = {
-  "guest-room": 12,
-  "executive-room": 8,
-  "signature-suite": 4,
-  "presidential-suite": 1,
-};
 
 const STORE_DIR = path.join(process.cwd(), "data");
 const BLOCKS_FILE = path.join(STORE_DIR, "room-blocks.json");
@@ -55,7 +50,10 @@ export function datesOverlap(
 }
 
 export async function getRoomInventory(): Promise<Record<string, number>> {
-  if (!isSupabaseEnabled()) return { ...DEFAULT_INVENTORY };
+  if (!isSupabaseEnabled()) {
+    const setup = await getRoomSetup();
+    return Object.fromEntries(setup.rooms.map((r) => [r.roomId, r.inventory]));
+  }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return { ...DEFAULT_INVENTORY };
