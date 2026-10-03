@@ -52,7 +52,8 @@ export type HotelReport = {
     desk: number;
     cancelled: number;
     cancellationPct: number;
-    averageLeadDays: number;
+    /** Median days between booking and arrival (robust to a few far-ahead bookings). */
+    medianLeadDays: number;
   };
   byRoomType: { roomId: string; roomNights: number; revenueNgn: number; occupancyPct: number }[];
   paymentsByMethod: { method: string; amountNgn: number; count: number }[];
@@ -96,6 +97,14 @@ function nightlyRevenue(r: ReservationRecord): Map<string, { room: number; extra
 }
 
 const round = (n: number) => Math.round(n);
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const value = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return Math.round(value * 10) / 10;
+}
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
 
 export function buildHotelReport(input: {
@@ -201,9 +210,7 @@ export function buildHotelReport(input: {
       desk: created.filter((r) => bookingChannelOf(r) === "desk").length,
       cancelled,
       cancellationPct: pct(cancelled, created.length),
-      averageLeadDays: leadDays.length
-        ? Math.round((leadDays.reduce((a, b) => a + b, 0) / leadDays.length) * 10) / 10
-        : 0,
+      medianLeadDays: median(leadDays),
     },
     byRoomType: roomIds.map((roomId) => {
       const line = byRoom.get(roomId) ?? { roomNights: 0, revenue: 0 };

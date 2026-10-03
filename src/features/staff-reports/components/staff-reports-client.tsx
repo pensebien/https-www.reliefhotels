@@ -8,7 +8,7 @@ import { formatNaira } from "@/lib/utils";
 import { ArrowLeft, Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const DEFAULT_KEY = "relief-demo-2026";
 const SESSION_STORAGE_KEY = "demo-dashboard-key";
@@ -197,7 +197,7 @@ export function StaffReportsClient() {
                   <MiniStat label={t("online")} value={report.bookingsCreated.online} />
                   <MiniStat label={t("desk")} value={report.bookingsCreated.desk} />
                   <MiniStat label={t("cancelled")} value={report.bookingsCreated.cancelled} />
-                  <MiniStat label={t("leadTime")} value={t("days", { n: report.bookingsCreated.averageLeadDays })} />
+                  <MiniStat label={t("leadTime")} value={t("days", { n: report.bookingsCreated.medianLeadDays })} />
                 </dl>
               </div>
               <div>
@@ -253,13 +253,23 @@ function OccupancyChart({ daily }: { daily: DailyPoint[] }) {
   const t = useTranslations("staffReports");
   const [hover, setHover] = useState<number | null>(null);
   const [asTable, setAsTable] = useState(false);
+  // Fill the panel: measure it, and give each day an equal share (at least 8px, scrolls beyond that).
+  const frameRef = useRef<HTMLDivElement>(null);
+  const [frameWidth, setFrameWidth] = useState(0);
+  useEffect(() => {
+    const el = frameRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(([entry]) => setFrameWidth(entry.contentRect.width));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [asTable]);
 
-  const slot = 20;
+  const slot = Math.max(8, ((frameWidth || 640) - PAD.left - PAD.right) / Math.max(1, daily.length));
   const width = Math.max(320, daily.length * slot + PAD.left + PAD.right);
   const maxY = Math.max(1, ...daily.map((d) => Math.max(d.availableRooms, d.occupiedRooms)));
   const plotH = CHART_H - PAD.top - PAD.bottom;
   const y = (v: number) => PAD.top + plotH - (v / maxY) * plotH;
-  const barW = Math.min(24, slot - 2);
+  const barW = Math.max(2, Math.min(24, slot - 2));
   const ticks = [0, Math.round(maxY / 2), maxY];
   const labelEvery = Math.max(1, Math.ceil(daily.length / 8));
   const capacity = daily.length ? daily[0].availableRooms : 0;
@@ -302,7 +312,7 @@ function OccupancyChart({ daily }: { daily: DailyPoint[] }) {
           </table>
         </div>
       ) : (
-        <div className="relative overflow-x-auto rounded-xl border border-border bg-card/50 p-2">
+        <div ref={frameRef} className="relative overflow-x-auto rounded-xl border border-border bg-card/50 p-2">
           <svg
             viewBox={`0 0 ${width} ${CHART_H}`}
             width={width}

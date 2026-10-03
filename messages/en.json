@@ -1689,7 +1689,7 @@
     "online": "Online",
     "desk": "Front desk",
     "cancelled": "Cancelled",
-    "leadTime": "Booked ahead",
+    "leadTime": "Booked ahead (median)",
     "days": "{n} days",
     "payments": "Money received",
     "noPayments": "No payments in these dates.",
