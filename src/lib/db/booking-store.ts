@@ -36,6 +36,7 @@ type ReservationRow = {
   assigned_units?: string[] | null;
   quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
   group_id?: string | null;
+  booking_channel?: "online" | "desk" | null;
 };
 
 type PaymentRow = {
@@ -87,6 +88,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     assignedUnits: row.assigned_units ?? undefined,
     quoteSnapshot: row.quote_snapshot ?? undefined,
     groupId: row.group_id ?? undefined,
+    bookingChannel: row.booking_channel ?? undefined,
   };
 }
 
@@ -150,6 +152,7 @@ function reservationPatchToRow(
   if (patch.assignedUnits !== undefined) update.assigned_units = patch.assignedUnits;
   if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
   if (patch.groupId !== undefined) update.group_id = patch.groupId;
+  if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
   return update;
 }
 
@@ -406,6 +409,37 @@ export async function dbListOverlappingRoomReservations(
 
   if (error) throw new Error(error.message);
   return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbListReservationsForReport(from: string, to: string): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const endYmd = end.toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from("reservations")
+    .select()
+    .eq("item_type", "room")
+    .or(
+      `and(check_in.lt.${endYmd},check_out.gt.${from}),and(created_at.gte.${from},created_at.lt.${endYmd}),and(cancelled_at.gte.${from},cancelled_at.lt.${endYmd})`,
+    );
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbListPaymentsForReport(from: string, to: string): Promise<PaymentRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const { data, error } = await supabase
+    .from("payments")
+    .select()
+    .gte("created_at", from)
+    .lt("created_at", end.toISOString().slice(0, 10));
+  if (error) throw new Error(error.message);
+  return (data as PaymentRow[]).map(mapPayment);
 }
 
 export async function dbListReservationsByGroup(groupId: string): Promise<ReservationRecord[]> {

@@ -107,9 +107,11 @@ function toNewReservation(
   status: ReservationRecord["status"],
   expiringHold: boolean,
   groupId?: string,
+  bookingChannel: "online" | "desk" = "online",
 ): NewReservation {
   return {
     ...guest,
+    bookingChannel,
     itemType: "room",
     roomId: quote.roomId,
     checkIn: quote.checkIn,
@@ -144,6 +146,7 @@ async function insertLine(data: NewReservation): Promise<ReservationRecord | nul
   const missing: Partial<ReservationRecord> = {};
   if (!record.quoteSnapshot && data.quoteSnapshot) missing.quoteSnapshot = data.quoteSnapshot;
   if (!record.groupId && data.groupId) missing.groupId = data.groupId;
+  if (!record.bookingChannel && data.bookingChannel) missing.bookingChannel = data.bookingChannel;
   if (Object.keys(missing).length) {
     saved =
       (await updateReservationById(record.id, missing).catch((error) => {
@@ -176,7 +179,7 @@ export async function reserveRoom(
     return { ok: false, status: 422, code: quote.code, message: quote.message };
   }
 
-  const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold));
+  const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold, undefined, channel));
   return record ? { ok: true, record, quote } : SOLD_OUT;
 }
 
@@ -206,7 +209,7 @@ export async function reserveGroup(
   const records: ReservationRecord[] = [];
   let groupId: string | undefined;
   for (const line of quote.lines) {
-    const record = await insertLine(toNewReservation(line, guest, config, status, expiringHold, groupId));
+    const record = await insertLine(toNewReservation(line, guest, config, status, expiringHold, groupId, channel));
     if (!record) {
       const cancelledAt = new Date().toISOString();
       await Promise.all(
@@ -291,6 +294,7 @@ const BOOKING_ENGINE_FIELDS = [
   "holdExpiresAt",
   "quoteSnapshot",
   "groupId",
+  "bookingChannel",
 ] as const satisfies readonly (keyof NewReservation)[];
 
 function isMissingMigration(error: unknown): boolean {

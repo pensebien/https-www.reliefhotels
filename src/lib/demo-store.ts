@@ -6,6 +6,8 @@ import {
   dbFindReservationById,
   dbGetBookingActivity,
   dbFindPendingRefund,
+  dbListPaymentsForReport,
+  dbListReservationsForReport,
   dbListReservationsByGroup,
   dbListOverlappingRoomReservations,
   dbListPaymentsForReservation,
@@ -58,7 +60,15 @@ export type ReservationRecord = {
   quoteSnapshot?: StayQuote;
   /** Shared by the room-type lines of one group booking; equals the lead line's id. */
   groupId?: string;
+  /** Where the booking was made; older bookings are inferred (see bookingChannelOf). */
+  bookingChannel?: "online" | "desk";
 };
+
+/** Online vs front desk, inferring older bookings from the walk-in note. */
+export function bookingChannelOf(r: ReservationRecord): "online" | "desk" {
+  if (r.bookingChannel) return r.bookingChannel;
+  return r.message.startsWith("Walk-in booking") ? "desk" : "online";
+}
 
 export type NewReservation = Omit<
   ReservationRecord,
@@ -281,6 +291,36 @@ export async function listGroupMembers(reservation: ReservationRecord): Promise<
       a.createdAt.localeCompare(b.createdAt) ||
       a.id.localeCompare(b.id),
   );
+}
+
+/**
+ * Room reservations a report over [from, to] needs: stays overlapping the
+ * range, plus bookings created or cancelled in it. Uncapped.
+ */
+export async function listReservationsForReport(from: string, to: string): Promise<ReservationRecord[]> {
+  if (isSupabaseEnabled()) return dbListReservationsForReport(from, to);
+  const end = nextDay(to);
+  const { reservations } = await getActivity();
+  return reservations.filter(
+    (r) =>
+      r.itemType === "room" &&
+      ((r.checkIn && r.checkOut && r.checkIn < end && r.checkOut > from) ||
+        (r.createdAt.slice(0, 10) >= from && r.createdAt.slice(0, 10) <= to) ||
+        (r.cancelledAt && r.cancelledAt.slice(0, 10) >= from && r.cancelledAt.slice(0, 10) <= to)),
+  );
+}
+
+/** Payments created on days [from, to]. Uncapped. */
+export async function listPaymentsForReport(from: string, to: string): Promise<PaymentRecord[]> {
+  if (isSupabaseEnabled()) return dbListPaymentsForReport(from, to);
+  const { payments } = await getActivity();
+  return payments.filter((p) => p.createdAt.slice(0, 10) >= from && p.createdAt.slice(0, 10) <= to);
+}
+
+function nextDay(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 /** A pending refund row (negative amount) for `transactionReference`. */
