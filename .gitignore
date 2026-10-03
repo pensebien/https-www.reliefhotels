@@ -67,3 +67,4 @@ next-env.d.ts
 /inboxtap/
 /inboxtap.dev/
 /public/uploads/
+/data/invoices.json

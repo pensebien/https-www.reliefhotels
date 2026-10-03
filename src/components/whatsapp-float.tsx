@@ -38,6 +38,7 @@ export function WhatsAppFloat({ className }: { className?: string }) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t("ariaLabel")}
+      data-site-chrome
       onClick={(e) => {
         if (!href) e.preventDefault();
       }}

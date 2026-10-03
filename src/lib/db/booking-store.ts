@@ -34,6 +34,7 @@ type ReservationRow = {
   hold_expires_at?: string | null;
   cancelled_at?: string | null;
   assigned_units?: string[] | null;
+  quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
 };
 
 type PaymentRow = {
@@ -83,6 +84,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     holdExpiresAt: row.hold_expires_at ?? undefined,
     cancelledAt: row.cancelled_at ?? undefined,
     assignedUnits: row.assigned_units ?? undefined,
+    quoteSnapshot: row.quote_snapshot ?? undefined,
   };
 }
 
@@ -144,6 +146,7 @@ function reservationPatchToRow(
   }
   if (patch.cancelledAt !== undefined) update.cancelled_at = patch.cancelledAt;
   if (patch.assignedUnits !== undefined) update.assigned_units = patch.assignedUnits;
+  if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
   return update;
 }
 

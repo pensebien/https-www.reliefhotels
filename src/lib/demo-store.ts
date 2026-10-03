@@ -10,6 +10,7 @@ import {
   dbUpdatePaymentByReference,
   dbUpdateReservationById,
 } from "@/lib/db/booking-store";
+import type { StayQuote } from "@/lib/booking-engine/quote";
 import { isSupabaseEnabled } from "@/lib/db/client";
 import type {
   FrontDeskPaymentMethod,
@@ -51,6 +52,8 @@ export type ReservationRecord = {
   cancelledAt?: string;
   /** Physical rooms assigned, e.g. ["guest-room-3"] — one per unit (room setup numbering). */
   assignedUnits?: string[];
+  /** Full price breakdown locked at booking — invoice lines come from this. */
+  quoteSnapshot?: StayQuote;
 };
 
 export type NewReservation = Omit<

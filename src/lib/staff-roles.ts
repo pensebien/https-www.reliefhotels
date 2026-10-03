@@ -42,6 +42,7 @@ export const NAV_ITEMS: StaffNavItem[] = [
   { href: "/staff/accounting", labelKey: "accounting" },
   { href: "/staff/settings/rooms", labelKey: "roomSettings" },
   { href: "/staff/settings/rates", labelKey: "rateSettings" },
+  { href: "/staff/settings/invoices", labelKey: "invoiceSettings" },
   { href: "/staff/settings/tax", labelKey: "taxSettings" },
 ];
 
@@ -66,6 +67,7 @@ const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>
     "/staff/accounting": "full",
     "/staff/settings/rooms": "full",
     "/staff/settings/rates": "full",
+    "/staff/settings/invoices": "full",
     "/staff/settings/tax": "full",
   },
   restaurant_owner: {

@@ -49,3 +49,27 @@ export function buildManageBookingUrl(reservationId: string): string | null {
     return null;
   }
 }
+
+/** Guest link to one issued invoice; signed separately from the booking link. */
+export function signInvoiceId(invoiceId: string): string {
+  return createHmac("sha256", linkSecret())
+    .update(`invoice:${invoiceId}`)
+    .digest("base64url")
+    .slice(0, 32);
+}
+
+export function isValidInvoiceToken(invoiceId: string, token: string | null | undefined): boolean {
+  if (!token) return false;
+  const expected = Buffer.from(signInvoiceId(invoiceId));
+  const actual = Buffer.from(token);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+export function buildInvoiceUrl(invoiceId: string): string | null {
+  try {
+    const qs = new URLSearchParams({ id: invoiceId, t: signInvoiceId(invoiceId) });
+    return `${getServerConfig().appUrl}/booking/invoice?${qs}`;
+  } catch {
+    return null;
+  }
+}

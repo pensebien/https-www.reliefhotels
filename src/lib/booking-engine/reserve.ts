@@ -25,6 +25,7 @@ import {
   fileAddReservationIf,
   getActivity,
   holdsInventory,
+  updateReservationById,
   type NewReservation,
   type ReservationRecord,
 } from "@/lib/demo-store";
@@ -120,6 +121,7 @@ export async function reserveRoom(
     extraIds: quote.extras.length ? quote.extras.map((e) => e.id) : undefined,
     quotedTotalNgn: quote.totalNgn,
     quotedDepositNgn: quote.depositNgn,
+    quoteSnapshot: quote,
     holdExpiresAt: expiringHold
       ? new Date(Date.now() + config.holdMinutes * 60_000).toISOString()
       : undefined,
@@ -133,11 +135,22 @@ export async function reserveRoom(
 
   if (!record) return SOLD_OUT;
 
+  // reserve_room() inserts the 016 columns only; store the price breakdown
+  // (migration 017) separately. Best effort — invoices fall back to totals.
+  let saved = record;
+  if (!record.quoteSnapshot) {
+    saved =
+      (await updateReservationById(record.id, { quoteSnapshot: quote }).catch((error) => {
+        console.warn("[reserve] quote snapshot not stored:", error);
+        return null;
+      })) ?? record;
+  }
+
   // Give the booking physical rooms straight away (minimise gaps). Never
   // fails the booking — staff can assign from the calendar instead.
-  const assigned = await autoAssignRooms(record).catch((error) => {
+  const assigned = await autoAssignRooms(saved).catch((error) => {
     console.warn("[reserve] auto room assignment skipped:", error);
-    return record;
+    return saved;
   });
   return { ok: true, record: assigned, quote };
 }
@@ -196,6 +209,7 @@ const BOOKING_ENGINE_FIELDS = [
   "quotedTotalNgn",
   "quotedDepositNgn",
   "holdExpiresAt",
+  "quoteSnapshot",
 ] as const satisfies readonly (keyof NewReservation)[];
 
 function isMissingMigration(error: unknown): boolean {

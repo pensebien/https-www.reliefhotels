@@ -1,5 +1,6 @@
 "use client";
 
+import { InvoicesPanel } from "@/components/staff/invoices-panel";
 import { RoomAssignmentPanel } from "@/components/staff/room-assignment-panel";
 import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import type { CalendarBooking } from "@/lib/inventory-calendar";
@@ -143,6 +144,10 @@ export function BookingDetailSheet({
                 onClose();
               }}
             />
+          ) : null}
+
+          {dashboardKey && booking.kind === "stay" && booking.source !== "demo" ? (
+            <InvoicesPanel reservationId={booking.id} dashboardKey={dashboardKey} />
           ) : null}
 
           {canManageStay && dashboardKey ? (
