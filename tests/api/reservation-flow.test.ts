@@ -11,9 +11,11 @@ function setTestEnv() {
 }
 
 /** Unique far-future stay dates so inventory from prior runs does not 409. */
+let staySeq = 0;
 function stayDates() {
-  const offset = Math.floor(Date.now() / 1000) % 200;
-  const base = new Date(Date.UTC(2027, 5, 1 + offset));
+  // Each call gets its own dates so bookings from earlier runs never fill the room.
+  const offset = (Math.floor(Date.now() / 1000) % 4000) * 3 + staySeq++ * 3;
+  const base = new Date(Date.UTC(2037, 5, 1 + offset));
   const checkIn = base.toISOString().slice(0, 10);
   const out = new Date(base);
   out.setUTCDate(out.getUTCDate() + 2);
