@@ -71,3 +71,4 @@ next-env.d.ts
 /data/guest-message-log.json
 /data/checkins.json
 /data/guest-ids/
+/data/settings/
