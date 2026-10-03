@@ -604,3 +604,33 @@ export async function sendInvoiceEmail(invoice: IssuedInvoice): Promise<boolean>
     html: invoiceEmailHtml(invoice),
   });
 }
+
+/** A staff-written guest message (scheduled template); plain text, escaped, in the house layout. */
+export function guestMessageHtml(body: string): string {
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((p) => `<p style="margin:0 0 14px;">${escapeHtml(p).replace(/\n/g, "<br />")}</p>`)
+    .join("");
+  return emailLayout({ preheader: body.slice(0, 90), bodyHtml: paragraphs });
+}
+
+/** Returns "not_configured" when email isn't set up, so the run can say so. */
+export async function sendGuestMessageEmail(
+  to: string,
+  subject: string,
+  body: string,
+): Promise<"sent" | "failed" | "not_configured"> {
+  const config = getServerConfig();
+  if (!config.email.configured) {
+    console.info("[email:demo] guest message", to, subject);
+    return "not_configured";
+  }
+  const ok = await sendResendEmail({
+    from: config.email.reservations.from,
+    to: [to],
+    replyTo: config.email.reservations.replyTo,
+    subject,
+    html: guestMessageHtml(body),
+  });
+  return ok ? "sent" : "failed";
+}

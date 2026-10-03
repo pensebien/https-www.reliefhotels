@@ -68,3 +68,4 @@ next-env.d.ts
 /inboxtap.dev/
 /public/uploads/
 /data/invoices.json
+/data/guest-message-log.json
