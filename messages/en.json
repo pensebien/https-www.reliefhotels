@@ -943,6 +943,25 @@
         "failed": "failed",
         "abandoned": "abandoned"
       }
+    },
+    "checkin": {
+      "title": "Online check-in",
+      "notYet": "The guest hasn't checked in online.",
+      "done": "Checked in online · arriving {time}",
+      "purpose": {
+        "leisure": "Leisure",
+        "business": "Business",
+        "conference": "Conference",
+        "other": "Other"
+      },
+      "idType": {
+        "national_id": "National ID",
+        "passport": "Passport",
+        "drivers_licence": "Driver's licence",
+        "voters_card": "Voter's card"
+      },
+      "viewPhoto": "Open ID photo",
+      "purged": "ID details deleted after the retention period."
     }
   },
   "staffPortal": {
@@ -1425,7 +1444,37 @@
     "keepBooking": "Keep booking",
     "cancelled": "Your booking has been cancelled.",
     "cancelledWithRefund": "Your booking has been cancelled. A refund of {amount} will be processed by our front desk.",
-    "cancelError": "We couldn't cancel this booking. Please contact the hotel."
+    "cancelError": "We couldn't cancel this booking. Please contact the hotel.",
+    "checkin": {
+      "title": "Check in online",
+      "intro": "Save time at reception: tell us when you'll arrive and share your ID details.",
+      "opensOn": "Online check-in opens on {date}.",
+      "arrivalTime": "Arrival time",
+      "nationality": "Nationality",
+      "address": "Home address",
+      "purpose": "Purpose of stay",
+      "purposes": {
+        "leisure": "Leisure",
+        "business": "Business",
+        "conference": "Conference",
+        "other": "Other"
+      },
+      "idType": "ID type",
+      "idTypes": {
+        "national_id": "National ID (NIN slip or card)",
+        "passport": "International passport",
+        "drivers_licence": "Driver's licence",
+        "voters_card": "Voter's card"
+      },
+      "idNumber": "ID number",
+      "idPhoto": "Photo of your ID (optional)",
+      "idPhotoRequired": "Photo of your ID",
+      "consent": "I confirm these details are correct. The hotel may keep my ID details for the stay and delete them afterwards, as its privacy policy describes.",
+      "submit": "Check in",
+      "error": "Check-in couldn't be saved. Please try again.",
+      "doneTitle": "You're checked in",
+      "rooms": "Your room: {rooms}"
+    }
   },
   "staffRateSettings": {
     "metaTitle": "Rates & restrictions",
@@ -1717,6 +1766,23 @@
       "sent": "sent",
       "failed": "failed",
       "not_configured": "channel not set up"
+    },
+    "checkinSettings": {
+      "title": "Online check-in",
+      "subtitle": "Guests with a paid deposit can check in from their booking link before they arrive.",
+      "enabled": "Let guests check in online",
+      "opens": "Opens",
+      "opensAria": "Days before arrival",
+      "opensAfter": "days before arrival",
+      "requirePhoto": "Require a photo of the guest's ID",
+      "instructions": "Message shown after checking in",
+      "retention": "Delete ID numbers and photos",
+      "retentionAria": "Days after check-out",
+      "retentionAfter": "days after check-out",
+      "save": "Save check-in settings",
+      "saving": "Saving…",
+      "saved": "Saved.",
+      "error": "Settings could not be saved."
     }
   }
 }

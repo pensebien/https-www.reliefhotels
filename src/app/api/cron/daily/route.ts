@@ -1,3 +1,5 @@
+import { getCheckinSettings } from "@/lib/checkin/settings";
+import { purgeExpiredIdData } from "@/lib/checkin/store";
 import { runGuestMessages } from "@/lib/guest-messages/run";
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
@@ -19,7 +21,9 @@ async function handle(request: Request) {
 
   try {
     const guestMessages = await runGuestMessages();
-    return NextResponse.json({ ok: true, guestMessages });
+    // Delete guest ID numbers and photos once the retention period is over.
+    const idRecordsPurged = await purgeExpiredIdData((await getCheckinSettings()).retentionDays);
+    return NextResponse.json({ ok: true, guestMessages, idRecordsPurged });
   } catch (error) {
     console.error("[cron/daily]", error);
     return NextResponse.json({ error: "Daily jobs failed" }, { status: 500 });

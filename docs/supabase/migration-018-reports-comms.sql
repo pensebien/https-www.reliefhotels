@@ -37,3 +37,36 @@ create policy "service_role_all_guest_message_log"
   to service_role
   using (true)
   with check (true);
+
+-- 3. Online check-in. ID photos live in a PRIVATE bucket; staff read them
+--    through an authenticated route. ID number and photo are purged after
+--    the retention period by the daily job.
+create table if not exists online_checkins (
+  reservation_id uuid primary key references reservations (id) on delete cascade,
+  submitted_at timestamptz not null default now(),
+  arrival_time text not null,
+  nationality text not null,
+  address text not null,
+  purpose_of_stay text not null,
+  id_type text not null,
+  id_number text,
+  id_photo_path text,
+  id_photo_content_type text,
+  purged_at timestamptz
+);
+
+alter table online_checkins enable row level security;
+
+drop policy if exists "service_role_all_online_checkins" on online_checkins;
+create policy "service_role_all_online_checkins"
+  on online_checkins
+  as permissive
+  for all
+  to service_role
+  using (true)
+  with check (true);
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('guest-ids', 'guest-ids', false, 5242880,
+        array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;

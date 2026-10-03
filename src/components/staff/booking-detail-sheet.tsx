@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckinPanel } from "@/components/staff/checkin-panel";
 import { InvoicesPanel } from "@/components/staff/invoices-panel";
 import { RefundsPanel } from "@/components/staff/refunds-panel";
 import { RoomAssignmentPanel } from "@/components/staff/room-assignment-panel";
@@ -135,6 +136,10 @@ export function BookingDetailSheet({
             />
           ) : null}
           <DetailRow label={t("reservationId")} value={booking.id} mono />
+
+          {dashboardKey && booking.kind === "stay" && booking.source !== "demo" ? (
+            <CheckinPanel reservationId={booking.id} dashboardKey={dashboardKey} />
+          ) : null}
 
           {canManageStay && dashboardKey ? (
             <RoomAssignmentPanel

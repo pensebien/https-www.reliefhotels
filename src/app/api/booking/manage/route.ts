@@ -1,4 +1,8 @@
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
+import { checkinState } from "@/lib/checkin/availability";
+import { getCheckinSettings } from "@/lib/checkin/settings";
+import { findCheckin } from "@/lib/checkin/store";
+import { getRoomSetup, unitLabelMap } from "@/lib/room-setup";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -9,8 +13,25 @@ export async function GET(request: Request) {
   });
   if (!result.ok) return result.response;
 
-  const { view, config } = result.booking;
+  const { view, config, members } = result.booking;
+  const [settings, existing, roomSetup] = await Promise.all([
+    getCheckinSettings(),
+    findCheckin(members[0].id),
+    getRoomSetup(),
+  ]);
+  const { state, opensOn } = checkinState(members, settings, Boolean(existing));
+  const labels = unitLabelMap(roomSetup);
   return NextResponse.json({
+    checkin: {
+      state,
+      opensOn,
+      requireIdPhoto: settings.requireIdPhoto,
+      instructions: state === "done" ? settings.instructions : undefined,
+      roomNumbers:
+        state === "done"
+          ? members.flatMap((m) => (m.assignedUnits ?? []).map((u) => labels[u] ?? u))
+          : undefined,
+    },
     ok: true,
     booking: view,
     policy: config.cancellation,

@@ -6,6 +6,7 @@ import type { MessageLogEntry } from "@/lib/guest-messages/log";
 import { renderTemplate, type MessageValues } from "@/lib/guest-messages/render";
 import type { GuestMessagesSettings, MessageTemplate } from "@/lib/guest-messages/settings";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { CheckinSettingsSection } from "./checkin-settings-section";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -138,6 +139,7 @@ export function StaffMessagesClient() {
             onSave={save}
             onTest={sendTest}
           />
+          <CheckinSettingsSection query={q} />
           <section className="mt-10" aria-labelledby="sent-log">
             <h2 id="sent-log" className="mb-3 font-serif text-xl font-medium">{t("logTitle")}</h2>
             {data.log.length === 0 ? (

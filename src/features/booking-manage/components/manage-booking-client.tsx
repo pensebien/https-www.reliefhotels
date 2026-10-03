@@ -8,8 +8,10 @@ import { CreditCard, Loader2, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { OnlineCheckinCard, type CheckinInfo } from "./online-checkin-card";
 
 type ManageResponse = {
+  checkin?: CheckinInfo;
   booking: GuestBookingView;
   policy: CancellationPolicy;
   extras: { id: string; label: string }[];
@@ -168,6 +170,10 @@ export function ManageBookingClient() {
 
       {notice ? <p className="text-sm text-teal-dark">{notice}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {data.checkin ? (
+        <OnlineCheckinCard id={id} token={token} info={data.checkin} onDone={load} />
+      ) : null}
 
       {booking.amountDueKind ? (
         <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6">

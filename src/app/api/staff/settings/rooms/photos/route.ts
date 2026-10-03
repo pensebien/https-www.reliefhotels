@@ -1,5 +1,6 @@
 import { rooms } from "@/content/site";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
+import { sniffImage } from "@/lib/image-sniff";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
@@ -8,20 +9,6 @@ import path from "path";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const BUCKET = "room-photos";
-
-/** Identify the image by its leading bytes — never trust the file name or browser type. */
-function sniffImage(bytes: Uint8Array): { ext: string; contentType: string } | null {
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return { ext: "jpg", contentType: "image/jpeg" };
-  }
-  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
-    return { ext: "png", contentType: "image/png" };
-  }
-  const riff = String.fromCharCode(...bytes.slice(0, 4));
-  const webp = String.fromCharCode(...bytes.slice(8, 12));
-  if (riff === "RIFF" && webp === "WEBP") return { ext: "webp", contentType: "image/webp" };
-  return null;
-}
 
 /** Upload one room photo; returns its URL for the room setup's photo list. */
 export async function POST(request: Request) {

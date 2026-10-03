@@ -69,3 +69,5 @@ next-env.d.ts
 /public/uploads/
 /data/invoices.json
 /data/guest-message-log.json
+/data/checkins.json
+/data/guest-ids/
