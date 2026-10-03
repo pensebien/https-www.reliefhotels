@@ -1,3 +1,4 @@
+import { dataPath } from "@/lib/data-dir";
 import {
   dbAddDiningReservation,
   dbAddEventInquiry,
@@ -5,7 +6,6 @@ import {
 import { isSupabaseEnabled } from "@/lib/db/client";
 import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 import { randomUUID } from "crypto";
-import path from "path";
 
 export type EventInquiry = {
   id: string;
@@ -49,7 +49,7 @@ type InquiryStore = {
   guestFeedback: GuestFeedback[];
 };
 
-const STORE_FILE = path.join(process.cwd(), "data", "inquiries.json");
+const STORE_FILE = dataPath("inquiries.json");
 
 const emptyStore = (): InquiryStore => ({
   eventInquiries: [],

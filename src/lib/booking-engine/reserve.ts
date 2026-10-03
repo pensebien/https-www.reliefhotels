@@ -33,6 +33,7 @@ import { getRoomAvailability } from "@/lib/room-availability";
 import { autoAssignRooms } from "@/lib/room-assignment";
 import { roomDisplayName } from "@/lib/room-names";
 import { getRoomSetup } from "@/lib/room-setup";
+import { bookingWindowError } from "./booking-window";
 import { quoteGroup, type GroupQuote, type GroupQuoteInput } from "./group";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
@@ -107,9 +108,11 @@ function toNewReservation(
   status: ReservationRecord["status"],
   expiringHold: boolean,
   groupId?: string,
+  bookingChannel: "online" | "desk" = "online",
 ): NewReservation {
   return {
     ...guest,
+    bookingChannel,
     itemType: "room",
     roomId: quote.roomId,
     checkIn: quote.checkIn,
@@ -144,6 +147,7 @@ async function insertLine(data: NewReservation): Promise<ReservationRecord | nul
   const missing: Partial<ReservationRecord> = {};
   if (!record.quoteSnapshot && data.quoteSnapshot) missing.quoteSnapshot = data.quoteSnapshot;
   if (!record.groupId && data.groupId) missing.groupId = data.groupId;
+  if (!record.bookingChannel && data.bookingChannel) missing.bookingChannel = data.bookingChannel;
   if (Object.keys(missing).length) {
     saved =
       (await updateReservationById(record.id, missing).catch((error) => {
@@ -162,7 +166,7 @@ async function insertLine(data: NewReservation): Promise<ReservationRecord | nul
 
 export async function reserveRoom(
   stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
-    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions">,
+    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions" | "ratePlanId" | "linkRatePlanId">,
   guest: GuestDetails,
   options: ReserveOptions = {},
 ): Promise<ReserveResult> {
@@ -171,12 +175,14 @@ export async function reserveRoom(
     return NOT_ONLINE;
   }
   const config = await getRateConfig();
+  const windowError = channel === "online" ? bookingWindowError(stay.checkIn, config.engine) : null;
+  if (windowError) return { ok: false, status: 422, code: "booking_window", message: windowError };
   const quote = await quoteStayLive(stay, config);
   if (!quote.ok) {
     return { ok: false, status: 422, code: quote.code, message: quote.message };
   }
 
-  const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold));
+  const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold, undefined, channel));
   return record ? { ok: true, record, quote } : SOLD_OUT;
 }
 
@@ -199,6 +205,8 @@ export async function reserveGroup(
     return NOT_ONLINE as Extract<ReserveGroupResult, { ok: false }>;
   }
   const config = await getRateConfig();
+  const windowError = channel === "online" ? bookingWindowError(input.checkIn, config.engine) : null;
+  if (windowError) return { ok: false, status: 422, code: "booking_window", message: windowError };
   const couponRedemptions = input.couponCode ? await countCouponRedemptions(input.couponCode) : 0;
   const quote = quoteGroup({ ...input, couponRedemptions }, config);
   if (!quote.ok) return { ok: false, status: 422, code: quote.code, message: quote.message };
@@ -206,7 +214,7 @@ export async function reserveGroup(
   const records: ReservationRecord[] = [];
   let groupId: string | undefined;
   for (const line of quote.lines) {
-    const record = await insertLine(toNewReservation(line, guest, config, status, expiringHold, groupId));
+    const record = await insertLine(toNewReservation(line, guest, config, status, expiringHold, groupId, channel));
     if (!record) {
       const cancelledAt = new Date().toISOString();
       await Promise.all(
@@ -291,6 +299,7 @@ const BOOKING_ENGINE_FIELDS = [
   "holdExpiresAt",
   "quoteSnapshot",
   "groupId",
+  "bookingChannel",
 ] as const satisfies readonly (keyof NewReservation)[];
 
 function isMissingMigration(error: unknown): boolean {

@@ -1,10 +1,10 @@
+import { dataPath } from "@/lib/data-dir";
 import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
-import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
 const KEY = "relief-demo-2026";
-const RATE_FILE = path.join(process.cwd(), "data", "rate-config.json");
+const RATE_FILE = dataPath("rate-config.json");
 const ONCE = `GRP${Date.now()}`;
 
 function setTestEnv() {

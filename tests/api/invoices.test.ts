@@ -1,6 +1,6 @@
+import { dataPath } from "@/lib/data-dir";
 import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
-import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
 const KEY = "relief-demo-2026";
@@ -22,7 +22,7 @@ const json = (url: string, body: unknown, method = "POST") =>
 describe("Invoices API", () => {
   before(setTestEnv);
   after(async () => {
-    await fs.rm(path.join(process.cwd(), "data", "settings", "invoice_settings.json"), { force: true });
+    await fs.rm(dataPath("settings", "invoice_settings.json"), { force: true });
   });
 
   it("issues numbered invoices, credits each once, and serves a signed guest link", async () => {

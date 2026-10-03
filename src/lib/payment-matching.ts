@@ -1,11 +1,11 @@
+import { dataPath } from "@/lib/data-dir";
 import { demoPayments } from "@/content/demo-data";
 import type { PaymentRecord } from "@/lib/demo-store";
 import { isSupabaseEnabled } from "@/lib/db/client";
 import { getSupabaseAdmin } from "@/lib/db/client";
 import { promises as fs } from "fs";
-import path from "path";
 
-const STORE_FILE = path.join(process.cwd(), "data", "demo-store.json");
+const STORE_FILE = dataPath("demo-store.json");
 
 async function readFilePayments(): Promise<PaymentRecord[]> {
   try {

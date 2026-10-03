@@ -1,4 +1,5 @@
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { sendPaymentConfirmationEmail } from "@/lib/email";
 import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
 import { notifyManager } from "@/lib/notifications";
@@ -18,6 +19,10 @@ export async function handlePaymentConfirmed(
   reservation: ReservationRecord,
 ): Promise<boolean> {
   await syncConfirmedReservationToRayza(reservation);
+  await emitBookingEvent("payment.received", reservation, {
+    payment: { reference: payment.reference, amountNgn: Math.round(payment.amountKobo / 100), method: payment.paymentMethod ?? payment.paymentChannel },
+  });
+  await emitBookingEvent("booking.confirmed", reservation);
 
   await sendPaymentConfirmationEmail({
     email: payment.email,

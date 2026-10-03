@@ -126,6 +126,19 @@ async function sendWhatsApp(to: string, message: string): Promise<boolean> {
 /**
  * Notify hotel manager per Phase 0 KPI #5 (ADR-003: SMS + WhatsApp at launch).
  */
+/**
+ * Text a guest (scheduled guest messages). Returns false when the channel
+ * isn't configured. WhatsApp outside a guest-started conversation may need
+ * an approved template with the provider.
+ */
+export async function sendGuestText(
+  to: string,
+  message: string,
+  channel: "sms" | "whatsapp",
+): Promise<boolean> {
+  return channel === "sms" ? sendTermiiSms(to, message) : sendWhatsApp(to, message);
+}
+
 export async function notifyManager(
   payload: NotifyPayload,
 ): Promise<NotifyResult> {

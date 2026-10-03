@@ -39,6 +39,8 @@ export type GuestBookingView = {
   /** Last instant a cancellation still gets the in-window refund. */
   freeCancelUntil?: string;
   refundIfCancelledNgn: number;
+  /** False for non-refundable rate plans. */
+  refundable: boolean;
   /** Room types in the booking — more than one for a group booking. */
   lines: { roomId?: string; rooms: number }[];
 };
@@ -104,7 +106,9 @@ export function buildGuestBookingView(
           policy.freeCancelHoursBefore * 3_600_000,
       )
     : undefined;
-  const withinWindow = freeCancelUntil ? now <= freeCancelUntil : false;
+  // A non-refundable rate plan refunds nothing, whenever the guest cancels.
+  const refundable = counted.every((m) => m.quoteSnapshot?.ratePlan?.refundable !== false);
+  const withinWindow = refundable && (freeCancelUntil ? now <= freeCancelUntil : false);
   const canCancel = policy.allowGuestCancel && active && beforeCheckIn;
 
   return {
@@ -133,5 +137,6 @@ export function buildGuestBookingView(
         ? Math.round((paidNgn * policy.refundPctWithinWindow) / 100)
         : 0,
     lines: counted.map((m) => ({ roomId: m.roomId, rooms: m.units ?? 1 })),
+    refundable,
   };
 }

@@ -6,10 +6,10 @@
  * JSON store's per-file lock in file mode).
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 import { randomUUID } from "crypto";
-import path from "path";
 import type { InvoiceDocument, InvoiceKind } from "./build";
 
 export type IssuedInvoice = {
@@ -26,7 +26,7 @@ export type IssuedInvoice = {
 
 type Store = { counters: Record<string, number>; invoices: IssuedInvoice[] };
 
-const STORE_FILE = path.join(process.cwd(), "data", "invoices.json");
+const STORE_FILE = dataPath("invoices.json");
 const empty = (): Store => ({ counters: {}, invoices: [] });
 
 type InvoiceRow = {
@@ -156,4 +156,25 @@ export class InvoiceStoreError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);
   }
+}
+
+/** Invoices and credit notes issued on days [from, to]. */
+export async function listInvoicesInRange(from: string, to: string): Promise<IssuedInvoice[]> {
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const endIso = end.toISOString();
+  if (!isSupabaseEnabled()) {
+    const store = await readJsonFile(STORE_FILE, empty);
+    return store.invoices.filter((i) => i.issuedAt >= from && i.issuedAt < endIso);
+  }
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase
+    .from("invoices")
+    .select()
+    .gte("issued_at", from)
+    .lt("issued_at", endIso)
+    .order("issued_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as InvoiceRow[]).map(mapRow);
 }

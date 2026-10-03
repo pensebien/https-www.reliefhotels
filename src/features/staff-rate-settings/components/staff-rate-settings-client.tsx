@@ -4,12 +4,15 @@ import { rooms } from "@/content/site";
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
 import { Link } from "@/i18n/navigation";
 import type {
+  AvailabilityRestriction,
   Coupon,
   Extra,
   LongStayDiscount,
   RateConfig,
+  RatePlan,
   RoomRatePolicy,
   SeasonalRate,
+  StayRule,
 } from "@/lib/booking-engine/rate-config";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -166,7 +169,9 @@ function RateSettingsForm({
     onEdit();
   }
 
-  function updateAt<K extends "rooms" | "seasons" | "longStay" | "coupons" | "extras">(
+  function updateAt<
+    K extends "rooms" | "seasons" | "longStay" | "coupons" | "extras" | "restrictions" | "stayRules" | "ratePlans",
+  >(
     list: K,
     index: number,
     change: Partial<RateConfig[K][number]>,
@@ -179,7 +184,10 @@ function RateSettingsForm({
     onEdit();
   }
 
-  function removeAt(list: "seasons" | "longStay" | "coupons" | "extras", index: number) {
+  function removeAt(
+    list: "seasons" | "longStay" | "coupons" | "extras" | "restrictions" | "stayRules" | "ratePlans",
+    index: number,
+  ) {
     setDraft((prev) => ({ ...prev, [list]: prev[list].filter((_, i) => i !== index) }));
     setStatus(null);
     onEdit();
@@ -239,6 +247,79 @@ function RateSettingsForm({
         </div>
       </Section>
 
+      <Section title={t("engineTitle")} hint={t("engineHint")}>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className={cellLabel}>{t("engineMode")}</span>
+            <select
+              id="engine-mode"
+              value={draft.engine.mode}
+              onChange={(e) => patch({ engine: { ...draft.engine, mode: e.target.value as RateConfig["engine"]["mode"] } })}
+              className={inputClass}
+            >
+              <option value="instant">{t("modeInstant")}</option>
+              <option value="request">{t("modeRequest")}</option>
+            </select>
+          </label>
+          <NumField label={t("minDaysAhead")} value={draft.engine.minDaysAhead} min={0} onChange={(v) => patch({ engine: { ...draft.engine, minDaysAhead: v ?? 0 } })} />
+          <NumField label={t("maxDaysAhead")} value={draft.engine.maxDaysAhead ?? undefined} min={1} optional onChange={(v) => patch({ engine: { ...draft.engine, maxDaysAhead: v ?? null } })} />
+          <label className="block">
+            <span className={cellLabel}>{t("sameDayCutoff")}</span>
+            <input
+              id="engine-cutoff"
+              type="time"
+              value={draft.engine.sameDayCutoff ?? ""}
+              onChange={(e) => patch({ engine: { ...draft.engine, sameDayCutoff: e.target.value || null } })}
+              className={inputClass}
+            />
+          </label>
+          <label className="block">
+            <span className={cellLabel}>{t("arrivalTimeField")}</span>
+            <select
+              id="engine-arrival"
+              value={draft.engine.arrivalTimeField}
+              onChange={(e) => patch({ engine: { ...draft.engine, arrivalTimeField: e.target.value as RateConfig["engine"]["arrivalTimeField"] } })}
+              className={inputClass}
+            >
+              <option value="hidden">{t("fieldHidden")}</option>
+              <option value="optional">{t("fieldOptional")}</option>
+              <option value="required">{t("fieldRequired")}</option>
+            </select>
+          </label>
+        </div>
+        <div className="space-y-2">
+          <p className={cellLabel}>{t("customFieldsTitle")}</p>
+          {draft.engine.customFields.map((field, i) => {
+            const setField = (change: Partial<typeof field>) =>
+              patch({ engine: { ...draft.engine, customFields: draft.engine.customFields.map((f, j) => (j === i ? { ...f, ...change } : f)) } });
+            return (
+              <div key={field.id} className="flex flex-wrap items-center gap-2">
+                <input aria-label={t("label")} value={field.label} onChange={(e) => setField({ label: e.target.value })} className={`${inputClass} min-w-0 flex-1`} />
+                <select aria-label={t("fieldType")} value={field.type} onChange={(e) => setField({ type: e.target.value as "text" | "checkbox" })} className={`${inputClass} w-36`}>
+                  <option value="text">{t("fieldText")}</option>
+                  <option value="checkbox">{t("fieldCheckbox")}</option>
+                </select>
+                <label className="flex items-center gap-1.5 text-sm">
+                  <input type="checkbox" className="h-4 w-4 accent-teal" checked={field.required} onChange={(e) => setField({ required: e.target.checked })} />
+                  {t("fieldRequired")}
+                </label>
+                <button type="button" aria-label={t("remove")} onClick={() => patch({ engine: { ...draft.engine, customFields: draft.engine.customFields.filter((_, j) => j !== i) } })} className="rounded p-1.5 text-muted hover:text-red-600">
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => patch({ engine: { ...draft.engine, customFields: [...draft.engine.customFields, { id: `q-${Date.now()}`, label: "", type: "text", required: false }] } })}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm hover:border-teal"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {t("addCustomField")}
+          </button>
+        </div>
+      </Section>
+
       <Section title={t("roomsTitle")} hint={t("roomsHint")}>
         <div className="space-y-3">
           {draft.rooms.map((policy: RoomRatePolicy, i) => (
@@ -277,6 +358,7 @@ function RateSettingsForm({
             <NumField label={t("adjustPct")} value={season.adjustPct} min={-90} optional onChange={(v) => updateAt("seasons", i, { adjustPct: v })} />
             <NumField label={t("minNights")} value={season.minNights} min={1} optional onChange={(v) => updateAt("seasons", i, { minNights: v })} />
             <CheckField label={t("closedToArrival")} checked={Boolean(season.closedToArrival)} onChange={(v) => updateAt("seasons", i, { closedToArrival: v || undefined })} />
+            <WeekdayPicker label={t("onWeekdays")} allLabel={t("everyDay")} value={season.weekdays} onChange={(v) => updateAt("seasons", i, { weekdays: v })} />
             <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={season.roomIds} onChange={(v) => updateAt("seasons", i, { roomIds: v })} />
           </Row>
         ))}
@@ -348,10 +430,110 @@ function RateSettingsForm({
                 <option value="per_stay">{t("perStay")}</option>
                 <option value="per_night">{t("perNight")}</option>
                 <option value="per_guest_night">{t("perGuestNight")}</option>
+                <option value="per_room">{t("perRoom")}</option>
+                <option value="per_room_night">{t("perRoomNight")}</option>
               </select>
             </label>
             <CheckField label={t("active")} checked={extra.active !== false} onChange={(v) => updateAt("extras", i, { active: v })} />
+            <CheckField label={t("includedExtra")} checked={Boolean(extra.included)} onChange={(v) => updateAt("extras", i, { included: v || undefined })} />
             <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={extra.roomIds} onChange={(v) => updateAt("extras", i, { roomIds: v })} />
+          </Row>
+        ))}
+      </Section>
+
+      <Section
+        title={t("restrictionsTitle")}
+        hint={t("restrictionsHint")}
+        onAdd={() =>
+          patch({
+            restrictions: [
+              ...draft.restrictions,
+              { id: `restriction-${Date.now()}`, label: "", from: today, to: today, mode: "no_arrival" },
+            ],
+          })
+        }
+        addLabel={t("addRestriction")}
+      >
+        {draft.restrictions.length === 0 ? <Empty text={t("none")} /> : null}
+        {draft.restrictions.map((r: AvailabilityRestriction, i) => (
+          <Row key={r.id} onRemove={() => removeAt("restrictions", i)} removeLabel={t("remove")}>
+            <TextField label={t("label")} value={r.label} onChange={(v) => updateAt("restrictions", i, { label: v })} />
+            <DateField label={t("from")} value={r.from} onChange={(v) => updateAt("restrictions", i, { from: v })} />
+            <DateField label={t("toExclusive")} value={r.to} onChange={(v) => updateAt("restrictions", i, { to: v })} />
+            <label className="block">
+              <span className={cellLabel}>{t("restrictionMode")}</span>
+              <select
+                value={r.mode}
+                onChange={(e) => updateAt("restrictions", i, { mode: e.target.value as AvailabilityRestriction["mode"] })}
+                className={inputClass}
+              >
+                <option value="no_arrival">{t("modeNoArrival")}</option>
+                <option value="no_departure">{t("modeNoDeparture")}</option>
+                <option value="closed">{t("modeClosed")}</option>
+              </select>
+            </label>
+            <WeekdayPicker label={t("onWeekdays")} allLabel={t("everyDay")} value={r.weekdays} onChange={(v) => updateAt("restrictions", i, { weekdays: v })} />
+            <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={r.roomIds} onChange={(v) => updateAt("restrictions", i, { roomIds: v })} />
+          </Row>
+        ))}
+      </Section>
+
+      <Section
+        title={t("stayRulesTitle")}
+        hint={t("stayRulesHint")}
+        onAdd={() =>
+          patch({
+            stayRules: [...draft.stayRules, { id: `stay-${Date.now()}`, label: "", minNights: 2, checkInWeekdays: [5] }],
+          })
+        }
+        addLabel={t("addStayRule")}
+      >
+        {draft.stayRules.length === 0 ? <Empty text={t("none")} /> : null}
+        {draft.stayRules.map((rule: StayRule, i) => (
+          <Row key={rule.id} onRemove={() => removeAt("stayRules", i)} removeLabel={t("remove")}>
+            <TextField label={t("label")} value={rule.label} onChange={(v) => updateAt("stayRules", i, { label: v })} />
+            <NumField label={t("minNights")} value={rule.minNights} min={1} onChange={(v) => updateAt("stayRules", i, { minNights: v ?? 1 })} />
+            <NumField label={t("maxNights")} value={rule.maxNights} min={1} optional onChange={(v) => updateAt("stayRules", i, { maxNights: v })} />
+            <DateField label={t("fromOptional")} value={rule.from} optional onChange={(v) => updateAt("stayRules", i, { from: v || undefined })} />
+            <DateField label={t("toOptional")} value={rule.to} optional onChange={(v) => updateAt("stayRules", i, { to: v || undefined })} />
+            <CheckField label={t("wholeWeeks")} checked={Boolean(rule.wholeWeeks)} onChange={(v) => updateAt("stayRules", i, { wholeWeeks: v || undefined })} />
+            <WeekdayPicker label={t("checkInOn")} allLabel={t("everyDay")} value={rule.checkInWeekdays} onChange={(v) => updateAt("stayRules", i, { checkInWeekdays: v })} />
+            <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={rule.roomIds} onChange={(v) => updateAt("stayRules", i, { roomIds: v })} />
+          </Row>
+        ))}
+      </Section>
+
+      <Section
+        title={t("ratePlansTitle")}
+        hint={t("ratePlansHint")}
+        onAdd={() =>
+          patch({
+            ratePlans: [
+              ...draft.ratePlans,
+              { id: `plan-${Date.now()}`, label: t("nonRefundableLabel"), description: "", adjustPct: -10, refundable: false, active: true },
+            ],
+          })
+        }
+        addLabel={t("addRatePlan")}
+      >
+        {draft.ratePlans.length === 0 ? <Empty text={t("none")} /> : null}
+        {draft.ratePlans.map((plan: RatePlan, i) => (
+          <Row key={plan.id} onRemove={() => removeAt("ratePlans", i)} removeLabel={t("remove")}>
+            <TextField label={t("label")} value={plan.label} onChange={(v) => updateAt("ratePlans", i, { label: v })} />
+            <NumField label={t("adjustPct")} value={plan.adjustPct} min={-90} onChange={(v) => updateAt("ratePlans", i, { adjustPct: v ?? 0 })} />
+            <NumField label={t("planDepositPct")} value={plan.depositPct} min={0} max={100} optional onChange={(v) => updateAt("ratePlans", i, { depositPct: v })} />
+            <CheckField label={t("refundable")} checked={plan.refundable} onChange={(v) => updateAt("ratePlans", i, { refundable: v })} />
+            <CheckField label={t("active")} checked={plan.active !== false} onChange={(v) => updateAt("ratePlans", i, { active: v })} />
+            <CheckField label={t("planLinkOnly")} checked={plan.linkOnly === true} onChange={(v) => updateAt("ratePlans", i, { linkOnly: v || undefined })} />
+            <label className="block sm:col-span-3 lg:col-span-5">
+              <span className={cellLabel}>{t("planDescription")}</span>
+              <input
+                value={plan.description}
+                onChange={(e) => updateAt("ratePlans", i, { description: e.target.value })}
+                className={inputClass}
+              />
+            </label>
+            <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={plan.roomIds} onChange={(v) => updateAt("ratePlans", i, { roomIds: v })} />
           </Row>
         ))}
       </Section>
@@ -588,6 +770,54 @@ function RoomScope({
             {roomName(room.id)}
           </label>
         ))}
+      </div>
+    </fieldset>
+  );
+}
+
+const WEEKDAY_KEYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+
+/** Weekday chips; none selected = every day (stored as undefined). */
+function WeekdayPicker({
+  label,
+  allLabel,
+  value,
+  onChange,
+}: {
+  label: string;
+  allLabel: string;
+  value: number[] | undefined;
+  onChange: (value: number[] | undefined) => void;
+}) {
+  const t = useTranslations("staffRateSettings.weekdays");
+  const selected = value ?? [];
+  return (
+    <fieldset className="sm:col-span-3 lg:col-span-5">
+      <legend className={cellLabel}>
+        {label} {selected.length === 0 ? `(${allLabel})` : null}
+      </legend>
+      <div className="flex flex-wrap gap-1.5">
+        {WEEKDAY_KEYS.map((key, day) => {
+          const on = selected.includes(day);
+          return (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={on}
+              onClick={() => {
+                const next = on ? selected.filter((d) => d !== day) : [...selected, day].sort();
+                onChange(next.length ? next : undefined);
+              }}
+              className={
+                on
+                  ? "rounded-full border border-teal bg-teal/15 px-2.5 py-1 text-xs font-medium"
+                  : "rounded-full border border-border px-2.5 py-1 text-xs hover:border-teal"
+              }
+            >
+              {t(key)}
+            </button>
+          );
+        })}
       </div>
     </fieldset>
   );

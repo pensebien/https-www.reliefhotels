@@ -1,6 +1,7 @@
 import { ConciergeContactPrompt } from "@/components/concierge-contact-prompt";
 import { ReservationForm } from "@/features/reservations";
 import { rooms } from "@/content/site";
+import { linkCoversRoom, resolveBookingLink } from "@/lib/booking-engine/booking-links";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { getRoomAvailability } from "@/lib/room-availability";
 import { Link, redirect } from "@/i18n/navigation";
@@ -21,6 +22,7 @@ type BookSearchParams = {
   checkOut?: string;
   guests?: string;
   rooms?: string;
+  link?: string;
 };
 
 export default async function BookPage({
@@ -90,11 +92,16 @@ export default async function BookPage({
     Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
 
   const stayRooms = bookingQuery?.rooms ?? 1;
-  const rateConfig = await getRateConfig();
+  const [rateConfig, linkFound] = await Promise.all([getRateConfig(), resolveBookingLink(sp.link)]);
+  const link = linkFound && linkCoversRoom(linkFound, room.id) ? linkFound : null;
   const policy = rateConfig.rooms.find((r) => r.roomId === room.id);
   const extras = rateConfig.extras
     .filter((e) => e.active !== false && (!e.roomIds || e.roomIds.includes(room.id)))
-    .map(({ id, label, priceNgn, pricing }) => ({ id, label, priceNgn, pricing }));
+    .map(({ id, label, priceNgn, pricing, included }) => ({ id, label, priceNgn, pricing, included }));
+  const ratePlans = rateConfig.ratePlans
+    .filter((p) => p.active !== false && (!p.roomIds || p.roomIds.includes(room.id)))
+    .filter((p) => !p.linkOnly || p.id === link?.ratePlanId)
+    .map(({ id, label, description, adjustPct, refundable }) => ({ id, label, description, adjustPct, refundable }));
 
   const tr = await getTranslations("rooms");
 
@@ -106,7 +113,7 @@ export default async function BookPage({
     guests: 1,
   }).catch(() => null);
   const addableRooms = (availability?.available ?? [])
-    .filter((a) => a.id !== room.id)
+    .filter((a) => a.id !== room.id && (!link || linkCoversRoom(link, a.id)))
     .map((a) => {
       const other = rooms.find((r) => r.id === a.id)!;
       return {
@@ -146,7 +153,14 @@ export default async function BookPage({
           maxGuestsPerUnit={policy?.maxGuestsPerUnit}
           extras={extras}
           addableRooms={addableRooms}
+          ratePlans={ratePlans}
+          bookingMode={rateConfig.engine.mode}
+          arrivalTimeField={rateConfig.engine.arrivalTimeField}
+          customFields={rateConfig.engine.customFields}
           priceFrom={room.priceFrom}
+          initialCouponCode={link?.couponCode}
+          initialRatePlanId={ratePlans.some((p) => p.id === link?.ratePlanId) ? link?.ratePlanId : undefined}
+          bookingLink={link?.slug}
         />
         <ConciergeContactPrompt />
       </section>

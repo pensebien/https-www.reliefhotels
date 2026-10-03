@@ -7,6 +7,16 @@ what to mimic, not a migration source. Status column is relative to
 
 Legend: ✅ have · 🟡 partial · ⬜ missing · ➖ not needed
 
+**Status update (feat/sirvoy-parity):** built since this map was captured — PR #44 room setup,
+room numbers, invoices, refunds, group bookings; PR #45 reports, guest messages, online check-in;
+this branch restrictions (no arrival / no departure / closed by weekday), stay length by arrival
+day (incl. whole weeks), weekday seasons, rate plans (price lists), extras per room / per
+room-night / always included, housekeeping board with recurring tasks, and booking-engine options
+(request mode, booking window, arrival-time question). feat/no-contract-extras adds iCal calendar
+sync with Booking.com / Airbnb (no contract), guest profiles, custom booking questions, booking
+webhooks, ledger accounts with journal CSV, and booking links (/go/<name>, a light version of
+multiple booking engines). Still open: full channel manager (Phase 3, needs the provider contract).
+
 ## Daily operations (main menu)
 
 | Sirvoy screen | What it does | Relief | Plan |

@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckinPanel } from "@/components/staff/checkin-panel";
 import { InvoicesPanel } from "@/components/staff/invoices-panel";
 import { RefundsPanel } from "@/components/staff/refunds-panel";
 import { RoomAssignmentPanel } from "@/components/staff/room-assignment-panel";
@@ -134,7 +135,16 @@ export function BookingDetailSheet({
               value={booking.raw.stayPreference}
             />
           ) : null}
+          {"customFields" in booking.raw && booking.raw.customFields
+            ? Object.entries(booking.raw.customFields as Record<string, string | boolean>).map(([question, answer]) => (
+                <DetailRow key={question} label={question} value={answer === true ? "✓" : String(answer)} />
+              ))
+            : null}
           <DetailRow label={t("reservationId")} value={booking.id} mono />
+
+          {dashboardKey && booking.kind === "stay" && booking.source !== "demo" ? (
+            <CheckinPanel reservationId={booking.id} dashboardKey={dashboardKey} />
+          ) : null}
 
           {canManageStay && dashboardKey ? (
             <RoomAssignmentPanel

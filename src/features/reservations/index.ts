@@ -14,6 +14,7 @@ export {
 export type {
   AddableRoom,
   BookableExtra,
+  BookableRatePlan,
   BookQueryParams,
   ReservationFlowProps,
   ReservationFlowStatus,

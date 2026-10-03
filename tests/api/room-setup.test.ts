@@ -1,10 +1,11 @@
+import { dataPath } from "@/lib/data-dir";
 import assert from "node:assert/strict";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 
 const KEY = "relief-demo-2026";
-const SETUP_FILE = path.join(process.cwd(), "data", "settings", "room_setup.json");
+const SETUP_FILE = dataPath("settings", "room_setup.json");
 const UPLOADS = path.join(process.cwd(), "public", "uploads", "rooms");
 
 function setTestEnv() {

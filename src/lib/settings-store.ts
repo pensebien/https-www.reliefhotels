@@ -6,15 +6,15 @@
  * writers must pass a validated document.
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { readJsonFile, writeJsonFile } from "@/lib/json-file-store";
-import path from "path";
 
 const CACHE_TTL_MS = 30_000;
 const cache = new Map<string, { value: unknown; at: number }>();
 
 function settingsFile(key: string): string {
-  return path.join(process.cwd(), "data", "settings", `${key}.json`);
+  return dataPath("settings", `${key}.json`);
 }
 
 async function loadRaw(key: string): Promise<unknown> {
