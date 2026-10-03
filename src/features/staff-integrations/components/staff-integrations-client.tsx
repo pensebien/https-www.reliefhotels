@@ -1,5 +1,6 @@
 "use client";
 
+import { BookingLinksEditor } from "./booking-links-editor";
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
 import { Link } from "@/i18n/navigation";
 import type { LedgerAccounts } from "@/lib/accounting/journal";
@@ -163,6 +164,8 @@ export function StaffIntegrationsClient() {
               </div>
             ) : null}
           </section>
+
+          <BookingLinksEditor query={q} onNotice={setNotice} />
 
           <section aria-labelledby="ledger" className="space-y-3">
             <h2 id="ledger" className="font-serif text-xl font-medium">{t("ledgerTitle")}</h2>

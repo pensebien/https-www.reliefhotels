@@ -58,6 +58,8 @@ export function useReservationFlow(options: ReservationFlowProps) {
     addableRooms = [],
     bookingMode = "instant",
     useDemoTestAmount = false,
+    initialCouponCode,
+    initialRatePlanId,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
@@ -65,9 +67,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const [guests, setGuests] = useState(initialGuests);
   const [units, setUnits] = useState(initialRooms);
   const [extraIds, setExtraIds] = useState<string[]>([]);
-  const [couponInput, setCouponInput] = useState("");
-  const [couponCode, setCouponCode] = useState<string | undefined>();
-  const [ratePlanId, setRatePlanId] = useState<string | undefined>();
+  const [couponInput, setCouponInput] = useState(initialCouponCode ?? "");
+  const [couponCode, setCouponCode] = useState<string | undefined>(initialCouponCode);
+  const [ratePlanId, setRatePlanId] = useState<string | undefined>(initialRatePlanId);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
   const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);

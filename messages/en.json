@@ -360,7 +360,8 @@
       "name": "Executive Room",
       "description": "Designed for business travellers with a work zone, premium linens, and lounge access for focused, comfortable stays."
     },
-    "restrictedForDates": "Not bookable for these dates: {reason}"
+    "restrictedForDates": "Not bookable for these dates: {reason}",
+    "bookingLinkBanner": "Special offer: {label}"
   },
   "tours": {
     "pageTitle": "Tours & Local Guides",
@@ -1641,7 +1642,8 @@
     "addCustomField": "Add question",
     "fieldType": "Answer type",
     "fieldText": "Text",
-    "fieldCheckbox": "Tick box"
+    "fieldCheckbox": "Tick box",
+    "planLinkOnly": "Booking link only"
   },
   "staffRoomSettings": {
     "metaTitle": "Room setup",
@@ -1964,7 +1966,7 @@
     "metaTitle": "Integrations",
     "eyebrow": "Connections",
     "title": "Integrations",
-    "subtitle": "Send booking events to other tools, and export journal entries for your accountant.",
+    "subtitle": "Share booking links with preset rates, send booking events to other tools, and export journal entries for your accountant.",
     "backToPortal": "Back to staff portal",
     "keyPlaceholder": "Dashboard key",
     "unlock": "Unlock",
@@ -2002,6 +2004,19 @@
     "saveAccounts": "Save account codes",
     "from": "From",
     "to": "To",
-    "downloadJournal": "Download journal (CSV)"
+    "downloadJournal": "Download journal (CSV)",
+    "linksTitle": "Booking links",
+    "linksHint": "A link like /go/acme-corporate opens the rooms page with only the room types you pick, and a promo code or rate plan already applied. Rate plans marked \"Booking link only\" are hidden from everyone else.",
+    "linkLabel": "Shown to guests as",
+    "linkLabelPlaceholder": "Acme corporate rate",
+    "linkSlug": "Link name",
+    "linkCoupon": "Promo code",
+    "linkRatePlan": "Rate plan",
+    "linkRooms": "Room types (none ticked = all)",
+    "none": "None",
+    "standardRate": "Standard rate",
+    "copyLink": "Copy link",
+    "addLink": "Add booking link",
+    "saveLinks": "Save booking links"
   }
 }

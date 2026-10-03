@@ -74,6 +74,9 @@ export type ReservationFlowProps = {
   arrivalTimeField?: "hidden" | "optional" | "required";
   customFields?: { id: string; label: string; type: "text" | "checkbox"; required: boolean }[];
   useDemoTestAmount?: boolean;
+  /** Presets from a booking link. */
+  initialCouponCode?: string;
+  initialRatePlanId?: string;
 };
 
 export type ReservationFlowStatus = "idle" | "loading" | "success" | "error";

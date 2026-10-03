@@ -524,6 +524,7 @@ function RateSettingsForm({
             <NumField label={t("planDepositPct")} value={plan.depositPct} min={0} max={100} optional onChange={(v) => updateAt("ratePlans", i, { depositPct: v })} />
             <CheckField label={t("refundable")} checked={plan.refundable} onChange={(v) => updateAt("ratePlans", i, { refundable: v })} />
             <CheckField label={t("active")} checked={plan.active !== false} onChange={(v) => updateAt("ratePlans", i, { active: v })} />
+            <CheckField label={t("planLinkOnly")} checked={plan.linkOnly === true} onChange={(v) => updateAt("ratePlans", i, { linkOnly: v || undefined })} />
             <label className="block sm:col-span-3 lg:col-span-5">
               <span className={cellLabel}>{t("planDescription")}</span>
               <input

@@ -102,6 +102,8 @@ export const ratePlanSchema = z.object({
   depositPct: z.number().min(0).max(100).optional(),
   roomIds: z.array(z.string()).optional(),
   active: z.boolean().default(true),
+  /** Only offered through a booking link (e.g. a corporate rate). */
+  linkOnly: z.boolean().optional(),
 });
 
 export const longStayDiscountSchema = z.object({
