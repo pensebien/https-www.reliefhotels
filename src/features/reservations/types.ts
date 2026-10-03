@@ -6,6 +6,7 @@ export type ReservationFormData = {
   message: string;
   experienceInterests: string[];
   arrivalTime: string;
+  customAnswers: Record<string, string | boolean>;
   termsAccepted: boolean;
 };
 
@@ -24,6 +25,8 @@ export type StayContext = {
   /** Extra room-type lines of a group booking. */
   additionalStays: { roomId: string; rooms: number }[];
   ratePlanId?: string;
+  /** Booking link slug the guest came through. */
+  bookingLink?: string;
 };
 
 /** Bookable extra as shown to the guest (from RateConfig, server-filtered by room). */
@@ -71,7 +74,12 @@ export type ReservationFlowProps = {
   /** Booking engine mode: "request" waits for staff approval before payment. */
   bookingMode?: "instant" | "request";
   arrivalTimeField?: "hidden" | "optional" | "required";
+  customFields?: { id: string; label: string; type: "text" | "checkbox"; required: boolean }[];
   useDemoTestAmount?: boolean;
+  /** Presets from a booking link. */
+  initialCouponCode?: string;
+  initialRatePlanId?: string;
+  bookingLink?: string;
 };
 
 export type ReservationFlowStatus = "idle" | "loading" | "success" | "error";

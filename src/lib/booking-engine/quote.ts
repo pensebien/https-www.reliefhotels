@@ -36,6 +36,8 @@ export type QuoteInput = {
   ignoreRestrictions?: boolean;
   /** Alternative rate the guest chose (rate plan id); omit for the standard rate. */
   ratePlanId?: string;
+  /** Rate plan unlocked by the booking link the guest came through; link-only plans need it. */
+  linkRatePlanId?: string;
 };
 
 /** Codes a staff member may deliberately override for a walk-in. */
@@ -219,7 +221,10 @@ export function quoteStay(
     : undefined;
   if (
     input.ratePlanId &&
-    (!plan || plan.active === false || (plan.roomIds && !plan.roomIds.includes(policy.roomId)))
+    (!plan ||
+      plan.active === false ||
+      (plan.roomIds && !plan.roomIds.includes(policy.roomId)) ||
+      (plan.linkOnly && plan.id !== input.linkRatePlanId))
   ) {
     return fail("invalid_rate_plan", "That rate isn't available for this room");
   }

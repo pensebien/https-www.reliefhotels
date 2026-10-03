@@ -1,8 +1,11 @@
 import { rooms } from "@/content/site";
+import { linkRatePlanId as getLinkRatePlanId } from "@/lib/booking-engine/booking-links";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
-import { addReservation, type ReservationRecord } from "@/lib/demo-store";
+import { addReservation, updateReservationById, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
+import { isGuestBlocked } from "@/lib/guests/profiles";
 import { roomDisplayName } from "@/lib/room-names";
 import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
@@ -20,9 +23,29 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    // Guests staff have blocked can't book online; the message stays neutral.
+    if (await isGuestBlocked(data.email)) {
+      return NextResponse.json(
+        { error: "We couldn't complete this booking online. Please contact the hotel.", code: "contact_hotel" },
+        { status: 403 },
+      );
+    }
     const engine = (await getRateConfig()).engine;
     if (data.itemType === "room" && engine.arrivalTimeField === "required" && !data.arrivalTime) {
       return NextResponse.json({ error: "Please tell us your expected arrival time" }, { status: 400 });
+    }
+    // Staff-defined booking questions: keep known fields only, enforce required ones.
+    const answers: Record<string, string | boolean> = {};
+    if (data.itemType === "room") {
+      for (const field of engine.customFields) {
+        const raw = data.customFields?.[field.id];
+        const value = field.type === "checkbox" ? raw === true : typeof raw === "string" ? raw.trim() : "";
+        if (field.required && (value === "" || value === false)) {
+          return NextResponse.json({ error: `Please answer: ${field.label}`, code: "custom_field" }, { status: 400 });
+        }
+        // Keyed by the question as worded at booking time, so history reads right if staff rename it.
+        if (value !== "" && value !== false) answers[field.label] = value;
+      }
     }
     // Request mode: guest bookings wait for staff approval and hold the room until then.
     const requestMode = data.itemType === "room" && engine.mode === "request";
@@ -62,6 +85,8 @@ export async function POST(request: Request) {
         );
       }
 
+      const linkRatePlanId = data.ratePlanId ? await getLinkRatePlanId(data.bookingLink) : undefined;
+
       // Group booking: several room types in one checkout, one payment.
       if (data.stays && data.stays.length > 1) {
         const group = await reserveGroup(
@@ -73,6 +98,7 @@ export async function POST(request: Request) {
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
             ratePlanId: data.ratePlanId || undefined,
+            linkRatePlanId,
           },
           guest,
           reserveOptions,
@@ -109,6 +135,7 @@ export async function POST(request: Request) {
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
             ratePlanId: data.ratePlanId || undefined,
+            linkRatePlanId,
           },
           guest,
           reserveOptions,
@@ -136,6 +163,12 @@ export async function POST(request: Request) {
         status: "pending",
       });
     }
+
+    if (Object.keys(answers).length) {
+      record = (await updateReservationById(record.id, { customFields: answers })) ?? record;
+    }
+
+    if (data.itemType === "room") await emitBookingEvent("booking.created", record);
 
     const [sent] = await Promise.all([
       sendReservationEmail(emailRecord ?? record),

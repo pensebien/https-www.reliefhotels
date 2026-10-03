@@ -102,6 +102,8 @@ export const ratePlanSchema = z.object({
   depositPct: z.number().min(0).max(100).optional(),
   roomIds: z.array(z.string()).optional(),
   active: z.boolean().default(true),
+  /** Only offered through a booking link (e.g. a corporate rate). */
+  linkOnly: z.boolean().optional(),
 });
 
 export const longStayDiscountSchema = z.object({
@@ -158,6 +160,14 @@ export const cancellationPolicySchema = z.object({
   refundPctWithinWindow: z.number().min(0).max(100),
 });
 
+/** A staff-defined question on the booking form (Sirvoy "custom fields"). */
+export const customFieldSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/),
+  label: z.string().trim().min(1).max(100),
+  type: z.enum(["text", "checkbox"]),
+  required: z.boolean(),
+});
+
 /** Sirvoy "Booking engine" options: instant vs request, booking window, arrival-time question. */
 export const engineOptionsSchema = z
   .object({
@@ -169,6 +179,7 @@ export const engineOptionsSchema = z
     /** Same-day bookings close at this Calabar time ("HH:MM"); null = open all day. */
     sameDayCutoff: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable(),
     arrivalTimeField: z.enum(["hidden", "optional", "required"]),
+    customFields: z.array(customFieldSchema).max(10).default([]),
   })
   .refine((e) => e.maxDaysAhead === null || e.maxDaysAhead > e.minDaysAhead, {
     message: "Furthest booking must be after the earliest",
@@ -201,6 +212,7 @@ export type AvailabilityRestriction = z.infer<typeof availabilityRestrictionSche
 export type StayRule = z.infer<typeof stayRuleSchema>;
 export type RatePlan = z.input<typeof ratePlanSchema>;
 export type EngineOptions = z.infer<typeof engineOptionsSchema>;
+export type CustomField = z.infer<typeof customFieldSchema>;
 export type RateConfig = {
   rooms: RoomRatePolicy[];
   seasons: SeasonalRate[];
@@ -249,6 +261,7 @@ export const DEFAULT_RATE_CONFIG: RateConfig = {
     maxDaysAhead: null,
     sameDayCutoff: null,
     arrivalTimeField: "optional",
+    customFields: [],
   },
   depositPct: 20,
   holdMinutes: 60,

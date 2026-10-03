@@ -5,6 +5,7 @@ import {
   RoomCategoryTabs,
 } from "@/components/room-category-tabs";
 import { RoomDetailModal } from "@/components/room-detail-modal";
+import { useBookingLink } from "@/hooks/use-booking-link";
 import { useRoomCatalog } from "@/hooks/use-room-catalog";
 import {
   roomCategories,
@@ -24,7 +25,10 @@ import { formatNaira } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+
+/** Extra query for book links when the guest came through a booking link. */
+const LinkQueryContext = createContext("");
 
 type Room = (typeof rooms)[number];
 /** A catalog room as displayed — photos may come from staff room setup. */
@@ -49,6 +53,7 @@ export function RoomsCatalog() {
   );
 
   const activeTab = resolveActiveTab(searchParams.get("category"));
+  const bookingLink = useBookingLink();
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [availableById, setAvailableById] = useState<Map<string, AvailableRoom>>(
@@ -111,9 +116,11 @@ export function RoomsCatalog() {
   const catalogRooms = useMemo(() => {
     if (!bookingQuery) return [];
     return rooms.filter(
-      (room) => availableById.has(room.id) || restrictedById.has(room.id),
+      (room) =>
+        (availableById.has(room.id) || restrictedById.has(room.id)) &&
+        (!bookingLink?.roomIds.length || bookingLink.roomIds.includes(room.id)),
     );
-  }, [availableById, bookingQuery, restrictedById]);
+  }, [availableById, bookingLink, bookingQuery, restrictedById]);
 
   const filteredRooms = useMemo(
     () =>
@@ -145,7 +152,7 @@ export function RoomsCatalog() {
     });
 
   return (
-    <>
+    <LinkQueryContext.Provider value={bookingLink ? `&link=${encodeURIComponent(bookingLink.slug)}` : ""}>
       <section className="border-b border-border bg-card">
         <div className="rooms-page-container mx-auto max-w-7xl px-4 py-8 text-center lg:px-16 lg:py-10">
           <h1 className="mx-auto text-center font-serif text-4xl font-medium sm:text-5xl">
@@ -155,6 +162,12 @@ export function RoomsCatalog() {
           {bookingQuery && !loading && !fetchError && (
             <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">{dateBanner}</p>
           )}
+
+          {bookingLink ? (
+            <p className="mx-auto mt-4 inline-block rounded-full bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal-dark">
+              {t("bookingLinkBanner", { label: bookingLink.label })}
+            </p>
+          ) : null}
 
           <div className="mx-auto mt-8 max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted">
@@ -219,7 +232,7 @@ export function RoomsCatalog() {
           />
         )}
       </section>
-    </>
+    </LinkQueryContext.Provider>
   );
 }
 
@@ -240,6 +253,7 @@ function RoomGrid({
 }) {
   const [detailRoom, setDetailRoom] = useState<DisplayRoom | null>(null);
   const catalog = useRoomCatalog();
+  const linkQs = useContext(LinkQueryContext);
   // Staff-uploaded photos (room setup) replace the built-in ones when present.
   const withPhotos = (room: Room): DisplayRoom => {
     const photos = catalog.get(room.id)?.photos;
@@ -250,7 +264,7 @@ function RoomGrid({
     : undefined;
   const detailBookHref =
     detailRoom &&
-    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}`;
+    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}${linkQs}`;
 
   return (
     <>
@@ -300,7 +314,8 @@ function RoomCard({
 }) {
   const key = room.nameKey.split(".")[1];
   const stayQs = bookingSearchToQueryString(bookingQuery);
-  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}`;
+  const linkQs = useContext(LinkQueryContext);
+  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}${linkQs}`;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg">

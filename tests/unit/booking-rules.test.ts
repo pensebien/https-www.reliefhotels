@@ -75,6 +75,17 @@ describe("rate plans", () => {
     assert.ok(standard.ok);
     assert.equal(standard.totalNgn, 200_000, "the flexible rate is unchanged");
   });
+  it("only accept a link-only plan through its booking link", () => {
+    const linked: RateConfig = {
+      ...base,
+      ratePlans: [{ id: "corp", label: "Corporate", description: "", adjustPct: -15, refundable: true, active: true, linkOnly: true }],
+    };
+    assert.equal(code(q({ ratePlanId: "corp" }, linked)), "invalid_rate_plan", "plan id alone isn't enough");
+    assert.equal(code(q({ ratePlanId: "corp", linkRatePlanId: "other" }, linked)), "invalid_rate_plan");
+    const r = q({ ratePlanId: "corp", linkRatePlanId: "corp" }, linked);
+    assert.ok(r.ok);
+    assert.equal(r.totalNgn, 170_000);
+  });
   it("refund nothing on cancellation for non-refundable stays", () => {
     const quote = q({ ratePlanId: "nonref", checkIn: "2026-12-10", checkOut: "2026-12-12" }, config);
     assert.ok(quote.ok);

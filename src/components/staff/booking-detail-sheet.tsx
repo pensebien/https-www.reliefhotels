@@ -135,6 +135,11 @@ export function BookingDetailSheet({
               value={booking.raw.stayPreference}
             />
           ) : null}
+          {"customFields" in booking.raw && booking.raw.customFields
+            ? Object.entries(booking.raw.customFields as Record<string, string | boolean>).map(([question, answer]) => (
+                <DetailRow key={question} label={question} value={answer === true ? "✓" : String(answer)} />
+              ))
+            : null}
           <DetailRow label={t("reservationId")} value={booking.id} mono />
 
           {dashboardKey && booking.kind === "stay" && booking.source !== "demo" ? (

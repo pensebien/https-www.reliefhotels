@@ -63,6 +63,8 @@ export type ReservationRecord = {
   groupId?: string;
   /** Where the booking was made; older bookings are inferred (see bookingChannelOf). */
   bookingChannel?: "online" | "desk";
+  /** Answers to staff-defined booking questions, keyed by the question's wording. */
+  customFields?: Record<string, string | boolean>;
 };
 
 /** Online vs front desk, inferring older bookings from the walk-in note. */

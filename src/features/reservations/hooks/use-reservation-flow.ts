@@ -27,6 +27,7 @@ const defaultFormData: ReservationFormData = {
   message: "",
   experienceInterests: [],
   arrivalTime: "",
+  customAnswers: {},
   termsAccepted: false,
 };
 
@@ -57,6 +58,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
     addableRooms = [],
     bookingMode = "instant",
     useDemoTestAmount = false,
+    initialCouponCode,
+    initialRatePlanId,
+    bookingLink,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
@@ -64,9 +68,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const [guests, setGuests] = useState(initialGuests);
   const [units, setUnits] = useState(initialRooms);
   const [extraIds, setExtraIds] = useState<string[]>([]);
-  const [couponInput, setCouponInput] = useState("");
-  const [couponCode, setCouponCode] = useState<string | undefined>();
-  const [ratePlanId, setRatePlanId] = useState<string | undefined>();
+  const [couponInput, setCouponInput] = useState(initialCouponCode ?? "");
+  const [couponCode, setCouponCode] = useState<string | undefined>(initialCouponCode);
+  const [ratePlanId, setRatePlanId] = useState<string | undefined>(initialRatePlanId);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
   const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);
@@ -108,8 +112,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
       extraIds,
       additionalStays,
       ratePlanId,
+      bookingLink,
     }),
-    [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
+    [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
   );
 
   // Live server quote — the same engine the reservation and payment routes
@@ -133,6 +138,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
             couponCode,
             extraIds,
             ratePlanId,
+            bookingLink,
             stays: additionalStays.length
               ? [{ roomId: itemId, rooms: units }, ...additionalStays]
               : undefined,
@@ -166,7 +172,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
+  }, [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
 
   const depositNgn = useMemo(
     () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,

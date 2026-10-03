@@ -6,7 +6,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 
-export type RoomBlockType = "maintenance" | "housekeeping";
+export type RoomBlockType = "maintenance" | "housekeeping" | "channel";
 
 export type RoomBlock = {
   id: string;
@@ -16,6 +16,9 @@ export type RoomBlock = {
   reason?: string;
   blockType: RoomBlockType;
   createdAt: string;
+  /** Channel blocks: which calendar feed imported it, and the event's UID there. */
+  source?: string;
+  externalUid?: string;
 };
 
 
@@ -81,7 +84,8 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
 
   const { data, error } = await supabase
     .from("room_blocks")
-    .select("id, room_id, check_in, check_out, reason, block_type, created_at")
+    // "*" so channel columns (migration 021) are picked up when present.
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
@@ -94,7 +98,58 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
     reason: (row.reason as string | null) ?? undefined,
     blockType: (row.block_type as RoomBlockType | null) ?? "maintenance",
     createdAt: row.created_at as string,
+    source: (row.source as string | null) ?? undefined,
+    externalUid: (row.external_uid as string | null) ?? undefined,
   }));
+}
+
+/**
+ * Replaces every block a calendar feed imported with its current events, so
+ * a sync is idempotent: cancelled OTA bookings disappear, new ones appear.
+ */
+export async function replaceChannelBlocks(
+  source: string,
+  roomId: string,
+  events: { uid: string; checkIn: string; checkOut: string; summary: string }[],
+): Promise<number> {
+  const rows = events.map((e) => ({
+    id: randomUUID(),
+    roomId,
+    checkIn: e.checkIn,
+    checkOut: e.checkOut,
+    reason: `${e.summary}`.slice(0, 200),
+    blockType: "channel" as const,
+    createdAt: new Date().toISOString(),
+    source,
+    externalUid: e.uid,
+  }));
+
+  if (!isSupabaseEnabled()) {
+    const file = await readBlocksFile();
+    file.blocks = [...rows, ...file.blocks.filter((b) => b.source !== source)];
+    await writeBlocksFile(file);
+    return rows.length;
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { error: delError } = await supabase.from("room_blocks").delete().eq("source", source);
+  if (delError) throw new Error(delError.message);
+  if (rows.length) {
+    const { error } = await supabase.from("room_blocks").insert(
+      rows.map((r) => ({
+        room_id: r.roomId,
+        check_in: r.checkIn,
+        check_out: r.checkOut,
+        reason: r.reason,
+        block_type: "channel",
+        source: r.source,
+        external_uid: r.externalUid,
+      })),
+    );
+    if (error) throw new Error(error.message);
+  }
+  return rows.length;
 }
 
 export async function addRoomBlock(input: {
