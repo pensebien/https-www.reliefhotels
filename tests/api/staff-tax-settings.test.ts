@@ -1,9 +1,9 @@
+import { dataPath } from "@/lib/data-dir";
 import assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 import { promises as fs } from "node:fs";
-import path from "node:path";
 
-const TAX_SETTINGS_FILE = path.join(process.cwd(), "data", "tax-settings.json");
+const TAX_SETTINGS_FILE = dataPath("tax-settings.json");
 
 function setTestEnv() {
   process.env.DEMO_MODE = "true";

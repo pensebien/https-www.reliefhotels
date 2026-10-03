@@ -12,10 +12,10 @@
  * owner adds rules.
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { rooms } from "@/content/site";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { readJsonFile, writeJsonFile } from "@/lib/json-file-store";
-import path from "path";
 import { z } from "zod";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -187,7 +187,7 @@ export function normalizeRateConfig(raw: unknown): RateConfig {
   return parsed.data;
 }
 
-const STORE_FILE = path.join(process.cwd(), "data", "rate-config.json");
+const STORE_FILE = dataPath("rate-config.json");
 const CACHE_TTL_MS = 30_000;
 let cache: { config: RateConfig; at: number } | null = null;
 

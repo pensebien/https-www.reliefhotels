@@ -1,3 +1,4 @@
+import { dataPath } from "@/lib/data-dir";
 import { demoPayments, demoReservations } from "@/content/demo-data";
 import {
   dbAddPayment,
@@ -113,7 +114,7 @@ type Store = {
   payments: PaymentRecord[];
 };
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const STORE_FILE = path.join(STORE_DIR, "demo-store.json");
 
 const emptyStore = (): Store => ({ reservations: [], payments: [] });

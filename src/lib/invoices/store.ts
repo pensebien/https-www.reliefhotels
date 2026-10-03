@@ -6,10 +6,10 @@
  * JSON store's per-file lock in file mode).
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 import { randomUUID } from "crypto";
-import path from "path";
 import type { InvoiceDocument, InvoiceKind } from "./build";
 
 export type IssuedInvoice = {
@@ -26,7 +26,7 @@ export type IssuedInvoice = {
 
 type Store = { counters: Record<string, number>; invoices: IssuedInvoice[] };
 
-const STORE_FILE = path.join(process.cwd(), "data", "invoices.json");
+const STORE_FILE = dataPath("invoices.json");
 const empty = (): Store => ({ counters: {}, invoices: [] });
 
 type InvoiceRow = {

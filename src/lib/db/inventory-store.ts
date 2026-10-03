@@ -1,3 +1,4 @@
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { getActivity, holdsInventory } from "@/lib/demo-store";
 import { DEFAULT_INVENTORY, getRoomSetup } from "@/lib/room-setup";
@@ -18,7 +19,7 @@ export type RoomBlock = {
 };
 
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const BLOCKS_FILE = path.join(STORE_DIR, "room-blocks.json");
 
 type BlocksFile = { blocks: RoomBlock[] };
