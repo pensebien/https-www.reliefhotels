@@ -45,8 +45,66 @@ export const seasonalRateSchema = z
     minNights: z.number().int().min(1).max(365).optional(),
     /** Closed to arrival on these dates (e.g. fully sold event nights). */
     closedToArrival: z.boolean().optional(),
+    /** Only nights on these weekdays (0 = Sunday … 6 = Saturday); omit for every night. */
+    weekdays: z.array(z.number().int().min(0).max(6)).max(7).optional(),
   })
   .refine((s) => s.to > s.from, { message: "Season end must be after start" });
+
+const weekdaysSchema = z.array(z.number().int().min(0).max(6)).min(1).max(7);
+
+/**
+ * Sirvoy "Restrictions": over [from, to), on the given weekdays and room
+ * types, stop arrivals, departures, or all stays (stop-sell).
+ */
+export const availabilityRestrictionSchema = z
+  .object({
+    id: z.string().min(1).max(60),
+    label: z.string().trim().min(1).max(100),
+    from: dateSchema,
+    to: dateSchema,
+    roomIds: z.array(z.string()).optional(),
+    weekdays: weekdaysSchema.optional(),
+    mode: z.enum(["no_arrival", "no_departure", "closed"]),
+  })
+  .refine((r) => r.to > r.from, { message: "Restriction end must be after start" });
+
+/**
+ * Sirvoy "Stay length": for arrivals on the given weekdays (and dates, room
+ * types), a minimum / maximum stay, optionally in whole weeks.
+ */
+export const stayRuleSchema = z
+  .object({
+    id: z.string().min(1).max(60),
+    label: z.string().trim().min(1).max(100),
+    from: dateSchema.optional(),
+    to: dateSchema.optional(),
+    roomIds: z.array(z.string()).optional(),
+    checkInWeekdays: weekdaysSchema.optional(),
+    minNights: z.number().int().min(1).max(365),
+    maxNights: z.number().int().min(1).max(365).optional(),
+    wholeWeeks: z.boolean().optional(),
+  })
+  .refine((r) => !r.maxNights || r.maxNights >= r.minNights, { message: "Max nights must be at least min nights" });
+
+/**
+ * Sirvoy "Price lists": an alternative rate guests choose at checkout, e.g.
+ * "Non-refundable, 10% off". The standard rate is always offered too.
+ */
+export const ratePlanSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,60}$/),
+  label: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(300),
+  /** Change to the nightly room rate, e.g. -10 for 10% off. */
+  adjustPct: z.number().min(-90).max(200),
+  /** Non-refundable plans refund nothing on cancellation. */
+  refundable: z.boolean(),
+  /** Deposit % for this plan (e.g. 100 = pay in full); omit for the hotel default. */
+  depositPct: z.number().min(0).max(100).optional(),
+  roomIds: z.array(z.string()).optional(),
+  active: z.boolean().default(true),
+  /** Only offered through a booking link (e.g. a corporate rate). */
+  linkOnly: z.boolean().optional(),
+});
 
 export const longStayDiscountSchema = z.object({
   minNights: z.number().int().min(2).max(365),
@@ -86,9 +144,11 @@ export const extraSchema = z.object({
     .regex(/^[a-z0-9-]+$/),
   label: z.string().min(1).max(100),
   priceNgn: ngn,
-  pricing: z.enum(["per_stay", "per_night", "per_guest_night"]),
+  pricing: z.enum(["per_stay", "per_night", "per_guest_night", "per_room", "per_room_night"]),
   roomIds: z.array(z.string()).optional(),
   active: z.boolean().default(true),
+  /** Always part of the booking and its price (e.g. a mandatory city levy). */
+  included: z.boolean().optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -100,12 +160,41 @@ export const cancellationPolicySchema = z.object({
   refundPctWithinWindow: z.number().min(0).max(100),
 });
 
+/** A staff-defined question on the booking form (Sirvoy "custom fields"). */
+export const customFieldSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,40}$/),
+  label: z.string().trim().min(1).max(100),
+  type: z.enum(["text", "checkbox"]),
+  required: z.boolean(),
+});
+
+/** Sirvoy "Booking engine" options: instant vs request, booking window, arrival-time question. */
+export const engineOptionsSchema = z
+  .object({
+    /** request: guest bookings wait for staff to confirm before the guest pays. */
+    mode: z.enum(["instant", "request"]),
+    minDaysAhead: z.number().int().min(0).max(365),
+    /** null = no limit (the default, so nothing changes until staff set one). */
+    maxDaysAhead: z.number().int().min(1).max(1095).nullable(),
+    /** Same-day bookings close at this Calabar time ("HH:MM"); null = open all day. */
+    sameDayCutoff: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable(),
+    arrivalTimeField: z.enum(["hidden", "optional", "required"]),
+    customFields: z.array(customFieldSchema).max(10).default([]),
+  })
+  .refine((e) => e.maxDaysAhead === null || e.maxDaysAhead > e.minDaysAhead, {
+    message: "Furthest booking must be after the earliest",
+  });
+
 export const rateConfigSchema = z.object({
   rooms: z.array(roomRatePolicySchema),
   seasons: z.array(seasonalRateSchema).max(200),
   longStay: z.array(longStayDiscountSchema).max(20),
   coupons: z.array(couponSchema).max(200),
   extras: z.array(extraSchema).max(50),
+  restrictions: z.array(availabilityRestrictionSchema).max(200),
+  stayRules: z.array(stayRuleSchema).max(100),
+  ratePlans: z.array(ratePlanSchema).max(10),
+  engine: engineOptionsSchema,
   depositPct: z.number().min(0).max(100),
   /** Minutes an unpaid online booking holds its room before it is released. */
   holdMinutes: z.number().int().min(5).max(24 * 60),
@@ -119,12 +208,21 @@ export type Coupon = z.input<typeof couponSchema>;
 export type Extra = z.input<typeof extraSchema>;
 export type ExtraPricing = Extra["pricing"];
 export type CancellationPolicy = z.infer<typeof cancellationPolicySchema>;
+export type AvailabilityRestriction = z.infer<typeof availabilityRestrictionSchema>;
+export type StayRule = z.infer<typeof stayRuleSchema>;
+export type RatePlan = z.input<typeof ratePlanSchema>;
+export type EngineOptions = z.infer<typeof engineOptionsSchema>;
+export type CustomField = z.infer<typeof customFieldSchema>;
 export type RateConfig = {
   rooms: RoomRatePolicy[];
   seasons: SeasonalRate[];
   longStay: LongStayDiscount[];
   coupons: Coupon[];
   extras: Extra[];
+  restrictions: AvailabilityRestriction[];
+  stayRules: StayRule[];
+  ratePlans: RatePlan[];
+  engine: EngineOptions;
   depositPct: number;
   holdMinutes: number;
   cancellation: CancellationPolicy;
@@ -154,6 +252,17 @@ export const DEFAULT_RATE_CONFIG: RateConfig = {
   longStay: [],
   coupons: [],
   extras: [],
+  restrictions: [],
+  stayRules: [],
+  ratePlans: [],
+  engine: {
+    mode: "instant",
+    minDaysAhead: 0,
+    maxDaysAhead: null,
+    sameDayCutoff: null,
+    arrivalTimeField: "optional",
+    customFields: [],
+  },
   depositPct: 20,
   holdMinutes: 60,
   cancellation: {
@@ -174,6 +283,7 @@ export function normalizeRateConfig(raw: unknown): RateConfig {
     ...DEFAULT_RATE_CONFIG,
     ...stored,
     cancellation: { ...DEFAULT_RATE_CONFIG.cancellation, ...stored.cancellation },
+    engine: { ...DEFAULT_RATE_CONFIG.engine, ...stored.engine },
     rooms: rooms.map(
       (room) =>
         stored.rooms?.find((r) => r.roomId === room.id) ?? defaultRoomPolicy(room),

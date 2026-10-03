@@ -73,3 +73,23 @@ export function buildInvoiceUrl(invoiceId: string): string | null {
     return null;
   }
 }
+
+/** Calendar export link per room type (OTAs import it); unguessable, revocable by rotating the secret. */
+export function signFeedId(roomId: string): string {
+  return createHmac("sha256", linkSecret()).update(`ical-feed:${roomId}`).digest("base64url").slice(0, 32);
+}
+
+export function isValidFeedToken(roomId: string, token: string | null | undefined): boolean {
+  if (!token) return false;
+  const expected = Buffer.from(signFeedId(roomId));
+  const actual = Buffer.from(token);
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+export function buildFeedUrl(roomId: string): string | null {
+  try {
+    return `${getServerConfig().appUrl}/api/ical/${encodeURIComponent(roomId)}?t=${signFeedId(roomId)}`;
+  } catch {
+    return null;
+  }
+}

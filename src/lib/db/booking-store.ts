@@ -37,6 +37,7 @@ type ReservationRow = {
   quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
   group_id?: string | null;
   booking_channel?: "online" | "desk" | null;
+  custom_fields?: Record<string, string | boolean> | null;
 };
 
 type PaymentRow = {
@@ -56,6 +57,11 @@ type PaymentRow = {
   source: PaymentRecord["source"];
   created_at: string;
 };
+
+/** Row → record, for callers paging through reservations themselves. */
+export function mapReservationRow(row: unknown): ReservationRecord {
+  return mapReservation(row as ReservationRow);
+}
 
 function mapReservation(row: ReservationRow): ReservationRecord {
   return {
@@ -89,6 +95,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     quoteSnapshot: row.quote_snapshot ?? undefined,
     groupId: row.group_id ?? undefined,
     bookingChannel: row.booking_channel ?? undefined,
+    customFields: row.custom_fields ?? undefined,
   };
 }
 
@@ -153,6 +160,7 @@ function reservationPatchToRow(
   if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
   if (patch.groupId !== undefined) update.group_id = patch.groupId;
   if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
+  if (patch.customFields !== undefined) update.custom_fields = patch.customFields;
   return update;
 }
 

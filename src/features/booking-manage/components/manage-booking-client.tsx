@@ -208,7 +208,9 @@ export function ManageBookingClient() {
         <div className="rounded-2xl border border-border p-6">
           <p className="font-medium">{t("cancelTitle")}</p>
           <p className="mt-1 text-sm text-muted">
-            {booking.paidNgn === 0
+            {booking.paidNgn > 0 && !booking.refundable
+              ? t("cancelNonRefundable")
+              : booking.paidNgn === 0
               ? t("cancelFreeUnpaid")
               : booking.refundIfCancelledNgn > 0
                 ? t("cancelRefund", {

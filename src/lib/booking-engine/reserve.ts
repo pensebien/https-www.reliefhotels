@@ -33,6 +33,7 @@ import { getRoomAvailability } from "@/lib/room-availability";
 import { autoAssignRooms } from "@/lib/room-assignment";
 import { roomDisplayName } from "@/lib/room-names";
 import { getRoomSetup } from "@/lib/room-setup";
+import { bookingWindowError } from "./booking-window";
 import { quoteGroup, type GroupQuote, type GroupQuoteInput } from "./group";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
@@ -165,7 +166,7 @@ async function insertLine(data: NewReservation): Promise<ReservationRecord | nul
 
 export async function reserveRoom(
   stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
-    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions">,
+    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions" | "ratePlanId" | "linkRatePlanId">,
   guest: GuestDetails,
   options: ReserveOptions = {},
 ): Promise<ReserveResult> {
@@ -174,6 +175,8 @@ export async function reserveRoom(
     return NOT_ONLINE;
   }
   const config = await getRateConfig();
+  const windowError = channel === "online" ? bookingWindowError(stay.checkIn, config.engine) : null;
+  if (windowError) return { ok: false, status: 422, code: "booking_window", message: windowError };
   const quote = await quoteStayLive(stay, config);
   if (!quote.ok) {
     return { ok: false, status: 422, code: quote.code, message: quote.message };
@@ -202,6 +205,8 @@ export async function reserveGroup(
     return NOT_ONLINE as Extract<ReserveGroupResult, { ok: false }>;
   }
   const config = await getRateConfig();
+  const windowError = channel === "online" ? bookingWindowError(input.checkIn, config.engine) : null;
+  if (windowError) return { ok: false, status: 422, code: "booking_window", message: windowError };
   const couponRedemptions = input.couponCode ? await countCouponRedemptions(input.couponCode) : 0;
   const quote = quoteGroup({ ...input, couponRedemptions }, config);
   if (!quote.ok) return { ok: false, status: 422, code: quote.code, message: quote.message };
