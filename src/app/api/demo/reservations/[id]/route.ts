@@ -1,4 +1,6 @@
 import { addRoomBlock, type RoomBlock } from "@/lib/db/inventory-store";
+import { setRoomStatus } from "@/lib/housekeeping/store";
+import { getRoomSetup, unitLabelMap } from "@/lib/room-setup";
 import {
   findReservationById,
   updateReservationById,
@@ -17,16 +19,28 @@ import { NextResponse } from "next/server";
  * be re-booked until the cleaner marks it clean (or picks a later
  * checkOut when creating the block manually) — see /staff/housekeeping.
  */
-async function blockRoomForHousekeeping(roomId: string): Promise<RoomBlock> {
+async function blockRoomForHousekeeping(
+  roomId: string,
+  unitIds: string[] = [],
+  staffName?: string,
+): Promise<RoomBlock> {
   const today = formatYmd(new Date());
   const tomorrow = formatYmd(addDays(new Date(), 1));
-  return addRoomBlock({
-    roomId,
-    checkIn: today,
-    checkOut: tomorrow,
-    reason: "Housekeeping — guest checked out",
-    blockType: "housekeeping",
-  });
+  const block = (reason: string) =>
+    addRoomBlock({ roomId, checkIn: today, checkOut: tomorrow, reason, blockType: "housekeeping" });
+  if (unitIds.length === 0) return block("Housekeeping — guest checked out");
+
+  // One hold per physical room; each room shows dirty on the housekeeping
+  // board until a cleaner marks it clean, which releases its hold.
+  const labels = unitLabelMap(await getRoomSetup());
+  const blocks = await Promise.all(
+    unitIds.map(async (unitId) => {
+      const created = await block(`Housekeeping — room ${labels[unitId] ?? unitId} checked out`);
+      await setRoomStatus({ unitId, status: "dirty", blockId: created.id, updatedBy: staffName });
+      return created;
+    }),
+  );
+  return blocks[0];
 }
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -104,7 +118,11 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     let housekeeping: RoomBlock | null = null;
     if (status === "checked_out" && updated.roomId) {
-      housekeeping = await blockRoomForHousekeeping(updated.roomId);
+      housekeeping = await blockRoomForHousekeeping(
+        updated.roomId,
+        updated.assignedUnits,
+        access.session?.name,
+      );
     }
 
     return NextResponse.json({ ok: true, reservation: updated, rayza, housekeeping });

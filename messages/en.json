@@ -1388,6 +1388,40 @@
       "submit": "Block room",
       "submitting": "Blocking…",
       "roleHint": "Only the cleaner head can block or clear a room; managers have read-only access."
+    },
+    "board": {
+      "title": "Rooms today",
+      "date": "Day",
+      "error": "The board could not be loaded.",
+      "forbidden": "Your role can't see the housekeeping board.",
+      "count": {
+        "dirty": "To clean",
+        "departing": "Leaving",
+        "arriving": "Arriving",
+        "stayover": "Staying over"
+      },
+      "filterLabel": "Show",
+      "filter": {
+        "all": "All rooms",
+        "dirty": "Needs cleaning",
+        "due": "Tasks left"
+      },
+      "nothing": "Nothing here — all done.",
+      "room": "Room {label}",
+      "status": {
+        "clean": "Clean",
+        "dirty": "Dirty"
+      },
+      "movement": {
+        "arriving": "Arriving",
+        "departing": "Leaving",
+        "turnover": "Leaving & arriving",
+        "stayover": "Staying over",
+        "vacant": "Empty"
+      },
+      "night": "night {n}",
+      "markClean": "Mark clean",
+      "markDirty": "Mark dirty"
     }
   },
   "staffTaxSettings": {

@@ -72,3 +72,5 @@ next-env.d.ts
 /data/checkins.json
 /data/guest-ids/
 /data/settings/
+/data/room-status.json
+/data/housekeeping-tasks-done.json
