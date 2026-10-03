@@ -128,7 +128,7 @@ export function StaffIntegrationsClient() {
                   {events.map((ev) => (
                     <label key={ev} className="flex items-center gap-1.5">
                       <input type="checkbox" className="h-4 w-4 accent-teal" checked={hook.events.includes(ev)} onChange={(e) => update(i, { events: e.target.checked ? [...hook.events, ev] : hook.events.filter((x) => x !== ev) })} />
-                      {t(`event.${ev}`)}
+                      {t(`event.${ev.replace(".", "_")}`)}
                     </label>
                   ))}
                 </div>
@@ -154,7 +154,7 @@ export function StaffIntegrationsClient() {
                     {deliveries.map((d) => (
                       <tr key={d.id} className="border-b border-border/60 last:border-0">
                         <td className="px-3 py-2 tabular-nums">{d.at.slice(0, 16).replace("T", " ")}</td>
-                        <td className="px-3 py-2">{t(`event.${d.event}`)}</td>
+                        <td className="px-3 py-2">{t(`event.${d.event.replace(".", "_")}`)}</td>
                         <td className={`px-3 py-2 ${d.status === "sent" ? "" : "text-red-600"}`}>{d.status === "sent" ? `HTTP ${d.httpStatus}` : d.error ?? `HTTP ${d.httpStatus}`}</td>
                         <td className="px-3 py-2 text-right">{d.status === "failed" ? <button type="button" onClick={() => resend(d.id)} className="text-teal-dark hover:underline">{t("resend")}</button> : null}</td>
                       </tr>
@@ -173,7 +173,7 @@ export function StaffIntegrationsClient() {
             <div className="grid gap-3 sm:grid-cols-2">
               {(Object.keys(accounts) as (keyof LedgerAccounts)[]).map((k) => (
                 <label key={k} className="flex items-center gap-2 text-sm">
-                  <input aria-label={names[k]} value={accounts[k]} onChange={(e) => setAccounts({ ...accounts, [k]: e.target.value })} className={`${input} w-24`} />
+                  <input aria-label={names[k]} value={accounts[k]} onChange={(e) => setAccounts({ ...accounts, [k]: e.target.value })} className="h-9 w-24 shrink-0 rounded-lg border border-border bg-background px-2 text-sm" />
                   <span>{names[k]}</span>
                 </label>
               ))}

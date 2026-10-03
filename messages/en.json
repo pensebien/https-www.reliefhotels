@@ -1994,10 +1994,10 @@
     "result": "Result",
     "resend": "Resend",
     "event": {
-      "booking.created": "Booking created",
-      "booking.confirmed": "Booking confirmed",
-      "booking.cancelled": "Booking cancelled",
-      "payment.received": "Payment received"
+      "booking_created": "Booking created",
+      "booking_confirmed": "Booking confirmed",
+      "booking_cancelled": "Booking cancelled",
+      "payment_received": "Payment received"
     },
     "ledgerTitle": "Accounting export",
     "ledgerHint": "Match each account to your chart of accounts, then download double-entry journal lines (invoices, payments, refunds) for any dates.",

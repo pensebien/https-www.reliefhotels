@@ -12,8 +12,10 @@ room numbers, invoices, refunds, group bookings; PR #45 reports, guest messages,
 this branch restrictions (no arrival / no departure / closed by weekday), stay length by arrival
 day (incl. whole weeks), weekday seasons, rate plans (price lists), extras per room / per
 room-night / always included, housekeeping board with recurring tasks, and booking-engine options
-(request mode, booking window, arrival-time question). Still open: channel manager (Phase 3),
-guest CRM profiles, custom booking fields, multiple booking engines, ledger accounts, webhooks.
+(request mode, booking window, arrival-time question). feat/no-contract-extras adds iCal calendar
+sync with Booking.com / Airbnb (no contract), guest profiles, custom booking questions, booking
+webhooks, ledger accounts with journal CSV, and booking links (/go/<name>, a light version of
+multiple booking engines). Still open: full channel manager (Phase 3, needs the provider contract).
 
 ## Daily operations (main menu)
 
