@@ -1,4 +1,5 @@
 import { addRoomBlock, type RoomBlock } from "@/lib/db/inventory-store";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { bookingChannelOf, listPaymentsForReservation } from "@/lib/demo-store";
 import { sendBookingApprovedEmail } from "@/lib/email";
 import { setRoomStatus } from "@/lib/housekeeping/store";
@@ -122,6 +123,9 @@ export async function PATCH(request: Request, context: RouteContext) {
         rayza = result;
       }
     }
+
+    if (status === "confirmed" && existing.status !== "confirmed") await emitBookingEvent("booking.confirmed", updated);
+    if (status === "cancelled" && existing.status !== "cancelled") await emitBookingEvent("booking.cancelled", updated);
 
     let housekeeping: RoomBlock | null = null;
     if (status === "checked_out" && updated.roomId) {

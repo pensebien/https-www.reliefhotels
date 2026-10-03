@@ -1278,7 +1278,8 @@
       "reports": "Reports",
       "messageSettings": "Guest messages",
       "channelSettings": "Channels",
-      "guests": "Guests"
+      "guests": "Guests",
+      "integrations": "Integrations"
     },
     "roles": {
       "cashier": "Cashier",
@@ -1958,5 +1959,49 @@
     "save": "Save guest",
     "saved": "Saved.",
     "managerOnly": "Only a manager can edit guests."
+  },
+  "staffIntegrations": {
+    "metaTitle": "Integrations",
+    "eyebrow": "Connections",
+    "title": "Integrations",
+    "subtitle": "Send booking events to other tools, and export journal entries for your accountant.",
+    "backToPortal": "Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Unlock",
+    "error": "That didn't work. Please try again.",
+    "saved": "Saved.",
+    "copied": "Copied.",
+    "webhooksTitle": "Booking webhooks",
+    "webhooksHint": "We POST signed JSON to these addresses when bookings change. Receivers check X-Relief-Signature = sha256 HMAC of the body with the secret.",
+    "name": "Name",
+    "url": "Address (https)",
+    "on": "On",
+    "remove": "Remove",
+    "secret": "Signing secret",
+    "copy": "Copy",
+    "sendTest": "Send test",
+    "secretAfterSave": "A signing secret is created when you save.",
+    "addHook": "Add webhook",
+    "saveHooks": "Save webhooks",
+    "testOk": "Test delivered (HTTP {status}).",
+    "testFailed": "Test failed: {reason}",
+    "resent": "Resent.",
+    "resendFailed": "Resend failed.",
+    "when": "When",
+    "eventCol": "Event",
+    "result": "Result",
+    "resend": "Resend",
+    "event": {
+      "booking.created": "Booking created",
+      "booking.confirmed": "Booking confirmed",
+      "booking.cancelled": "Booking cancelled",
+      "payment.received": "Payment received"
+    },
+    "ledgerTitle": "Accounting export",
+    "ledgerHint": "Match each account to your chart of accounts, then download double-entry journal lines (invoices, payments, refunds) for any dates.",
+    "saveAccounts": "Save account codes",
+    "from": "From",
+    "to": "To",
+    "downloadJournal": "Download journal (CSV)"
   }
 }

@@ -34,3 +34,23 @@ create policy "service_role_all_guest_profiles"
 -- 3. Answers to staff-defined booking questions (custom fields).
 alter table reservations
   add column if not exists custom_fields jsonb;
+
+-- 4. Booking webhook delivery log (endpoints themselves live in app_settings).
+create table if not exists webhook_deliveries (
+  id uuid primary key,
+  webhook_id text not null,
+  event text not null,
+  status text not null check (status in ('sent', 'failed')),
+  http_status integer,
+  error text,
+  at timestamptz not null default now(),
+  body text not null
+);
+
+create index if not exists webhook_deliveries_at_idx on webhook_deliveries (at desc);
+
+alter table webhook_deliveries enable row level security;
+
+drop policy if exists "service_role_all_webhook_deliveries" on webhook_deliveries;
+create policy "service_role_all_webhook_deliveries"
+  on webhook_deliveries as permissive for all to service_role using (true) with check (true);

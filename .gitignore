@@ -75,3 +75,4 @@ next-env.d.ts
 /data/room-status.json
 /data/housekeeping-tasks-done.json
 /data/guest-profiles.json
+/data/webhook-deliveries.json

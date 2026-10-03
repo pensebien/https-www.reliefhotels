@@ -157,3 +157,24 @@ export class InvoiceStoreError extends Error {
     super(message);
   }
 }
+
+/** Invoices and credit notes issued on days [from, to]. */
+export async function listInvoicesInRange(from: string, to: string): Promise<IssuedInvoice[]> {
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const endIso = end.toISOString();
+  if (!isSupabaseEnabled()) {
+    const store = await readJsonFile(STORE_FILE, empty);
+    return store.invoices.filter((i) => i.issuedAt >= from && i.issuedAt < endIso);
+  }
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase
+    .from("invoices")
+    .select()
+    .gte("issued_at", from)
+    .lt("issued_at", endIso)
+    .order("issued_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data as InvoiceRow[]).map(mapRow);
+}

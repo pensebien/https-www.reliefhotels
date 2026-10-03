@@ -1,4 +1,5 @@
 import { rooms } from "@/content/site";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
 import { addReservation, updateReservationById, type ReservationRecord } from "@/lib/demo-store";
@@ -161,6 +162,8 @@ export async function POST(request: Request) {
     if (Object.keys(answers).length) {
       record = (await updateReservationById(record.id, { customFields: answers })) ?? record;
     }
+
+    if (data.itemType === "room") await emitBookingEvent("booking.created", record);
 
     const [sent] = await Promise.all([
       sendReservationEmail(emailRecord ?? record),

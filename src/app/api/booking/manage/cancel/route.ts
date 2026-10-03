@@ -1,4 +1,5 @@
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { updateReservationById } from "@/lib/demo-store";
 import { sendGuestCancellationEmails } from "@/lib/email";
 import { NextResponse } from "next/server";
@@ -47,6 +48,8 @@ export async function POST(request: Request) {
           }),
         ),
     );
+
+    await emitBookingEvent("booking.cancelled", updated, { cancelledBy: "guest" });
 
     await sendGuestCancellationEmails(updated, {
       paidNgn: view.paidNgn,
