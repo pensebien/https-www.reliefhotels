@@ -614,7 +614,13 @@
     },
     "promoCode": "Promo code",
     "applyPromo": "Apply",
-    "removePromo": "Remove"
+    "removePromo": "Remove",
+    "addRoomsTitle": "Add another room type",
+    "addRoomsHint": "Booking for a group? Add rooms of other types for the same dates — one booking, one payment.",
+    "addRoomsFrom": "From {price} a night · {left} left",
+    "addRoomsLess": "One fewer {room}",
+    "addRoomsMore": "One more {room}",
+    "groupLine": "{rooms} × {room}, {nights, plural, one {# night} other {# nights}}"
   },
   "payment": {
     "verifying": "Verifying your payment…",

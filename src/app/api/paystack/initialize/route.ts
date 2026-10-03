@@ -2,7 +2,7 @@ import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { quoteStay } from "@/lib/booking-engine/quote";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { getServerConfig } from "@/lib/config";
-import { findReservationById, updateReservationById } from "@/lib/demo-store";
+import { findReservationById, listGroupMembers, updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
 import { paystackInitializeSchema } from "@/lib/schemas/payment";
 import { rooms } from "@/content/site";
@@ -66,10 +66,15 @@ export async function POST(request: Request) {
     // otherwise a 7-night booking could pay a 1-night deposit. Booking-engine
     // reservations carry the deposit locked in when they were created.
     const rateConfig = await getRateConfig();
+    // A group booking pays one deposit covering every room type in it.
+    const members = (await listGroupMembers(reservation)).filter((m) => m.status === "pending");
+    const group = members.length > 1 ? members : null;
     let depositNgn: number;
     let chargedNights = reservation.nights ?? nights;
     let depositPct = rateConfig.depositPct;
-    if (reservation.quotedDepositNgn !== undefined) {
+    if (group && group.every((m) => m.quotedDepositNgn !== undefined)) {
+      depositNgn = group.reduce((sum, m) => sum + (m.quotedDepositNgn ?? 0), 0);
+    } else if (reservation.quotedDepositNgn !== undefined) {
       depositNgn = reservation.quotedDepositNgn;
     } else if (reservation.checkIn && reservation.checkOut) {
       const quote = quoteStay(
@@ -93,8 +98,9 @@ export async function POST(request: Request) {
       depositPct = 20;
     }
 
-    if (reservation.holdExpiresAt) {
-      if (new Date(reservation.holdExpiresAt).getTime() <= Date.now()) {
+    const holders = group ?? [reservation];
+    if (holders.some((m) => m.holdExpiresAt)) {
+      if (holders.some((m) => m.holdExpiresAt && new Date(m.holdExpiresAt).getTime() <= Date.now())) {
         return NextResponse.json(
           {
             error:
@@ -104,17 +110,16 @@ export async function POST(request: Request) {
           { status: 409 },
         );
       }
-      // Guest is paying now — keep the room held while Paystack completes.
-      await updateReservationById(reservationId, {
-        holdExpiresAt: new Date(
-          Date.now() + rateConfig.holdMinutes * 60_000,
-        ).toISOString(),
-      });
+      // Guest is paying now — keep every room held while Paystack completes.
+      const holdExpiresAt = new Date(Date.now() + rateConfig.holdMinutes * 60_000).toISOString();
+      await Promise.all(holders.map((m) => updateReservationById(m.id, { holdExpiresAt })));
     }
 
     const amountNgn = demoAmountNgn ?? depositNgn;
     const amountKobo = amountNgn * 100;
-    const itemLabel = `${itemId} — ${pluralize(chargedNights, "night")} deposit (${depositPct}%)`;
+    const itemLabel = group
+      ? `Group booking (${group.length} room types) — ${pluralize(chargedNights, "night")} deposit (${depositPct}%)`
+      : `${itemId} — ${pluralize(chargedNights, "night")} deposit (${depositPct}%)`;
 
     const result = await initializePayment({
       email,
@@ -126,9 +131,9 @@ export async function POST(request: Request) {
       metadata: { nights: String(chargedNights) },
     });
 
-    await updateReservationById(reservationId, {
-      paymentReference: result.reference,
-    });
+    await Promise.all(
+      holders.map((m) => updateReservationById(m.id, { paymentReference: result.reference })),
+    );
 
     return NextResponse.json({
       ok: true,

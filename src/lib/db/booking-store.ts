@@ -35,6 +35,7 @@ type ReservationRow = {
   cancelled_at?: string | null;
   assigned_units?: string[] | null;
   quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
+  group_id?: string | null;
 };
 
 type PaymentRow = {
@@ -85,6 +86,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     cancelledAt: row.cancelled_at ?? undefined,
     assignedUnits: row.assigned_units ?? undefined,
     quoteSnapshot: row.quote_snapshot ?? undefined,
+    groupId: row.group_id ?? undefined,
   };
 }
 
@@ -147,6 +149,7 @@ function reservationPatchToRow(
   if (patch.cancelledAt !== undefined) update.cancelled_at = patch.cancelledAt;
   if (patch.assignedUnits !== undefined) update.assigned_units = patch.assignedUnits;
   if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
+  if (patch.groupId !== undefined) update.group_id = patch.groupId;
   return update;
 }
 
@@ -226,15 +229,16 @@ export async function dbCountCouponRedemptions(code: string): Promise<number> {
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error("Supabase not configured");
 
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("reservations")
-    .select("id", { count: "exact", head: true })
+    .select("id, group_id")
     .eq("coupon_code", code)
     .neq("status", "cancelled");
 
   // Pre-016 databases have no coupon_code column, so nothing was redeemed.
   if (error) return 0;
-  return count ?? 0;
+  // A group booking uses the code once, however many room types it has.
+  return new Set((data ?? []).map((r) => (r.group_id as string | null) ?? (r.id as string))).size;
 }
 
 export async function dbUpdateReservationById(
@@ -400,6 +404,14 @@ export async function dbListOverlappingRoomReservations(
     .lt("check_in", checkOut)
     .gt("check_out", checkIn);
 
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbListReservationsByGroup(groupId: string): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase.from("reservations").select().eq("group_id", groupId);
   if (error) throw new Error(error.message);
   return (data as ReservationRow[]).map(mapReservation);
 }

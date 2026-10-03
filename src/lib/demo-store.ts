@@ -6,6 +6,7 @@ import {
   dbFindReservationById,
   dbGetBookingActivity,
   dbFindPendingRefund,
+  dbListReservationsByGroup,
   dbListOverlappingRoomReservations,
   dbListPaymentsForReservation,
   dbUpdatePaymentByReference,
@@ -55,6 +56,8 @@ export type ReservationRecord = {
   assignedUnits?: string[];
   /** Full price breakdown locked at booking — invoice lines come from this. */
   quoteSnapshot?: StayQuote;
+  /** Shared by the room-type lines of one group booking; equals the lead line's id. */
+  groupId?: string;
 };
 
 export type NewReservation = Omit<
@@ -259,6 +262,25 @@ export async function listOverlappingRoomReservations(
       );
   const now = Date.now();
   return all.filter((r) => holdsInventory(r, now));
+}
+
+/**
+ * Every line of the reservation's group booking, lead (oldest) first; just
+ * the reservation itself when it isn't part of a group.
+ */
+export async function listGroupMembers(reservation: ReservationRecord): Promise<ReservationRecord[]> {
+  if (!reservation.groupId) return [reservation];
+  const members = isSupabaseEnabled()
+    ? await dbListReservationsByGroup(reservation.groupId)
+    : (await getActivity()).reservations.filter((r) => r.groupId === reservation.groupId);
+  // The lead's own id is the group id.
+  const leadId = reservation.groupId;
+  return members.sort(
+    (a, b) =>
+      Number(b.id === leadId) - Number(a.id === leadId) ||
+      a.createdAt.localeCompare(b.createdAt) ||
+      a.id.localeCompare(b.id),
+  );
 }
 
 /** A pending refund row (negative amount) for `transactionReference`. */

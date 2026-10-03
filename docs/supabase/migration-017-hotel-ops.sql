@@ -99,3 +99,11 @@ drop trigger if exists invoices_no_update on invoices;
 create trigger invoices_no_update
   before update or delete on invoices
   for each row execute function invoices_are_final();
+
+-- 5. Group bookings: room-type lines of one checkout share a group id.
+alter table reservations
+  add column if not exists group_id uuid;
+
+create index if not exists reservations_group_idx
+  on reservations (group_id)
+  where group_id is not null;

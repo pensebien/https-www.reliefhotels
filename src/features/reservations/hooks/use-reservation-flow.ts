@@ -4,6 +4,7 @@ import {
   parseDateString,
   toDateString,
 } from "@/lib/booking-search";
+import type { GroupQuote } from "@/lib/booking-engine/group";
 import type { QuoteErrorCode, StayQuote } from "@/lib/booking-engine/quote";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { reservationFormSchema } from "../lib/reservation-schema";
@@ -52,6 +53,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     priceFrom,
     rooms: initialRooms = 1,
     maxGuestsPerUnit = MAX_GUESTS,
+    addableRooms = [],
     useDemoTestAmount = false,
   } = options;
 
@@ -64,6 +66,16 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const [couponCode, setCouponCode] = useState<string | undefined>();
   const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
+  const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);
+  /** Rooms of other types added to this stay, by room id. */
+  const [additional, setAdditional] = useState<Record<string, number>>({});
+  const additionalStays = useMemo(
+    () =>
+      Object.entries(additional)
+        .filter(([, rooms]) => rooms > 0)
+        .map(([roomId, rooms]) => ({ roomId, rooms })),
+    [additional],
+  );
   const [quoteError, setQuoteError] = useState<{ code: QuoteErrorCode; message: string } | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkOut, setCheckOut] = useState(
@@ -91,8 +103,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
       priceFrom,
       couponCode,
       extraIds,
+      additionalStays,
     }),
-    [checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, units],
+    [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, units],
   );
 
   // Live server quote — the same engine the reservation and payment routes
@@ -115,17 +128,27 @@ export function useReservationFlow(options: ReservationFlowProps) {
             rooms: units,
             couponCode,
             extraIds,
+            stays: additionalStays.length
+              ? [{ roomId: itemId, rooms: units }, ...additionalStays]
+              : undefined,
           }),
         });
         const body = await res.json();
         if (res.ok) {
-          setQuote(body as StayQuote);
+          if (Array.isArray(body.lines)) {
+            setGroupQuote(body as GroupQuote);
+            setQuote((body as GroupQuote).lines[0]);
+          } else {
+            setGroupQuote(null);
+            setQuote(body as StayQuote);
+          }
           setQuoteError(null);
         } else if (body.code === "invalid_coupon") {
           setCouponError(body.error);
           setCouponCode(undefined);
         } else {
           setQuote(null);
+          setGroupQuote(null);
           setQuoteError({ code: body.code, message: body.error ?? "Unable to price this stay" });
         }
       } catch (error) {
@@ -138,14 +161,25 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [checkIn, checkOut, couponCode, extraIds, guests, itemId, units]);
+  }, [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, units]);
 
   const depositNgn = useMemo(
-    () => quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
-    [nights, priceFrom, quote, units],
+    () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
+    [groupQuote, nights, priceFrom, quote, units],
   );
 
-  const maxGuests = Math.min(MAX_GUESTS, maxGuestsPerUnit * units);
+  const maxGuests = Math.min(
+    MAX_GUESTS,
+    maxGuestsPerUnit * units +
+      additionalStays.reduce(
+        (sum, s) => sum + (addableRooms.find((r) => r.id === s.roomId)?.maxGuestsPerUnit ?? 1) * s.rooms,
+        0,
+      ),
+  );
+
+  const setAdditionalRooms = useCallback((roomId: string, rooms: number) => {
+    setAdditional((prev) => ({ ...prev, [roomId]: Math.max(0, Math.min(4, rooms)) }));
+  }, []);
 
   const updateUnits = useCallback((next: number) => {
     setUnits(Math.min(MAX_ROOMS, Math.max(1, next)));
@@ -326,6 +360,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
     applyCoupon,
     removeCoupon,
     quote,
+    groupQuote,
+    additional,
+    setAdditionalRooms,
     quoteError,
     quoteLoading,
     submitReservation,

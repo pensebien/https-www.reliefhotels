@@ -1,5 +1,6 @@
 import {
   findReservationById,
+  listGroupMembers,
   listPaymentsForReservation,
   type ReservationRecord,
 } from "@/lib/demo-store";
@@ -16,6 +17,8 @@ export const manageTokenSchema = z.object({
 
 export type ManagedBooking = {
   reservation: ReservationRecord;
+  /** Every line of a group booking (lead first), or just the reservation. */
+  members: ReservationRecord[];
   view: GuestBookingView;
   config: RateConfig;
 };
@@ -39,15 +42,18 @@ export async function loadManagedBooking(
   const reservation = await findReservationById(parsed.data.id);
   if (!reservation || reservation.itemType !== "room") return notFound;
 
-  const [payments, config] = await Promise.all([
-    listPaymentsForReservation(reservation.id),
+  const members = await listGroupMembers(reservation);
+  const [paymentLists, config] = await Promise.all([
+    Promise.all(members.map((m) => listPaymentsForReservation(m.id))),
     getRateConfig(),
   ]);
   const view = buildGuestBookingView(
-    reservation,
-    payments,
+    members[0],
+    paymentLists.flat(),
     config.cancellation,
     config.depositPct,
+    new Date(),
+    members,
   );
-  return { ok: true, booking: { reservation, view, config } };
+  return { ok: true, booking: { reservation: members[0], members, view, config } };
 }

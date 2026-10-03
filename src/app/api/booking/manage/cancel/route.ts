@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const result = await loadManagedBooking(await request.json().catch(() => null));
   if (!result.ok) return result.response;
 
-  const { reservation, view } = result.booking;
+  const { reservation, members, view } = result.booking;
   if (!view.canCancel) {
     return NextResponse.json(
       { error: "This booking can no longer be cancelled online. Please contact the hotel." },
@@ -33,6 +33,20 @@ export async function POST(request: Request) {
     if (!updated) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
+    // A group booking is cancelled as a whole.
+    await Promise.all(
+      members
+        .filter((m) => m.id !== reservation.id && m.status !== "cancelled")
+        .map((m) =>
+          updateReservationById(m.id, {
+            status: "cancelled",
+            cancelledAt,
+            staffNotes: [`Cancelled by guest online with group ${reservation.id}.`, m.staffNotes]
+              .filter(Boolean)
+              .join("\n"),
+          }),
+        ),
+    );
 
     await sendGuestCancellationEmails(updated, {
       paidNgn: view.paidNgn,

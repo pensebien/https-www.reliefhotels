@@ -39,6 +39,8 @@ export type GuestBookingView = {
   /** Last instant a cancellation still gets the in-window refund. */
   freeCancelUntil?: string;
   refundIfCancelledNgn: number;
+  /** Room types in the booking — more than one for a group booking. */
+  lines: { roomId?: string; rooms: number }[];
 };
 
 function fallbackTotal(reservation: ReservationRecord): number {
@@ -46,16 +48,26 @@ function fallbackTotal(reservation: ReservationRecord): number {
   return (room?.priceFrom ?? 0) * (reservation.nights ?? 1) * (reservation.units ?? 1);
 }
 
+/**
+ * `members` are the lines of a group booking (lead first); amounts and rooms
+ * are summed across them. Payments are all payments on any line.
+ */
 export function buildGuestBookingView(
   reservation: ReservationRecord,
   payments: PaymentRecord[],
   policy: CancellationPolicy,
   depositPct: number,
   now = new Date(),
+  members: ReservationRecord[] = [reservation],
 ): GuestBookingView {
-  const totalNgn = reservation.quotedTotalNgn ?? fallbackTotal(reservation);
-  const depositNgn =
-    reservation.quotedDepositNgn ?? Math.round((totalNgn * depositPct) / 100);
+  const live = members.filter((m) => m.status !== "cancelled");
+  const counted = live.length ? live : members;
+  const lineTotal = (m: ReservationRecord) => m.quotedTotalNgn ?? fallbackTotal(m);
+  const totalNgn = counted.reduce((sum, m) => sum + lineTotal(m), 0);
+  const depositNgn = counted.reduce(
+    (sum, m) => sum + (m.quotedDepositNgn ?? Math.round((lineTotal(m) * depositPct) / 100)),
+    0,
+  );
   const paidNgn = Math.round(
     payments
       .filter((p) => p.status === "success")
@@ -103,8 +115,8 @@ export function buildGuestBookingView(
     checkIn: reservation.checkIn,
     checkOut: reservation.checkOut,
     nights: reservation.nights,
-    guests: reservation.guests,
-    rooms: reservation.units ?? 1,
+    guests: counted.reduce((sum, m) => sum + m.guests, 0),
+    rooms: counted.reduce((sum, m) => sum + (m.units ?? 1), 0),
     status: reservation.status,
     couponCode: reservation.couponCode,
     extraIds: reservation.extraIds,
@@ -120,5 +132,6 @@ export function buildGuestBookingView(
       canCancel && withinWindow
         ? Math.round((paidNgn * policy.refundPctWithinWindow) / 100)
         : 0,
+    lines: counted.map((m) => ({ roomId: m.roomId, rooms: m.units ?? 1 })),
   };
 }

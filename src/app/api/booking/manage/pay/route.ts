@@ -8,16 +8,18 @@ export async function POST(request: Request) {
   const result = await loadManagedBooking(await request.json().catch(() => null));
   if (!result.ok) return result.response;
 
-  const { reservation, view, config } = result.booking;
+  const { reservation, members, view, config } = result.booking;
+  const pending = members.filter((m) => m.status === "pending");
   if (!view.amountDueKind || view.amountDueNgn <= 0) {
     return NextResponse.json({ error: "Nothing is due on this booking" }, { status: 409 });
   }
 
   try {
-    if (view.amountDueKind === "deposit" && reservation.holdExpiresAt) {
-      await updateReservationById(reservation.id, {
-        holdExpiresAt: new Date(Date.now() + config.holdMinutes * 60_000).toISOString(),
-      });
+    if (view.amountDueKind === "deposit") {
+      const holdExpiresAt = new Date(Date.now() + config.holdMinutes * 60_000).toISOString();
+      await Promise.all(
+        pending.filter((m) => m.holdExpiresAt).map((m) => updateReservationById(m.id, { holdExpiresAt })),
+      );
     }
 
     const payment = await initializePayment({
@@ -31,7 +33,9 @@ export async function POST(request: Request) {
     });
 
     if (view.amountDueKind === "deposit") {
-      await updateReservationById(reservation.id, { paymentReference: payment.reference });
+      await Promise.all(
+        pending.map((m) => updateReservationById(m.id, { paymentReference: payment.reference })),
+      );
     }
 
     return NextResponse.json({

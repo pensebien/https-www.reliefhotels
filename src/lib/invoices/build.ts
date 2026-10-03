@@ -106,8 +106,17 @@ function roomLines(
   return lines;
 }
 
+export type InvoiceStay = {
+  reservation: ReservationRecord;
+  roomLabel: string;
+  roomNumbers: string[];
+  catalogNightlyNgn: number;
+};
+
 export type BuildInvoiceInput = {
   reservation: ReservationRecord;
+  /** Other room-type lines of a group booking, itemised after the lead's rooms. */
+  otherStays?: InvoiceStay[];
   roomLabel: string;
   roomNumbers: string[];
   catalogNightlyNgn: number;
@@ -123,6 +132,9 @@ export function buildInvoiceDocument(input: BuildInvoiceInput): InvoiceDocument 
 
   const lines: InvoiceLine[] = [
     ...roomLines(reservation, quote, input.roomLabel, settings.roomVatPct, input.catalogNightlyNgn),
+    ...(input.otherStays ?? []).flatMap((stay) =>
+      roomLines(stay.reservation, stay.reservation.quoteSnapshot, stay.roomLabel, settings.roomVatPct, stay.catalogNightlyNgn),
+    ),
     ...(quote?.extras ?? []).map((extra) => ({
       kind: "extra" as const,
       description: extra.label,
@@ -175,12 +187,12 @@ export function buildInvoiceDocument(input: BuildInvoiceInput): InvoiceDocument 
     reservation: {
       id: reservation.id,
       roomLabel: input.roomLabel,
-      roomNumbers: input.roomNumbers,
+      roomNumbers: [...input.roomNumbers, ...(input.otherStays ?? []).flatMap((s) => s.roomNumbers)],
       checkIn: reservation.checkIn,
       checkOut: reservation.checkOut,
       nights: reservation.nights,
-      rooms: reservation.units ?? 1,
-      guests: reservation.guests,
+      rooms: [reservation, ...(input.otherStays ?? []).map((s) => s.reservation)].reduce((n, r) => n + (r.units ?? 1), 0),
+      guests: [reservation, ...(input.otherStays ?? []).map((s) => s.reservation)].reduce((n, r) => n + r.guests, 0),
     },
     guest: {
       name: `${reservation.firstName} ${reservation.lastName}`,

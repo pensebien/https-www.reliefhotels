@@ -121,8 +121,14 @@ export function ManageBookingClient() {
   }
 
   const { booking, policy, extras } = data;
-  const room = rooms.find((r) => r.id === booking.roomId);
-  const roomLabel = room ? tRooms(`${room.nameKey.split(".")[1]}.name`) : booking.roomId;
+  const nameOf = (roomId?: string) => {
+    const room = rooms.find((r) => r.id === roomId);
+    return room ? tRooms(`${room.nameKey.split(".")[1]}.name`) : (roomId ?? "");
+  };
+  const roomLabel =
+    booking.lines.length > 1
+      ? booking.lines.map((l) => `${l.rooms} × ${nameOf(l.roomId)}`).join(", ")
+      : nameOf(booking.roomId);
 
   return (
     <div className="space-y-6">

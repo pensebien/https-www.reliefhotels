@@ -21,6 +21,7 @@ export function ReservationForm(props: ReservationFlowProps) {
     itemLabel,
     priceFrom,
     extras = [],
+    addableRooms = [],
     useDemoTestAmount = false,
   } = props;
 
@@ -55,9 +56,16 @@ export function ReservationForm(props: ReservationFlowProps) {
     applyCoupon,
     removeCoupon,
     quote,
+    groupQuote,
+    additional,
+    setAdditionalRooms,
     quoteError,
     quoteLoading,
   } = useReservationFlow(props);
+  const roomLabels = Object.fromEntries([
+    [props.itemId, itemLabel],
+    ...addableRooms.map((r) => [r.id, r.label] as const),
+  ]);
   const canContinue = !quoteError && !quoteLoading;
 
   function validateStep1(): boolean {
@@ -164,6 +172,8 @@ export function ReservationForm(props: ReservationFlowProps) {
           maxGuests={maxGuests}
           onRoomsChange={updateUnits}
           quote={quote}
+          groupQuote={groupQuote}
+          roomLabels={roomLabels}
           quoteError={quoteError?.message}
           footnote={step === 2 ? t("managerNotifyAfterPayment") : undefined}
         />
@@ -171,6 +181,58 @@ export function ReservationForm(props: ReservationFlowProps) {
 
       {step === 1 ? (
         <div className="mt-6 space-y-5">
+          {addableRooms.length > 0 ? (
+            <fieldset className="space-y-3">
+              <legend className={labelClassName}>{t("addRoomsTitle")}</legend>
+              <p className="text-xs leading-5 text-muted">{t("addRoomsHint")}</p>
+              <ul className="space-y-2">
+                {addableRooms.map((room) => {
+                  const count = additional[room.id] ?? 0;
+                  const max = Math.min(4, room.availableUnits);
+                  return (
+                    <li
+                      key={room.id}
+                      className={cn(
+                        "flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-3",
+                        count > 0 ? "border-teal bg-teal/10" : "border-border",
+                      )}
+                    >
+                      <span className="text-sm leading-snug">
+                        <span className="block font-medium">{room.label}</span>
+                        <span className="block text-muted">
+                          {t("addRoomsFrom", { price: formatNaira(room.priceFrom), left: room.availableUnits })}
+                        </span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+                        <button
+                          type="button"
+                          aria-label={t("addRoomsLess", { room: room.label })}
+                          disabled={count <= 0}
+                          onClick={() => setAdditionalRooms(room.id, count - 1)}
+                          className="h-8 w-8 rounded-lg hover:bg-muted/40 disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center text-sm font-medium tabular-nums" aria-live="polite">
+                          {count}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={t("addRoomsMore", { room: room.label })}
+                          disabled={count >= max}
+                          onClick={() => setAdditionalRooms(room.id, count + 1)}
+                          className="h-8 w-8 rounded-lg hover:bg-muted/40 disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          ) : null}
+
           {extras.length > 0 ? (
             <fieldset className="space-y-3">
               <legend className={labelClassName}>{t("extrasTitle")}</legend>

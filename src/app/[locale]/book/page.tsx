@@ -2,6 +2,7 @@ import { ConciergeContactPrompt } from "@/components/concierge-contact-prompt";
 import { ReservationForm } from "@/features/reservations";
 import { rooms } from "@/content/site";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
+import { getRoomAvailability } from "@/lib/room-availability";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -96,6 +97,27 @@ export default async function BookPage({
     .map(({ id, label, priceNgn, pricing }) => ({ id, label, priceNgn, pricing }));
 
   const tr = await getTranslations("rooms");
+
+  // Other room types still free for these dates, for "Add another room type".
+  const availability = await getRoomAvailability({
+    checkIn: stayCheckIn,
+    checkOut: stayCheckOut,
+    rooms: 1,
+    guests: 1,
+  }).catch(() => null);
+  const addableRooms = (availability?.available ?? [])
+    .filter((a) => a.id !== room.id)
+    .map((a) => {
+      const other = rooms.find((r) => r.id === a.id)!;
+      return {
+        id: a.id,
+        label: tr(`${other.nameKey.split(".")[1]}.name`),
+        priceFrom: a.priceFrom,
+        availableUnits: a.availableUnits,
+        maxGuestsPerUnit:
+          rateConfig.rooms.find((r) => r.roomId === a.id)?.maxGuestsPerUnit ?? 2,
+      };
+    });
   const labelKey = room.nameKey.split(".")[1];
   const itemLabel = tr(`${labelKey}.name`);
 
@@ -123,6 +145,7 @@ export default async function BookPage({
           rooms={stayRooms}
           maxGuestsPerUnit={policy?.maxGuestsPerUnit}
           extras={extras}
+          addableRooms={addableRooms}
           priceFrom={room.priceFrom}
         />
         <ConciergeContactPrompt />

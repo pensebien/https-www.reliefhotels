@@ -31,7 +31,9 @@ import {
 } from "@/lib/demo-store";
 import { getRoomAvailability } from "@/lib/room-availability";
 import { autoAssignRooms } from "@/lib/room-assignment";
+import { roomDisplayName } from "@/lib/room-names";
 import { getRoomSetup } from "@/lib/room-setup";
+import { quoteGroup, type GroupQuote, type GroupQuoteInput } from "./group";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
 
@@ -39,9 +41,12 @@ export async function countCouponRedemptions(code: string): Promise<number> {
   const wanted = code.trim().toUpperCase();
   if (isSupabaseEnabled()) return dbCountCouponRedemptions(wanted);
   const { reservations } = await getActivity();
-  return reservations.filter(
-    (r) => r.couponCode === wanted && r.status !== "cancelled",
-  ).length;
+  // A group booking uses the code once, however many room types it has.
+  return new Set(
+    reservations
+      .filter((r) => r.couponCode === wanted && r.status !== "cancelled")
+      .map((r) => r.groupId ?? r.id),
+  ).size;
 }
 
 /** quoteStay with live coupon-redemption counts filled in. */
@@ -84,31 +89,26 @@ export type ReserveOptions = {
   channel?: "online" | "desk";
 };
 
-export async function reserveRoom(
-  stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
-    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions">,
-  guest: GuestDetails,
-  options: ReserveOptions = {},
-): Promise<ReserveResult> {
-  const { status = "pending", expiringHold = true, channel = "online" } = options;
-  if (channel === "online") {
-    const setup = await getRoomSetup();
-    if (setup.rooms.find((r) => r.roomId === stay.roomId)?.bookableOnline === false) {
-      return {
-        ok: false,
-        status: 422,
-        code: "not_bookable_online",
-        message: "This room can't be booked online. Please contact the hotel.",
-      };
-    }
-  }
-  const config = await getRateConfig();
-  const quote = await quoteStayLive(stay, config);
-  if (!quote.ok) {
-    return { ok: false, status: 422, code: quote.code, message: quote.message };
-  }
+function notBookableOnline(roomIds: string[], setup: Awaited<ReturnType<typeof getRoomSetup>>) {
+  return roomIds.some((id) => setup.rooms.find((r) => r.roomId === id)?.bookableOnline === false);
+}
 
-  const data: NewReservation = {
+const NOT_ONLINE: ReserveResult = {
+  ok: false,
+  status: 422,
+  code: "not_bookable_online",
+  message: "This room can't be booked online. Please contact the hotel.",
+};
+
+function toNewReservation(
+  quote: StayQuote,
+  guest: GuestDetails,
+  config: RateConfig,
+  status: ReservationRecord["status"],
+  expiringHold: boolean,
+  groupId?: string,
+): NewReservation {
+  return {
     ...guest,
     itemType: "room",
     roomId: quote.roomId,
@@ -122,37 +122,117 @@ export async function reserveRoom(
     quotedTotalNgn: quote.totalNgn,
     quotedDepositNgn: quote.depositNgn,
     quoteSnapshot: quote,
+    groupId,
     holdExpiresAt: expiringHold
       ? new Date(Date.now() + config.holdMinutes * 60_000).toISOString()
       : undefined,
     emailSent: false,
     status,
   };
+}
 
-  const record = isSupabaseEnabled()
-    ? await supabaseReserve(data)
-    : await fileReserve(data);
+/**
+ * Atomic check-and-insert for one room-type line, then the best-effort
+ * follow-ups: store the price breakdown and group id (reserve_room() inserts
+ * the 016 columns only) and auto-assign rooms. Null when sold out.
+ */
+async function insertLine(data: NewReservation): Promise<ReservationRecord | null> {
+  const record = isSupabaseEnabled() ? await supabaseReserve(data) : await fileReserve(data);
+  if (!record) return null;
 
-  if (!record) return SOLD_OUT;
-
-  // reserve_room() inserts the 016 columns only; store the price breakdown
-  // (migration 017) separately. Best effort — invoices fall back to totals.
   let saved = record;
-  if (!record.quoteSnapshot) {
+  const missing: Partial<ReservationRecord> = {};
+  if (!record.quoteSnapshot && data.quoteSnapshot) missing.quoteSnapshot = data.quoteSnapshot;
+  if (!record.groupId && data.groupId) missing.groupId = data.groupId;
+  if (Object.keys(missing).length) {
     saved =
-      (await updateReservationById(record.id, { quoteSnapshot: quote }).catch((error) => {
-        console.warn("[reserve] quote snapshot not stored:", error);
+      (await updateReservationById(record.id, missing).catch((error) => {
+        console.warn("[reserve] follow-up fields not stored:", error);
         return null;
       })) ?? record;
   }
 
   // Give the booking physical rooms straight away (minimise gaps). Never
   // fails the booking — staff can assign from the calendar instead.
-  const assigned = await autoAssignRooms(saved).catch((error) => {
+  return autoAssignRooms(saved).catch((error) => {
     console.warn("[reserve] auto room assignment skipped:", error);
     return saved;
   });
-  return { ok: true, record: assigned, quote };
+}
+
+export async function reserveRoom(
+  stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
+    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions">,
+  guest: GuestDetails,
+  options: ReserveOptions = {},
+): Promise<ReserveResult> {
+  const { status = "pending", expiringHold = true, channel = "online" } = options;
+  if (channel === "online" && notBookableOnline([stay.roomId], await getRoomSetup())) {
+    return NOT_ONLINE;
+  }
+  const config = await getRateConfig();
+  const quote = await quoteStayLive(stay, config);
+  if (!quote.ok) {
+    return { ok: false, status: 422, code: quote.code, message: quote.message };
+  }
+
+  const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold));
+  return record ? { ok: true, record, quote } : SOLD_OUT;
+}
+
+export type ReserveGroupResult =
+  | { ok: true; lead: ReservationRecord; records: ReservationRecord[]; quote: GroupQuote }
+  | { ok: false; status: 409 | 422; code: string; message: string };
+
+/**
+ * Several room types, same dates, one checkout. The lead line is inserted
+ * first and its id becomes the group id. If a later line has sold out, the
+ * lines already taken are cancelled so the group never half-books.
+ */
+export async function reserveGroup(
+  input: Omit<GroupQuoteInput, "couponRedemptions">,
+  guest: GuestDetails,
+  options: ReserveOptions = {},
+): Promise<ReserveGroupResult> {
+  const { status = "pending", expiringHold = true, channel = "online" } = options;
+  if (channel === "online" && notBookableOnline(input.stays.map((s) => s.roomId), await getRoomSetup())) {
+    return NOT_ONLINE as Extract<ReserveGroupResult, { ok: false }>;
+  }
+  const config = await getRateConfig();
+  const couponRedemptions = input.couponCode ? await countCouponRedemptions(input.couponCode) : 0;
+  const quote = quoteGroup({ ...input, couponRedemptions }, config);
+  if (!quote.ok) return { ok: false, status: 422, code: quote.code, message: quote.message };
+
+  const records: ReservationRecord[] = [];
+  let groupId: string | undefined;
+  for (const line of quote.lines) {
+    const record = await insertLine(toNewReservation(line, guest, config, status, expiringHold, groupId));
+    if (!record) {
+      const cancelledAt = new Date().toISOString();
+      await Promise.all(
+        records.map((r) =>
+          updateReservationById(r.id, {
+            status: "cancelled",
+            cancelledAt,
+            staffNotes: "Released automatically: another room in this group booking sold out.",
+          }),
+        ),
+      );
+      return {
+        ok: false,
+        status: 409,
+        code: "sold_out",
+        message: `${roomDisplayName(line.roomId)} is no longer available for these dates. Please change your rooms or dates.`,
+      };
+    }
+    if (!groupId) {
+      groupId = record.id;
+      records.push((await updateReservationById(record.id, { groupId })) ?? { ...record, groupId });
+    } else {
+      records.push(record);
+    }
+  }
+  return { ok: true, lead: records[0], records, quote };
 }
 
 async function fileReserve(data: NewReservation): Promise<ReservationRecord | null> {
@@ -210,6 +290,7 @@ const BOOKING_ENGINE_FIELDS = [
   "quotedDepositNgn",
   "holdExpiresAt",
   "quoteSnapshot",
+  "groupId",
 ] as const satisfies readonly (keyof NewReservation)[];
 
 function isMissingMigration(error: unknown): boolean {

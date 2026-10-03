@@ -34,6 +34,9 @@ export function buildReservationPayload(
     pluralize(stayContext.guests, "guest"),
   );
   if (stayContext.rooms > 1) summaryParts.push(pluralize(stayContext.rooms, "room"));
+  for (const extra of stayContext.additionalStays) {
+    summaryParts.push(`+ ${extra.rooms} × room:${extra.roomId}`);
+  }
 
   let message = formData.message.trim();
 
@@ -54,6 +57,9 @@ export function buildReservationPayload(
     nights: stayContext.nights,
     guests: stayContext.guests,
     rooms: stayContext.rooms,
+    stays: stayContext.additionalStays.length
+      ? [{ roomId: stayContext.itemId, rooms: stayContext.rooms }, ...stayContext.additionalStays]
+      : undefined,
     couponCode: stayContext.couponCode,
     extraIds: stayContext.extraIds,
     stayPreference: summaryParts.join(" · "),

@@ -1,7 +1,9 @@
 import { rooms } from "@/content/site";
 import {
   findReservationById,
+  listGroupMembers,
   listPaymentsForReservation,
+  type ReservationRecord,
 } from "@/lib/demo-store";
 import { listFolioCharges } from "@/lib/folio/store";
 import { roomDisplayName } from "@/lib/room-names";
@@ -29,27 +31,35 @@ function dueDate(settings: InvoiceSettings, issued = new Date()): string {
 
 /** Issue an invoice for a room booking as it stands now: stay, extras, folio, payments. */
 export async function issueInvoiceForReservation(reservationId: string): Promise<IssueResult> {
-  const reservation = await findReservationById(reservationId);
-  if (!reservation) return { ok: false, status: 404, error: "Reservation not found" };
+  const found = await findReservationById(reservationId);
+  if (!found) return { ok: false, status: 404, error: "Reservation not found" };
+  // A group booking gets one invoice on its lead line covering every room type.
+  const members = (await listGroupMembers(found)).filter((m) => m.status !== "cancelled" || m.id === found.id);
+  const reservation = members[0] ?? found;
   if (reservation.itemType !== "room") {
     return { ok: false, status: 422, error: "Invoices are for room bookings" };
   }
 
-  const [settings, tax, folioCharges, payments, roomSetup] = await Promise.all([
+  const [settings, tax, folioLists, paymentLists, roomSetup] = await Promise.all([
     getInvoiceSettings(),
     getTaxSettings(),
-    listFolioCharges(reservationId),
-    listPaymentsForReservation(reservationId),
+    Promise.all(members.map((m) => listFolioCharges(m.id))),
+    Promise.all(members.map((m) => listPaymentsForReservation(m.id))),
     getRoomSetup(),
   ]);
   const labels = unitLabelMap(roomSetup);
+  const stay = (m: ReservationRecord) => ({
+    reservation: m,
+    roomLabel: roomDisplayName(m.roomId),
+    roomNumbers: (m.assignedUnits ?? []).map((u) => labels[u] ?? u),
+    catalogNightlyNgn: rooms.find((r) => r.id === m.roomId)?.priceFrom ?? 0,
+  });
+  const lead = stay(reservation);
   const document = buildInvoiceDocument({
-    reservation,
-    roomLabel: roomDisplayName(reservation.roomId),
-    roomNumbers: (reservation.assignedUnits ?? []).map((u) => labels[u] ?? u),
-    catalogNightlyNgn: rooms.find((r) => r.id === reservation.roomId)?.priceFrom ?? 0,
-    folioCharges,
-    payments,
+    ...lead,
+    otherStays: members.slice(1).map(stay),
+    folioCharges: folioLists.flat(),
+    payments: paymentLists.flat(),
     tax,
     settings,
   });
@@ -57,7 +67,7 @@ export async function issueInvoiceForReservation(reservationId: string): Promise
   const year = new Date().getFullYear();
   const invoice = await issueInvoice({
     kind: "invoice",
-    reservationId,
+    reservationId: reservation.id,
     dueAt: dueDate(settings),
     document,
     series: series("invoice", settings, year),

@@ -1,7 +1,8 @@
 import { rooms } from "@/content/site";
-import { reserveRoom } from "@/lib/booking-engine/reserve";
+import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
 import { addReservation, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
+import { roomDisplayName } from "@/lib/room-names";
 import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
 
@@ -29,6 +30,8 @@ export async function POST(request: Request) {
 
     let record: ReservationRecord;
     let quote: { totalNgn: number; depositNgn: number } | undefined;
+    /** What the emails describe — for a group, the whole group. */
+    let emailRecord: ReservationRecord | undefined;
 
     if (data.itemType === "room") {
       const roomId = data.roomId;
@@ -51,30 +54,63 @@ export async function POST(request: Request) {
         );
       }
 
-      // Server re-quotes (price, restrictions, coupon) and checks
-      // availability atomically with the insert — client nights/prices are
-      // never trusted.
-      const result = await reserveRoom(
-        {
-          roomId: room.id,
-          checkIn: data.checkIn,
-          checkOut: data.checkOut,
-          guests: data.guests,
-          rooms: data.rooms,
-          couponCode: data.couponCode || undefined,
-          extraIds: data.extraIds,
-        },
-        guest,
-      );
-
-      if (!result.ok) {
-        return NextResponse.json(
-          { error: result.message, code: result.code },
-          { status: result.status },
+      // Group booking: several room types in one checkout, one payment.
+      if (data.stays && data.stays.length > 1) {
+        const group = await reserveGroup(
+          {
+            checkIn: data.checkIn,
+            checkOut: data.checkOut,
+            guests: data.guests,
+            stays: data.stays,
+            couponCode: data.couponCode || undefined,
+            extraIds: data.extraIds,
+          },
+          guest,
         );
+        if (!group.ok) {
+          return NextResponse.json(
+            { error: group.message, code: group.code },
+            { status: group.status },
+          );
+        }
+        record = group.lead;
+        quote = group.quote;
+        emailRecord = {
+          ...group.lead,
+          quotedTotalNgn: group.quote.totalNgn,
+          quotedDepositNgn: group.quote.depositNgn,
+          units: group.records.reduce((n, r) => n + (r.units ?? 1), 0),
+          guests: data.guests,
+          stayPreference: `Group booking: ${group.records
+            .map((r) => `${r.units ?? 1} × ${roomDisplayName(r.roomId)}`)
+            .join(", ")}`,
+        };
+      } else {
+        // Server re-quotes (price, restrictions, coupon) and checks
+        // availability atomically with the insert — client nights/prices are
+        // never trusted.
+        const result = await reserveRoom(
+          {
+            roomId: room.id,
+            checkIn: data.checkIn,
+            checkOut: data.checkOut,
+            guests: data.guests,
+            rooms: data.rooms,
+            couponCode: data.couponCode || undefined,
+            extraIds: data.extraIds,
+          },
+          guest,
+        );
+
+        if (!result.ok) {
+          return NextResponse.json(
+            { error: result.message, code: result.code },
+            { status: result.status },
+          );
+        }
+        record = result.record;
+        quote = result.quote;
       }
-      record = result.record;
-      quote = result.quote;
     } else {
       record = await addReservation({
         ...guest,
@@ -90,8 +126,8 @@ export async function POST(request: Request) {
     }
 
     const [sent] = await Promise.all([
-      sendReservationEmail(record),
-      sendGuestReservationConfirmation(record),
+      sendReservationEmail(emailRecord ?? record),
+      sendGuestReservationConfirmation(emailRecord ?? record),
     ]);
     if (sent) {
       record.emailSent = true;

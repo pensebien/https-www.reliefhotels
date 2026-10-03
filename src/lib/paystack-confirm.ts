@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   findPaymentByReference,
   findReservationById,
+  listGroupMembers,
   updatePaymentByReference,
   updateReservationById,
   type PaymentRecord,
@@ -69,6 +70,13 @@ export async function confirmPaystackCharge(
       ...(await lapsedHoldNote(updated.reservationId)),
     });
     if (confirmed) {
+      // One payment covers every room type of a group booking.
+      const others = (await listGroupMembers(confirmed)).filter(
+        (m) => m.id !== confirmed.id && m.status === "pending",
+      );
+      await Promise.all(
+        others.map((m) => updateReservationById(m.id, { status: "confirmed", paymentReference: reference })),
+      );
       notified = await handlePaymentConfirmed(updated, confirmed);
     }
   }

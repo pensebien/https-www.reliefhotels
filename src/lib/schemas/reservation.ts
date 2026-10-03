@@ -21,6 +21,15 @@ export const reservationSchema = z
     rooms: z.number().int().min(1).max(4).optional(),
     couponCode: z.string().trim().max(40).optional(),
     extraIds: z.array(z.string().max(60)).max(20).optional(),
+    /**
+     * Group booking: several room types on the same dates. When present the
+     * first line is the lead (roomId must match it) and `guests` is the total.
+     */
+    stays: z
+      .array(z.object({ roomId: z.string().min(1).max(100), rooms: z.number().int().min(1).max(4) }))
+      .min(1)
+      .max(4)
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.itemType !== "room") return;
