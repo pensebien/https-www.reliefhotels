@@ -13,3 +13,20 @@ alter table room_blocks
   add column if not exists external_uid text;
 
 create index if not exists room_blocks_source_idx on room_blocks (source) where source is not null;
+
+-- 2. Guest profiles: staff-kept tags, company, notes and blocked flag per
+--    guest email (stays and spend are derived from reservations).
+create table if not exists guest_profiles (
+  email text primary key check (email = lower(email)),
+  tags text[] not null default '{}',
+  company text not null default '',
+  notes text not null default '',
+  blocked boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+alter table guest_profiles enable row level security;
+
+drop policy if exists "service_role_all_guest_profiles" on guest_profiles;
+create policy "service_role_all_guest_profiles"
+  on guest_profiles as permissive for all to service_role using (true) with check (true);

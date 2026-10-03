@@ -57,6 +57,11 @@ type PaymentRow = {
   created_at: string;
 };
 
+/** Row → record, for callers paging through reservations themselves. */
+export function mapReservationRow(row: unknown): ReservationRecord {
+  return mapReservation(row as ReservationRow);
+}
+
 function mapReservation(row: ReservationRow): ReservationRecord {
   return {
     id: row.id,

@@ -41,6 +41,7 @@ export const NAV_ITEMS: StaffNavItem[] = [
   { href: "/staff/housekeeping", labelKey: "housekeeping" },
   { href: "/staff/accounting", labelKey: "accounting" },
   { href: "/staff/reports", labelKey: "reports" },
+  { href: "/staff/guests", labelKey: "guests" },
   { href: "/staff/settings/rooms", labelKey: "roomSettings" },
   { href: "/staff/settings/rates", labelKey: "rateSettings" },
   { href: "/staff/settings/channels", labelKey: "channelSettings" },
@@ -57,6 +58,7 @@ export const NAV_ITEMS: StaffNavItem[] = [
 const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>> = {
   cashier: {
     "/staff": "full",
+    "/staff/guests": "read",
     "/staff/cashier": "full",
     "/staff/fnb": "full",
     "/staff/calendar": "full",
@@ -69,6 +71,7 @@ const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>
     "/staff/housekeeping": "read",
     "/staff/accounting": "full",
     "/staff/reports": "full",
+    "/staff/guests": "full",
     "/staff/settings/rooms": "full",
     "/staff/settings/rates": "full",
     "/staff/settings/channels": "full",

@@ -3,6 +3,7 @@ import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
 import { addReservation, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
+import { isGuestBlocked } from "@/lib/guests/profiles";
 import { roomDisplayName } from "@/lib/room-names";
 import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
@@ -20,6 +21,13 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    // Guests staff have blocked can't book online; the message stays neutral.
+    if (await isGuestBlocked(data.email)) {
+      return NextResponse.json(
+        { error: "We couldn't complete this booking online. Please contact the hotel.", code: "contact_hotel" },
+        { status: 403 },
+      );
+    }
     const engine = (await getRateConfig()).engine;
     if (data.itemType === "room" && engine.arrivalTimeField === "required" && !data.arrivalTime) {
       return NextResponse.json({ error: "Please tell us your expected arrival time" }, { status: 400 });
