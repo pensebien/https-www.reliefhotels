@@ -25,6 +25,7 @@ export function ReservationForm(props: ReservationFlowProps) {
     ratePlans = [],
     bookingMode = "instant",
     arrivalTimeField = "optional",
+    customFields = [],
     useDemoTestAmount = false,
   } = props;
 
@@ -492,6 +493,36 @@ export function ReservationForm(props: ReservationFlowProps) {
                 />
               </div>
             ) : null}
+
+            {customFields.map((field) =>
+              field.type === "checkbox" ? (
+                <label key={field.id} className="flex items-start gap-3 text-sm sm:col-span-2">
+                  <input
+                    id={`res-cf-${field.id}`}
+                    type="checkbox"
+                    required={field.required}
+                    checked={formData.customAnswers[field.id] === true}
+                    onChange={(e) => updateField("customAnswers", { ...formData.customAnswers, [field.id]: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
+                  />
+                  <span>{field.label}</span>
+                </label>
+              ) : (
+                <div key={field.id} className="space-y-2 sm:col-span-2">
+                  <label htmlFor={`res-cf-${field.id}`} className={labelClassName}>
+                    {field.required ? field.label : t("optionalField", { label: field.label })}
+                  </label>
+                  <input
+                    id={`res-cf-${field.id}`}
+                    type="text"
+                    required={field.required}
+                    value={String(formData.customAnswers[field.id] ?? "")}
+                    onChange={(e) => updateField("customAnswers", { ...formData.customAnswers, [field.id]: e.target.value })}
+                    className={inputClassName}
+                  />
+                </div>
+              ),
+            )}
 
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="res-message" className={labelClassName}>

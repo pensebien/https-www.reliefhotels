@@ -287,6 +287,37 @@ function RateSettingsForm({
             </select>
           </label>
         </div>
+        <div className="space-y-2">
+          <p className={cellLabel}>{t("customFieldsTitle")}</p>
+          {draft.engine.customFields.map((field, i) => {
+            const setField = (change: Partial<typeof field>) =>
+              patch({ engine: { ...draft.engine, customFields: draft.engine.customFields.map((f, j) => (j === i ? { ...f, ...change } : f)) } });
+            return (
+              <div key={field.id} className="flex flex-wrap items-center gap-2">
+                <input aria-label={t("label")} value={field.label} onChange={(e) => setField({ label: e.target.value })} className={`${inputClass} min-w-0 flex-1`} />
+                <select aria-label={t("fieldType")} value={field.type} onChange={(e) => setField({ type: e.target.value as "text" | "checkbox" })} className={`${inputClass} w-36`}>
+                  <option value="text">{t("fieldText")}</option>
+                  <option value="checkbox">{t("fieldCheckbox")}</option>
+                </select>
+                <label className="flex items-center gap-1.5 text-sm">
+                  <input type="checkbox" className="h-4 w-4 accent-teal" checked={field.required} onChange={(e) => setField({ required: e.target.checked })} />
+                  {t("fieldRequired")}
+                </label>
+                <button type="button" aria-label={t("remove")} onClick={() => patch({ engine: { ...draft.engine, customFields: draft.engine.customFields.filter((_, j) => j !== i) } })} className="rounded p-1.5 text-muted hover:text-red-600">
+                  <Trash2 className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => patch({ engine: { ...draft.engine, customFields: [...draft.engine.customFields, { id: `q-${Date.now()}`, label: "", type: "text", required: false }] } })}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm hover:border-teal"
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {t("addCustomField")}
+          </button>
+        </div>
       </Section>
 
       <Section title={t("roomsTitle")} hint={t("roomsHint")}>

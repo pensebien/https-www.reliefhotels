@@ -30,3 +30,7 @@ alter table guest_profiles enable row level security;
 drop policy if exists "service_role_all_guest_profiles" on guest_profiles;
 create policy "service_role_all_guest_profiles"
   on guest_profiles as permissive for all to service_role using (true) with check (true);
+
+-- 3. Answers to staff-defined booking questions (custom fields).
+alter table reservations
+  add column if not exists custom_fields jsonb;

@@ -23,6 +23,7 @@ export const reservationSchema = z
     /** Rate plan the guest chose (e.g. non-refundable); omit for the standard rate. */
     ratePlanId: z.string().max(60).optional(),
     /** Expected arrival time "HH:MM" (booking engine arrival-time question). */
+    customFields: z.record(z.string().max(40), z.union([z.string().max(500), z.boolean()])).optional(),
     arrivalTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
     extraIds: z.array(z.string().max(60)).max(20).optional(),
     /**

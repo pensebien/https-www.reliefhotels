@@ -12,6 +12,7 @@ export const reservationFormSchema = z.object({
   message: z.string().max(2000).default(""),
   experienceInterests: z.array(z.string()).default([]),
   arrivalTime: z.string().default(""),
+  customAnswers: z.record(z.string(), z.union([z.string(), z.boolean()])).default({}),
   termsAccepted: z
     .boolean()
     .refine((val) => val === true, { message: "You must accept the terms" }),

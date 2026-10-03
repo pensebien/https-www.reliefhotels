@@ -27,6 +27,7 @@ const defaultFormData: ReservationFormData = {
   message: "",
   experienceInterests: [],
   arrivalTime: "",
+  customAnswers: {},
   termsAccepted: false,
 };
 

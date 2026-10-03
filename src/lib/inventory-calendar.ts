@@ -28,6 +28,7 @@ export type CalendarReservation = {
   units?: number;
   /** Rooms assigned by staff, e.g. ["guest-room-3"]; one per unit. */
   assignedUnits?: string[];
+  customFields?: Record<string, string | boolean>;
   stayPreference: string;
   status: "pending" | "confirmed" | "cancelled" | "checked_out";
   paymentReference?: string;

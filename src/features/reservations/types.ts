@@ -6,6 +6,7 @@ export type ReservationFormData = {
   message: string;
   experienceInterests: string[];
   arrivalTime: string;
+  customAnswers: Record<string, string | boolean>;
   termsAccepted: boolean;
 };
 
@@ -71,6 +72,7 @@ export type ReservationFlowProps = {
   /** Booking engine mode: "request" waits for staff approval before payment. */
   bookingMode?: "instant" | "request";
   arrivalTimeField?: "hidden" | "optional" | "required";
+  customFields?: { id: string; label: string; type: "text" | "checkbox"; required: boolean }[];
   useDemoTestAmount?: boolean;
 };
 

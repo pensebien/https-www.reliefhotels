@@ -634,7 +634,8 @@
     "arrivalTimeOptional": "Expected arrival time (optional)",
     "sendRequest": "Send booking request",
     "requestSentTitle": "Booking request sent",
-    "requestSentBody": "We'll check availability and email {email} within 24 hours. Once confirmed, you'll get a link to pay your deposit."
+    "requestSentBody": "We'll check availability and email {email} within 24 hours. Once confirmed, you'll get a link to pay your deposit.",
+    "optionalField": "{label} (optional)"
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -1634,7 +1635,12 @@
     "arrivalTimeField": "Ask arrival time",
     "fieldHidden": "Don't ask",
     "fieldOptional": "Optional",
-    "fieldRequired": "Required"
+    "fieldRequired": "Required",
+    "customFieldsTitle": "Extra questions on the booking form",
+    "addCustomField": "Add question",
+    "fieldType": "Answer type",
+    "fieldText": "Text",
+    "fieldCheckbox": "Tick box"
   },
   "staffRoomSettings": {
     "metaTitle": "Room setup",
