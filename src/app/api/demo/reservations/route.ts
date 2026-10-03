@@ -1,11 +1,12 @@
 import { rooms } from "@/content/site";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
+import { OVERRIDABLE_RULE_CODES, type QuoteErrorCode } from "@/lib/booking-engine/quote";
+import { reserveRoom } from "@/lib/booking-engine/reserve";
 import {
   addPayment,
-  addReservation,
   findPaymentByReference,
   updateReservationById,
 } from "@/lib/demo-store";
-import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { nightsBetween } from "@/lib/booking-search";
 import { sendReservationEmail } from "@/lib/email";
 import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
@@ -45,11 +46,16 @@ export async function POST(request: Request) {
     }
 
     const nights = nightsBetween(data.checkIn, data.checkOut);
-    const depositNgn =
-      data.depositAmountNgn ?? calculateDepositNgn(room.priceFrom, nights);
 
     const guestNote = data.message?.trim() || "No special requests";
-    const message = `Walk-in booking (recorded by staff)\n\n${guestNote}`;
+    const message = [
+      "Walk-in booking (recorded by staff)",
+      data.overrideRules ? "Stay rules overridden by staff." : null,
+      "",
+      guestNote,
+    ]
+      .filter((line) => line !== null)
+      .join("\n");
 
     const stayPreference = [
       `room:${room.id}`,
@@ -71,22 +77,43 @@ export async function POST(request: Request) {
         ? "confirmed"
         : data.status;
 
-    let record = await addReservation({
-      firstName: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      email: data.email.trim(),
-      phone: data.phone?.trim() || undefined,
-      itemType: "room",
-      roomId: room.id,
-      checkIn: data.checkIn,
-      checkOut: data.checkOut,
-      nights,
-      guests: data.guests,
-      stayPreference,
-      message,
-      status: reservationStatus,
-      emailSent: false,
-    });
+    // Same engine as online checkout: priced from the rate rules and
+    // checked-and-inserted atomically, so the desk can't double-book a room.
+    // Staff may override stay rules (capacity, min stay, closed dates) —
+    // never availability. Desk bookings keep holding the room until staff
+    // change their status, so no expiring hold.
+    const reserved = await reserveRoom(
+      {
+        roomId: room.id,
+        checkIn: data.checkIn,
+        checkOut: data.checkOut,
+        guests: data.guests,
+        ignoreRestrictions: data.overrideRules,
+      },
+      {
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        phone: data.phone?.trim() || undefined,
+        stayPreference,
+        message,
+      },
+      { status: reservationStatus, expiringHold: false, channel: "desk" },
+    );
+
+    if (!reserved.ok) {
+      return NextResponse.json(
+        {
+          error: reserved.message,
+          code: reserved.code,
+          overridable: OVERRIDABLE_RULE_CODES.includes(reserved.code as QuoteErrorCode),
+        },
+        { status: reserved.status },
+      );
+    }
+
+    let record = reserved.record;
+    const depositNgn = data.depositAmountNgn ?? reserved.quote.depositNgn;
 
     let paymentReference: string | undefined;
     let paymentPending = false;
@@ -171,6 +198,8 @@ export async function POST(request: Request) {
         await syncConfirmedReservationToRayza(record);
       }
     }
+
+    await emitBookingEvent("booking.created", record);
 
     const emailSent = await sendReservationEmail(record);
     if (emailSent) {

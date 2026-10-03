@@ -44,6 +44,7 @@ yarn-error.log*
 /data/inquiries.json
 /data/folio-charges.json
 /data/staff-accounts.json
+/data/rate-config.json
 
 # bvdlc local scaffolding script
 /bvdlc.sh
@@ -65,3 +66,13 @@ next-env.d.ts
 # local QA tooling (InboxTap email-capture server) — not part of this repo
 /inboxtap/
 /inboxtap.dev/
+/public/uploads/
+/data/invoices.json
+/data/guest-message-log.json
+/data/checkins.json
+/data/guest-ids/
+/data/settings/
+/data/room-status.json
+/data/housekeeping-tasks-done.json
+/data/guest-profiles.json
+/data/webhook-deliveries.json

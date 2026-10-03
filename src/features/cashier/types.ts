@@ -29,6 +29,10 @@ export type CashierReservation = {
   staffNotes?: string;
   source: string;
   createdAt: string;
+  /** Booking-engine fields — present on bookings made since engine v2. */
+  units?: number;
+  quotedTotalNgn?: number;
+  quotedDepositNgn?: number;
 };
 
 /** Mirrors the payment fields exposed by GET /api/demo/activity. */

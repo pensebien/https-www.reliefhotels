@@ -1,6 +1,7 @@
 "use client";
 
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
+import { HousekeepingBoard } from "@/features/staff-housekeeping/components/housekeeping-board";
 import { useRoomBlocks } from "@/features/staff-housekeeping/hooks/use-room-blocks";
 import type { RoomBlockType } from "@/features/staff-housekeeping/types";
 import { rooms } from "@/content/site";
@@ -128,6 +129,8 @@ export function StaffHousekeepingClient() {
           {t("loading")}
         </p>
       ) : null}
+
+      {hasData && key ? <HousekeepingBoard key={key} dashboardKey={key} /> : null}
 
       {hasData ? (
         <>

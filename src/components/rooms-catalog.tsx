@@ -5,6 +5,8 @@ import {
   RoomCategoryTabs,
 } from "@/components/room-category-tabs";
 import { RoomDetailModal } from "@/components/room-detail-modal";
+import { useBookingLink } from "@/hooks/use-booking-link";
+import { useRoomCatalog } from "@/hooks/use-room-catalog";
 import {
   roomCategories,
   rooms,
@@ -16,16 +18,21 @@ import {
   parseBookingSearchParams,
   parseDateString,
 } from "@/lib/booking-search";
-import type { AvailableRoom } from "@/lib/room-availability";
+import type { AvailableRoom, RestrictedRoom } from "@/lib/room-availability";
 import { Link } from "@/i18n/navigation";
 import { contactSectionHref } from "@/lib/contact-href";
 import { formatNaira } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+
+/** Extra query for book links when the guest came through a booking link. */
+const LinkQueryContext = createContext("");
 
 type Room = (typeof rooms)[number];
+/** A catalog room as displayed — photos may come from staff room setup. */
+type DisplayRoom = Omit<Room, "image" | "gallery"> & { image: string; gallery: readonly string[] };
 
 function formatStayDate(value: string, locale: string) {
   const localeTag = locale === "fr" ? "fr-FR" : "en-US";
@@ -46,9 +53,15 @@ export function RoomsCatalog() {
   );
 
   const activeTab = resolveActiveTab(searchParams.get("category"));
+  const bookingLink = useBookingLink();
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [availableById, setAvailableById] = useState<Map<string, AvailableRoom>>(
+    () => new Map(),
+  );
+  // Room types with free units that a rule blocks for this stay (min stay,
+  // capacity, closed to arrival) — shown with the reason, not silently hidden.
+  const [restrictedById, setRestrictedById] = useState<Map<string, string>>(
     () => new Map(),
   );
 
@@ -63,6 +76,7 @@ export function RoomsCatalog() {
   useEffect(() => {
     if (!bookingQueryKey) {
       setAvailableById(new Map());
+      setRestrictedById(new Map());
       setFetchError(false);
       setLoading(false);
       return;
@@ -76,13 +90,16 @@ export function RoomsCatalog() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error ?? "fetch failed");
-        return data as { available: AvailableRoom[] };
+        return data as { available: AvailableRoom[]; restricted?: RestrictedRoom[] };
       })
       .then((data) => {
         if (cancelled) return;
         const map = new Map<string, AvailableRoom>();
         for (const room of data.available) map.set(room.id, room);
         setAvailableById(map);
+        setRestrictedById(
+          new Map((data.restricted ?? []).map((r) => [r.id, r.message])),
+        );
       })
       .catch(() => {
         if (!cancelled) setFetchError(true);
@@ -98,9 +115,12 @@ export function RoomsCatalog() {
 
   const catalogRooms = useMemo(() => {
     if (!bookingQuery) return [];
-    const ids = availableById;
-    return rooms.filter((room) => ids.has(room.id));
-  }, [availableById, bookingQuery]);
+    return rooms.filter(
+      (room) =>
+        (availableById.has(room.id) || restrictedById.has(room.id)) &&
+        (!bookingLink?.roomIds.length || bookingLink.roomIds.includes(room.id)),
+    );
+  }, [availableById, bookingLink, bookingQuery, restrictedById]);
 
   const filteredRooms = useMemo(
     () =>
@@ -132,7 +152,7 @@ export function RoomsCatalog() {
     });
 
   return (
-    <>
+    <LinkQueryContext.Provider value={bookingLink ? `&link=${encodeURIComponent(bookingLink.slug)}` : ""}>
       <section className="border-b border-border bg-card">
         <div className="rooms-page-container mx-auto max-w-7xl px-4 py-8 text-center lg:px-16 lg:py-10">
           <h1 className="mx-auto text-center font-serif text-4xl font-medium sm:text-5xl">
@@ -142,6 +162,12 @@ export function RoomsCatalog() {
           {bookingQuery && !loading && !fetchError && (
             <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">{dateBanner}</p>
           )}
+
+          {bookingLink ? (
+            <p className="mx-auto mt-4 inline-block rounded-full bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal-dark">
+              {t("bookingLinkBanner", { label: bookingLink.label })}
+            </p>
+          ) : null}
 
           <div className="mx-auto mt-8 max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted">
@@ -189,6 +215,7 @@ export function RoomsCatalog() {
                   t={t}
                   currencyLocale={currencyLocale}
                   availableById={availableById}
+                  restrictedById={restrictedById}
                   bookingQuery={bookingQuery}
                 />
               </div>
@@ -200,11 +227,12 @@ export function RoomsCatalog() {
             t={t}
             currencyLocale={currencyLocale}
             availableById={availableById}
+            restrictedById={restrictedById}
             bookingQuery={bookingQuery}
           />
         )}
       </section>
-    </>
+    </LinkQueryContext.Provider>
   );
 }
 
@@ -213,21 +241,30 @@ function RoomGrid({
   t,
   currencyLocale,
   availableById,
+  restrictedById,
   bookingQuery,
 }: {
   rooms: readonly Room[];
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availableById: Map<string, AvailableRoom>;
+  restrictedById: Map<string, string>;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
 }) {
-  const [detailRoom, setDetailRoom] = useState<Room | null>(null);
+  const [detailRoom, setDetailRoom] = useState<DisplayRoom | null>(null);
+  const catalog = useRoomCatalog();
+  const linkQs = useContext(LinkQueryContext);
+  // Staff-uploaded photos (room setup) replace the built-in ones when present.
+  const withPhotos = (room: Room): DisplayRoom => {
+    const photos = catalog.get(room.id)?.photos;
+    return photos?.length ? { ...room, image: photos[0], gallery: photos } : room;
+  };
   const detailAvailability = detailRoom
     ? availableById.get(detailRoom.id)
     : undefined;
   const detailBookHref =
     detailRoom &&
-    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}`;
+    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}${linkQs}`;
 
   return (
     <>
@@ -235,12 +272,13 @@ function RoomGrid({
         {roomList.map((room) => (
           <RoomCard
             key={room.id}
-            room={room}
+            room={withPhotos(room)}
             t={t}
             currencyLocale={currencyLocale}
             availability={availableById.get(room.id)}
+            restriction={restrictedById.get(room.id)}
             bookingQuery={bookingQuery}
-            onViewDetails={() => setDetailRoom(room)}
+            onViewDetails={() => setDetailRoom(withPhotos(room))}
           />
         ))}
       </div>
@@ -262,19 +300,22 @@ function RoomCard({
   t,
   currencyLocale,
   availability,
+  restriction,
   bookingQuery,
   onViewDetails,
 }: {
-  room: Room;
+  room: DisplayRoom;
   t: ReturnType<typeof useTranslations<"rooms">>;
   currencyLocale: string;
   availability?: AvailableRoom;
+  restriction?: string;
   bookingQuery: NonNullable<ReturnType<typeof parseBookingSearchParams>>;
   onViewDetails: () => void;
 }) {
   const key = room.nameKey.split(".")[1];
   const stayQs = bookingSearchToQueryString(bookingQuery);
-  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}`;
+  const linkQs = useContext(LinkQueryContext);
+  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}${linkQs}`;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg">
@@ -322,6 +363,11 @@ function RoomCard({
             </>
           )}
         </p>
+        {restriction ? (
+          <p className="mt-2 text-sm font-medium text-amber-800" role="note">
+            {t("restrictedForDates", { reason: restriction })}
+          </p>
+        ) : null}
         {availability && availability.availableUnits <= 3 && (
           <p className="mt-2 text-sm font-medium text-amber-800">
             {t("limitedAvailability", { count: availability.availableUnits })}
@@ -335,12 +381,21 @@ function RoomCard({
           >
             {t("viewDetails")}
           </button>
-          <Link
-            href={bookHref}
-            className="inline-flex items-center justify-center rounded-full bg-teal px-2 py-2.5 text-center text-xs font-medium leading-tight text-gray-950 hover:bg-teal-dark sm:px-3 sm:text-sm"
-          >
-            {t("payDeposit")}
-          </Link>
+          {restriction ? (
+            <span
+              aria-disabled
+              className="inline-flex items-center justify-center rounded-full bg-muted/30 px-2 py-2.5 text-center text-xs font-medium leading-tight text-muted sm:px-3 sm:text-sm"
+            >
+              {t("payDeposit")}
+            </span>
+          ) : (
+            <Link
+              href={bookHref}
+              className="inline-flex items-center justify-center rounded-full bg-teal px-2 py-2.5 text-center text-xs font-medium leading-tight text-gray-950 hover:bg-teal-dark sm:px-3 sm:text-sm"
+            >
+              {t("payDeposit")}
+            </Link>
+          )}
           <Link
             href={contactSectionHref({ room: room.slug })}
             className="inline-flex items-center justify-center rounded-full border border-border px-2 py-2.5 text-center text-xs font-medium leading-tight transition-colors hover:border-teal sm:px-3 sm:text-sm"

@@ -377,9 +377,9 @@
   "booking": {
     "step1Title": "Your details",
     "step2Title": "Pay deposit",
-    "depositDueNow": "20% deposit wey you go pay now",
+    "depositDueNow": "{pct}% deposit wey you go pay now",
     "totalStayEstimate": "Total stay estimate",
-    "depositNote": "20% room deposit due now. Tours and local experiences na just information — dem no dey charge online.",
+    "depositNote": "{pct}% room deposit due now. Tours and local experiences na just information — dem no dey charge online.",
     "experienceInterests": "Calabar experiences (optional)",
     "experienceInterestsHint": "Tell us wetin you fit like explore — our team go advise you. E no add to your payment today.",
     "managerNotifyAfterPayment": "Manager go get notify after you pay, dem go confirm your booking.",

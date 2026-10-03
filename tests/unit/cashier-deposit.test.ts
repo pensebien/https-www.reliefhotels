@@ -27,4 +27,29 @@ describe("cashier suggested deposit (business case alignment)", () => {
 
     assert.equal(suggested, calculateDepositNgn(room.priceFrom, 2));
   });
+
+  it("uses the deposit locked by the booking engine when present", () => {
+    const base = {
+      id: "00000000-0000-4000-8000-000000000002",
+      firstName: "Ada",
+      lastName: "O",
+      email: "ada@example.com",
+      guests: 3,
+      roomId: "guest-room",
+      stayPreference: "guest-room",
+      status: "pending" as const,
+      source: "web",
+      createdAt: new Date().toISOString(),
+      checkIn: "2027-09-01",
+      checkOut: "2027-09-03",
+      nights: 2,
+    };
+    assert.equal(suggestedDepositNgn({ ...base, quotedDepositNgn: 61_234 }), 61_234);
+
+    const room = rooms.find((r) => r.id === "guest-room")!;
+    assert.equal(
+      suggestedDepositNgn({ ...base, units: 2 }),
+      calculateDepositNgn(room.priceFrom, 2) * 2,
+    );
+  });
 });

@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   findPaymentByReference,
+  findReservationById,
+  listGroupMembers,
   updatePaymentByReference,
   updateReservationById,
   type PaymentRecord,
@@ -65,11 +67,40 @@ export async function confirmPaystackCharge(
     const confirmed = await updateReservationById(updated.reservationId, {
       status: "confirmed",
       paymentReference: reference,
+      ...(await lapsedHoldNote(updated.reservationId)),
     });
     if (confirmed) {
+      // One payment covers every room type of a group booking.
+      const others = (await listGroupMembers(confirmed)).filter(
+        (m) => m.id !== confirmed.id && m.status === "pending",
+      );
+      await Promise.all(
+        others.map((m) => updateReservationById(m.id, { status: "confirmed", paymentReference: reference })),
+      );
       notified = await handlePaymentConfirmed(updated, confirmed);
     }
   }
 
   return { outcome: "confirmed", payment: updated, notified };
+}
+
+/**
+ * Money arriving after a booking's payment hold lapsed can't be refused, but
+ * the room may have been resold meanwhile — flag it for the front desk.
+ */
+async function lapsedHoldNote(
+  reservationId: string,
+): Promise<{ staffNotes?: string }> {
+  const reservation = await findReservationById(reservationId);
+  if (
+    !reservation?.holdExpiresAt ||
+    reservation.status !== "pending" ||
+    new Date(reservation.holdExpiresAt).getTime() > Date.now()
+  ) {
+    return {};
+  }
+  const note = `⚠ Paid after the room hold expired (${reservation.holdExpiresAt}) — confirm a room is still free.`;
+  return {
+    staffNotes: reservation.staffNotes ? `${note}\n${reservation.staffNotes}` : note,
+  };
 }

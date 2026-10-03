@@ -33,6 +33,10 @@ export function buildReservationPayload(
     pluralize(stayContext.nights, "night"),
     pluralize(stayContext.guests, "guest"),
   );
+  if (stayContext.rooms > 1) summaryParts.push(pluralize(stayContext.rooms, "room"));
+  for (const extra of stayContext.additionalStays) {
+    summaryParts.push(`+ ${extra.rooms} × room:${extra.roomId}`);
+  }
 
   let message = formData.message.trim();
 
@@ -52,6 +56,16 @@ export function buildReservationPayload(
     checkOut: stayContext.checkOut,
     nights: stayContext.nights,
     guests: stayContext.guests,
+    rooms: stayContext.rooms,
+    stays: stayContext.additionalStays.length
+      ? [{ roomId: stayContext.itemId, rooms: stayContext.rooms }, ...stayContext.additionalStays]
+      : undefined,
+    couponCode: stayContext.couponCode,
+    ratePlanId: stayContext.ratePlanId,
+    bookingLink: stayContext.bookingLink,
+    arrivalTime: formData.arrivalTime || undefined,
+    customFields: Object.keys(formData.customAnswers).length ? formData.customAnswers : undefined,
+    extraIds: stayContext.extraIds,
     stayPreference: summaryParts.join(" · "),
     message: message || "No special requests",
   };

@@ -1,5 +1,7 @@
 import { site } from "@/content/site";
 import { getServerConfig } from "@/lib/config";
+import { buildInvoiceUrl, buildManageBookingUrl } from "@/lib/booking-engine/manage-link";
+import type { IssuedInvoice } from "@/lib/invoices/store";
 import type { ReservationRecord } from "@/lib/demo-store";
 import type {
   DiningReservation,
@@ -93,6 +95,16 @@ function messageBlock(label: string, message: string): string {
     <p style="margin:0;padding:14px 16px;background-color:#faf9f6;border-radius:12px;white-space:pre-wrap;">${escapeHtml(message)}</p>`;
 }
 
+/** "Manage your booking" button — view, pay the balance, or cancel online. */
+function manageBookingBlock(record: ReservationRecord): string {
+  if (record.itemType !== "room") return "";
+  const url = buildManageBookingUrl(record.id);
+  if (!url) return "";
+  return `
+    <p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">Manage your booking</a></p>
+    <p style="margin:8px 0 0;color:#78716c;font-size:13px;">View your stay, pay your balance, or cancel online.</p>`;
+}
+
 /** Guest-facing acknowledgment sent right after a stay/tour reservation request comes in. */
 export function guestReservationConfirmationHtml(record: ReservationRecord): string {
   const body = `
@@ -103,8 +115,13 @@ export function guestReservationConfirmationHtml(record: ReservationRecord): str
       ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
       ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
       ["Guests", String(record.guests)],
+      ["Rooms", record.units && record.units > 1 ? String(record.units) : undefined],
+      ["Promo code", record.couponCode ? escapeHtml(record.couponCode) : undefined],
+      ["Stay total", record.quotedTotalNgn !== undefined ? formatNairaFromKobo(record.quotedTotalNgn * 100) : undefined],
+      ["Deposit due", record.quotedDepositNgn !== undefined ? formatNairaFromKobo(record.quotedDepositNgn * 100) : undefined],
       ["Reference", escapeHtml(record.id)],
     ])}
+    ${manageBookingBlock(record)}
     <p style="margin:20px 0 0;">Need to reach us sooner? Call or WhatsApp <a href="${site.phoneHref}" style="color:#14b8a6;">${escapeHtml(site.phone)}</a>.</p>`;
 
   return emailLayout({
@@ -481,5 +498,165 @@ export async function sendPaymentConfirmationEmail(
     bcc: [config.email.finance.inbox],
     subject: `[Relief Hotels] Payment received — ${payload.reference}`,
     html: paymentConfirmationHtml(payload),
+  });
+}
+
+export type CancellationAmounts = { paidNgn: number; refundNgn: number };
+
+export function guestCancellationHtml(
+  record: ReservationRecord,
+  amounts: CancellationAmounts,
+): string {
+  const refundLine =
+    amounts.paidNgn === 0
+      ? "No payment was taken, so nothing further is owed."
+      : amounts.refundNgn > 0
+        ? `A refund of ${formatNairaFromKobo(amounts.refundNgn * 100)} will be processed by our front desk to your original payment method.`
+        : "This cancellation was outside the free-cancellation window, so the deposit is non-refundable.";
+  const body = `
+    <p style="margin:0 0 16px;">Hi ${escapeHtml(record.firstName)},</p>
+    <p style="margin:0 0 8px;">Your booking at ${escapeHtml(site.name)} has been cancelled.</p>
+    ${detailsCard([
+      ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+      ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
+      ["Reference", escapeHtml(record.id)],
+    ])}
+    <p style="margin:20px 0 0;">${escapeHtml(refundLine)}</p>`;
+  return emailLayout({
+    preheader: `Your booking ${record.id} has been cancelled.`,
+    bodyHtml: body,
+  });
+}
+
+/** Guest confirmation + front-desk alert (with refund due) for an online cancellation. */
+export async function sendGuestCancellationEmails(
+  record: ReservationRecord,
+  amounts: CancellationAmounts,
+): Promise<boolean> {
+  const config = getServerConfig();
+
+  if (!config.email.configured) {
+    console.info("[email:demo] guest cancellation", record.email, amounts);
+    return false;
+  }
+
+  const staffHtml = emailLayout({
+    preheader: `Guest cancelled ${record.id}`,
+    bodyHtml: `
+      <h2 style="margin:0 0 16px;font-family:Georgia,serif;font-weight:normal;">Guest cancelled online</h2>
+      ${detailsCard([
+        ["Guest", escapeHtml(`${record.firstName} ${record.lastName}`)],
+        ["Email", escapeHtml(record.email)],
+        ["Room", record.roomId ? escapeHtml(record.roomId) : undefined],
+        ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+        ["Paid", formatNairaFromKobo(amounts.paidNgn * 100)],
+        ["Refund due", formatNairaFromKobo(amounts.refundNgn * 100)],
+        ["Reference", escapeHtml(record.id)],
+      ])}`,
+  });
+
+  const [guestSent, staffSent] = await Promise.all([
+    sendResendEmail({
+      from: config.email.reservations.from,
+      to: [record.email],
+      replyTo: config.email.reservations.replyTo,
+      subject: `Your booking has been cancelled — ${site.name}`,
+      html: guestCancellationHtml(record, amounts),
+    }),
+    sendResendEmail({
+      to: [config.email.to],
+      replyTo: record.email,
+      subject: `[Relief Hotels] Guest cancelled — ${record.firstName} ${record.lastName}`,
+      html: staffHtml,
+    }),
+  ]);
+  return guestSent && staffSent;
+}
+
+export function invoiceEmailHtml(invoice: IssuedInvoice): string {
+  const doc = invoice.document;
+  const url = buildInvoiceUrl(invoice.id);
+  const label = invoice.kind === "credit_note" ? "credit note" : "invoice";
+  const body = `
+    <p style="margin:0 0 16px;">Hi ${escapeHtml(doc.guest.name.split(" ")[0] ?? doc.guest.name)},</p>
+    <p style="margin:0 0 8px;">Here is your ${label} from ${escapeHtml(site.name)}.</p>
+    ${detailsCard([
+      ["Number", escapeHtml(invoice.number)],
+      ["Total", formatNairaFromKobo(doc.totals.grossNgn * 100)],
+      ["Paid", invoice.kind === "invoice" ? formatNairaFromKobo(doc.totals.paidNgn * 100) : undefined],
+      ["Balance due", invoice.kind === "invoice" ? formatNairaFromKobo(Math.max(0, doc.totals.balanceNgn) * 100) : undefined],
+    ])}
+    ${url ? `<p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">View ${label}</a></p>` : ""}`;
+  return emailLayout({ preheader: `Your ${label} ${invoice.number}`, bodyHtml: body });
+}
+
+export async function sendInvoiceEmail(invoice: IssuedInvoice): Promise<boolean> {
+  const config = getServerConfig();
+  if (!config.email.configured) {
+    console.info("[email:demo] invoice", invoice.number, invoice.document.guest.email);
+    return false;
+  }
+  return sendResendEmail({
+    from: config.email.reservations.from,
+    to: [invoice.document.guest.email],
+    replyTo: config.email.reservations.replyTo,
+    subject: `${invoice.kind === "credit_note" ? "Credit note" : "Invoice"} ${invoice.number} — ${site.name}`,
+    html: invoiceEmailHtml(invoice),
+  });
+}
+
+/** A staff-written guest message (scheduled template); plain text, escaped, in the house layout. */
+export function guestMessageHtml(body: string): string {
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((p) => `<p style="margin:0 0 14px;">${escapeHtml(p).replace(/\n/g, "<br />")}</p>`)
+    .join("");
+  return emailLayout({ preheader: body.slice(0, 90), bodyHtml: paragraphs });
+}
+
+/** Returns "not_configured" when email isn't set up, so the run can say so. */
+export async function sendGuestMessageEmail(
+  to: string,
+  subject: string,
+  body: string,
+): Promise<"sent" | "failed" | "not_configured"> {
+  const config = getServerConfig();
+  if (!config.email.configured) {
+    console.info("[email:demo] guest message", to, subject);
+    return "not_configured";
+  }
+  const ok = await sendResendEmail({
+    from: config.email.reservations.from,
+    to: [to],
+    replyTo: config.email.reservations.replyTo,
+    subject,
+    html: guestMessageHtml(body),
+  });
+  return ok ? "sent" : "failed";
+}
+
+/** Request-mode bookings: staff approved; the guest pays the deposit from their manage link. */
+export async function sendBookingApprovedEmail(record: ReservationRecord): Promise<boolean> {
+  const config = getServerConfig();
+  const url = buildManageBookingUrl(record.id);
+  if (!config.email.configured || !url) {
+    console.info("[email:demo] booking approved", record.email);
+    return false;
+  }
+  const body = `
+    <p style="margin:0 0 16px;">Hi ${escapeHtml(record.firstName)},</p>
+    <p style="margin:0 0 8px;">Good news — your booking request at ${escapeHtml(site.name)} is confirmed.</p>
+    ${detailsCard([
+      ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+      ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
+      ["Deposit due", record.quotedDepositNgn !== undefined ? formatNairaFromKobo(record.quotedDepositNgn * 100) : undefined],
+    ])}
+    <p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">Pay your deposit</a></p>`;
+  return sendResendEmail({
+    from: config.email.reservations.from,
+    to: [record.email],
+    replyTo: config.email.reservations.replyTo,
+    subject: `Your booking is confirmed — ${site.name}`,
+    html: emailLayout({ preheader: "Your booking request is confirmed.", bodyHtml: body }),
   });
 }

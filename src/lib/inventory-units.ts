@@ -1,13 +1,16 @@
 import { rooms } from "@/content/site";
 import { eventSpaces } from "@/features/phase-2-product-expansion/content/event-spaces";
 
-/** Units per room type — aligned with public availability API. */
+/** Default units per room type, until staff save a room setup (see room-setup.ts). */
 export const INVENTORY_BY_ROOM_ID: Record<string, number> = {
   "guest-room": 12,
   "executive-room": 8,
   "signature-suite": 4,
   "presidential-suite": 1,
 };
+
+/** Per room type: inventory and room numbers, from GET /api/demo/activity → roomSetup. */
+export type UnitSetup = Record<string, { inventory: number; unitLabels: string[] }>;
 
 export type InventoryUnitKind = "room" | "event";
 
@@ -18,13 +21,15 @@ export type InventoryUnit = {
   category: "guestRoom" | "executive" | "suites" | "penthouse" | "eventsMeetings";
   kind: InventoryUnitKind;
   unitIndex: number;
+  /** Physical room number from room setup, e.g. "103". */
+  unitLabel?: string;
 };
 
-export function buildInventoryUnits(): InventoryUnit[] {
+export function buildInventoryUnits(setup?: UnitSetup): InventoryUnit[] {
   const units: InventoryUnit[] = [];
 
   for (const room of rooms) {
-    const count = INVENTORY_BY_ROOM_ID[room.id] ?? 1;
+    const count = setup?.[room.id]?.inventory ?? INVENTORY_BY_ROOM_ID[room.id] ?? 1;
     for (let i = 1; i <= count; i += 1) {
       units.push({
         id: `${room.id}-${i}`,
@@ -33,6 +38,7 @@ export function buildInventoryUnits(): InventoryUnit[] {
         category: room.category,
         kind: "room",
         unitIndex: i,
+        unitLabel: setup?.[room.id]?.unitLabels[i - 1],
       });
     }
   }

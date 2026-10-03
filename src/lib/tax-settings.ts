@@ -10,6 +10,7 @@
  * tax slot for now.
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { promises as fs } from "fs";
 import path from "path";
@@ -28,7 +29,7 @@ export const DEFAULT_TAX_SETTINGS: TaxSettings = {
   updatedAt: new Date(0).toISOString(),
 };
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const STORE_FILE = path.join(STORE_DIR, "tax-settings.json");
 
 async function readFile(): Promise<TaxSettings> {

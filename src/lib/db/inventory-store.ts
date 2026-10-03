@@ -1,10 +1,12 @@
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
-import { getActivity } from "@/lib/demo-store";
+import { getActivity, holdsInventory } from "@/lib/demo-store";
+import { DEFAULT_INVENTORY, getRoomSetup } from "@/lib/room-setup";
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 
-export type RoomBlockType = "maintenance" | "housekeeping";
+export type RoomBlockType = "maintenance" | "housekeeping" | "channel";
 
 export type RoomBlock = {
   id: string;
@@ -14,16 +16,13 @@ export type RoomBlock = {
   reason?: string;
   blockType: RoomBlockType;
   createdAt: string;
+  /** Channel blocks: which calendar feed imported it, and the event's UID there. */
+  source?: string;
+  externalUid?: string;
 };
 
-const DEFAULT_INVENTORY: Record<string, number> = {
-  "guest-room": 12,
-  "executive-room": 8,
-  "signature-suite": 4,
-  "presidential-suite": 1,
-};
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const BLOCKS_FILE = path.join(STORE_DIR, "room-blocks.json");
 
 type BlocksFile = { blocks: RoomBlock[] };
@@ -45,7 +44,7 @@ async function writeBlocksFile(data: BlocksFile): Promise<void> {
   await fs.writeFile(BLOCKS_FILE, JSON.stringify(data, null, 2), "utf-8");
 }
 
-function datesOverlap(
+export function datesOverlap(
   aIn: string,
   aOut: string,
   bIn: string,
@@ -55,7 +54,10 @@ function datesOverlap(
 }
 
 export async function getRoomInventory(): Promise<Record<string, number>> {
-  if (!isSupabaseEnabled()) return { ...DEFAULT_INVENTORY };
+  if (!isSupabaseEnabled()) {
+    const setup = await getRoomSetup();
+    return Object.fromEntries(setup.rooms.map((r) => [r.roomId, r.inventory]));
+  }
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return { ...DEFAULT_INVENTORY };
@@ -82,7 +84,8 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
 
   const { data, error } = await supabase
     .from("room_blocks")
-    .select("id, room_id, check_in, check_out, reason, block_type, created_at")
+    // "*" so channel columns (migration 021) are picked up when present.
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error || !data) return [];
@@ -95,7 +98,58 @@ export async function listRoomBlocks(): Promise<RoomBlock[]> {
     reason: (row.reason as string | null) ?? undefined,
     blockType: (row.block_type as RoomBlockType | null) ?? "maintenance",
     createdAt: row.created_at as string,
+    source: (row.source as string | null) ?? undefined,
+    externalUid: (row.external_uid as string | null) ?? undefined,
   }));
+}
+
+/**
+ * Replaces every block a calendar feed imported with its current events, so
+ * a sync is idempotent: cancelled OTA bookings disappear, new ones appear.
+ */
+export async function replaceChannelBlocks(
+  source: string,
+  roomId: string,
+  events: { uid: string; checkIn: string; checkOut: string; summary: string }[],
+): Promise<number> {
+  const rows = events.map((e) => ({
+    id: randomUUID(),
+    roomId,
+    checkIn: e.checkIn,
+    checkOut: e.checkOut,
+    reason: `${e.summary}`.slice(0, 200),
+    blockType: "channel" as const,
+    createdAt: new Date().toISOString(),
+    source,
+    externalUid: e.uid,
+  }));
+
+  if (!isSupabaseEnabled()) {
+    const file = await readBlocksFile();
+    file.blocks = [...rows, ...file.blocks.filter((b) => b.source !== source)];
+    await writeBlocksFile(file);
+    return rows.length;
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { error: delError } = await supabase.from("room_blocks").delete().eq("source", source);
+  if (delError) throw new Error(delError.message);
+  if (rows.length) {
+    const { error } = await supabase.from("room_blocks").insert(
+      rows.map((r) => ({
+        room_id: r.roomId,
+        check_in: r.checkIn,
+        check_out: r.checkOut,
+        reason: r.reason,
+        block_type: "channel",
+        source: r.source,
+        external_uid: r.externalUid,
+      })),
+    );
+    if (error) throw new Error(error.message);
+  }
+  return rows.length;
 }
 
 export async function addRoomBlock(input: {
@@ -176,19 +230,28 @@ export async function deleteRoomBlock(id: string): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
-function tallyByRoom(roomIds: (string | null | undefined)[]): Record<string, number> {
+function tallyByRoom(
+  entries: { roomId: string | null | undefined; units?: number | null }[],
+): Record<string, number> {
   const counts: Record<string, number> = {};
-  for (const id of roomIds) {
-    if (id) counts[id] = (counts[id] ?? 0) + 1;
+  for (const { roomId, units } of entries) {
+    if (roomId) counts[roomId] = (counts[roomId] ?? 0) + (units ?? 1);
   }
   return counts;
 }
 
+type OccupancyRow = {
+  room_id: string | null;
+  units?: number | null;
+  status?: string;
+  hold_expires_at?: string | null;
+};
+
 /**
- * Occupied units per room (non-cancelled room reservations + room blocks)
- * overlapping [checkIn, checkOut). With Supabase the overlap filter runs in
- * the database — two parallel queries for every room type, with no row cap,
- * so older bookings for future dates are never missed.
+ * Occupied units per room (reservations still holding inventory + room
+ * blocks) overlapping [checkIn, checkOut). With Supabase the overlap filter
+ * runs in the database — two parallel queries for every room type, with no
+ * row cap, so older bookings for future dates are never missed.
  */
 export async function countOccupiedUnitsByRoom(
   checkIn: string,
@@ -197,15 +260,18 @@ export async function countOccupiedUnitsByRoom(
   const supabase = isSupabaseEnabled() ? getSupabaseAdmin() : null;
 
   if (supabase) {
-    const [resResult, blockResult] = await Promise.all([
+    const reservationsQuery = (columns: string) =>
       supabase
         .from("reservations")
-        .select("room_id")
+        .select(columns)
         .eq("item_type", "room")
         .neq("status", "cancelled")
         .not("room_id", "is", null)
         .lt("check_in", checkOut)
-        .gt("check_out", checkIn),
+        .gt("check_out", checkIn);
+
+    const [firstResult, blockResult] = await Promise.all([
+      reservationsQuery("room_id, units, status, hold_expires_at"),
       supabase
         .from("room_blocks")
         .select("room_id")
@@ -213,6 +279,11 @@ export async function countOccupiedUnitsByRoom(
         .gt("check_out", checkIn),
     ]);
 
+    // Databases without migration 016 have no units/hold columns yet.
+    let resResult = firstResult;
+    if (resResult.error?.code === "42703") {
+      resResult = await reservationsQuery("room_id");
+    }
     if (resResult.error) throw new Error(resResult.error.message);
     // Same as listRoomBlocks: a missing/unreadable room_blocks table (migration
     // 006 not applied) means "no blocks", not "fall back to mock availability".
@@ -220,9 +291,18 @@ export async function countOccupiedUnitsByRoom(
       console.warn("[inventory] room_blocks lookup failed:", blockResult.error.message);
     }
 
+    const now = Date.now();
+    const rows = (resResult.data ?? []) as unknown as OccupancyRow[];
     return tallyByRoom([
-      ...resResult.data.map((row) => row.room_id as string | null),
-      ...(blockResult.data ?? []).map((row) => row.room_id as string | null),
+      ...rows
+        .filter(
+          (row) =>
+            row.status !== "pending" ||
+            !row.hold_expires_at ||
+            new Date(row.hold_expires_at).getTime() > now,
+        )
+        .map((row) => ({ roomId: row.room_id, units: row.units })),
+      ...(blockResult.data ?? []).map((row) => ({ roomId: row.room_id as string | null })),
     ]);
   }
 
@@ -232,15 +312,15 @@ export async function countOccupiedUnitsByRoom(
       .filter(
         (r) =>
           r.itemType === "room" &&
-          r.status !== "cancelled" &&
+          holdsInventory(r) &&
           r.checkIn &&
           r.checkOut &&
           datesOverlap(r.checkIn, r.checkOut, checkIn, checkOut),
       )
-      .map((r) => r.roomId),
+      .map((r) => ({ roomId: r.roomId, units: r.units })),
     ...blocks
       .filter((b) => datesOverlap(b.checkIn, b.checkOut, checkIn, checkOut))
-      .map((b) => b.roomId),
+      .map((b) => ({ roomId: b.roomId })),
   ]);
 }
 

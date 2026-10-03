@@ -41,6 +41,7 @@ export function StaffCalendarClient() {
     reservations,
     eventInquiries,
     roomBlocks,
+    unitSetup,
     paymentsByReservation,
     moniepoint,
     refresh,
@@ -140,6 +141,7 @@ export function StaffCalendarClient() {
           reservations={reservations}
           eventInquiries={eventInquiries}
           roomBlocks={roomBlocks}
+          unitSetup={unitSetup}
           paymentsByReservation={paymentsByReservation}
           unitLabels={unitLabels}
           dashboardKey={key ?? undefined}

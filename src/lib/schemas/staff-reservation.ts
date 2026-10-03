@@ -26,6 +26,8 @@ export const staffReservationSchema = z
     paymentMethod: staffPaymentOptionSchema.default("none"),
     transferReference: z.string().max(100).optional(),
     depositAmountNgn: z.number().int().positive().optional(),
+    /** Staff chose to book despite a stay rule (capacity, min stay, closed dates). */
+    overrideRules: z.boolean().optional(),
   })
   .transform((data) => {
     const paymentMethod =
