@@ -1,5 +1,6 @@
 import { rooms } from "@/content/site";
 import { quoteStay, type QuoteErrorCode } from "@/lib/booking-engine/quote";
+import { bookingWindowError } from "@/lib/booking-engine/booking-window";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { getRoomSetup } from "@/lib/room-setup";
 import {
@@ -26,7 +27,7 @@ export type AvailableRoom = {
 /** A room type with free units that the stay can't be sold on, and why. */
 export type RestrictedRoom = {
   id: string;
-  code: QuoteErrorCode | "not_bookable_online";
+  code: QuoteErrorCode | "not_bookable_online" | "booking_window";
   message: string;
 };
 
@@ -74,6 +75,7 @@ export async function getRoomAvailability(
 
   const available: AvailableRoom[] = [];
   const restricted: RestrictedRoom[] = [];
+  const windowError = bookingWindowError(query.checkIn, rateConfig.engine);
 
   for (const room of rooms) {
     const inventory = inventoryByRoom[room.id] ?? 1;
@@ -83,6 +85,11 @@ export async function getRoomAvailability(
     const freeUnits = Math.max(0, inventory - occupied);
 
     if (freeUnits < query.rooms) continue;
+
+    if (windowError) {
+      restricted.push({ id: room.id, code: "booking_window", message: windowError });
+      continue;
+    }
 
     if (roomSetup.rooms.find((r) => r.roomId === room.id)?.bookableOnline === false) {
       restricted.push({

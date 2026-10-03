@@ -247,6 +247,48 @@ function RateSettingsForm({
         </div>
       </Section>
 
+      <Section title={t("engineTitle")} hint={t("engineHint")}>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="block">
+            <span className={cellLabel}>{t("engineMode")}</span>
+            <select
+              id="engine-mode"
+              value={draft.engine.mode}
+              onChange={(e) => patch({ engine: { ...draft.engine, mode: e.target.value as RateConfig["engine"]["mode"] } })}
+              className={inputClass}
+            >
+              <option value="instant">{t("modeInstant")}</option>
+              <option value="request">{t("modeRequest")}</option>
+            </select>
+          </label>
+          <NumField label={t("minDaysAhead")} value={draft.engine.minDaysAhead} min={0} onChange={(v) => patch({ engine: { ...draft.engine, minDaysAhead: v ?? 0 } })} />
+          <NumField label={t("maxDaysAhead")} value={draft.engine.maxDaysAhead ?? undefined} min={1} optional onChange={(v) => patch({ engine: { ...draft.engine, maxDaysAhead: v ?? null } })} />
+          <label className="block">
+            <span className={cellLabel}>{t("sameDayCutoff")}</span>
+            <input
+              id="engine-cutoff"
+              type="time"
+              value={draft.engine.sameDayCutoff ?? ""}
+              onChange={(e) => patch({ engine: { ...draft.engine, sameDayCutoff: e.target.value || null } })}
+              className={inputClass}
+            />
+          </label>
+          <label className="block">
+            <span className={cellLabel}>{t("arrivalTimeField")}</span>
+            <select
+              id="engine-arrival"
+              value={draft.engine.arrivalTimeField}
+              onChange={(e) => patch({ engine: { ...draft.engine, arrivalTimeField: e.target.value as RateConfig["engine"]["arrivalTimeField"] } })}
+              className={inputClass}
+            >
+              <option value="hidden">{t("fieldHidden")}</option>
+              <option value="optional">{t("fieldOptional")}</option>
+              <option value="required">{t("fieldRequired")}</option>
+            </select>
+          </label>
+        </div>
+      </Section>
+
       <Section title={t("roomsTitle")} hint={t("roomsHint")}>
         <div className="space-y-3">
           {draft.rooms.map((policy: RoomRatePolicy, i) => (

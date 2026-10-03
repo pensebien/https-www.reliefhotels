@@ -1,4 +1,6 @@
 import { addRoomBlock, type RoomBlock } from "@/lib/db/inventory-store";
+import { bookingChannelOf, listPaymentsForReservation } from "@/lib/demo-store";
+import { sendBookingApprovedEmail } from "@/lib/email";
 import { setRoomStatus } from "@/lib/housekeeping/store";
 import { getRoomSetup, unitLabelMap } from "@/lib/room-setup";
 import {
@@ -100,6 +102,11 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     let rayza: { ok: boolean; error?: string } | null = null;
+    // Approving an online request: the guest hasn't paid yet, so send the deposit link.
+    if (status === "confirmed" && existing.status === "pending" && bookingChannelOf(existing) === "online") {
+      const paid = (await listPaymentsForReservation(existing.id)).some((p) => p.status === "success" && p.amountKobo > 0);
+      if (!paid) await sendBookingApprovedEmail(updated).catch(() => false);
+    }
     if (status === "confirmed") {
       const result = await pushReservationToRayza(updated);
       if ("skipped" in result && result.skipped) {

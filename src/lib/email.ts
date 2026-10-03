@@ -634,3 +634,29 @@ export async function sendGuestMessageEmail(
   });
   return ok ? "sent" : "failed";
 }
+
+/** Request-mode bookings: staff approved; the guest pays the deposit from their manage link. */
+export async function sendBookingApprovedEmail(record: ReservationRecord): Promise<boolean> {
+  const config = getServerConfig();
+  const url = buildManageBookingUrl(record.id);
+  if (!config.email.configured || !url) {
+    console.info("[email:demo] booking approved", record.email);
+    return false;
+  }
+  const body = `
+    <p style="margin:0 0 16px;">Hi ${escapeHtml(record.firstName)},</p>
+    <p style="margin:0 0 8px;">Good news — your booking request at ${escapeHtml(site.name)} is confirmed.</p>
+    ${detailsCard([
+      ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+      ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
+      ["Deposit due", record.quotedDepositNgn !== undefined ? formatNairaFromKobo(record.quotedDepositNgn * 100) : undefined],
+    ])}
+    <p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">Pay your deposit</a></p>`;
+  return sendResendEmail({
+    from: config.email.reservations.from,
+    to: [record.email],
+    replyTo: config.email.reservations.replyTo,
+    subject: `Your booking is confirmed — ${site.name}`,
+    html: emailLayout({ preheader: "Your booking request is confirmed.", bodyHtml: body }),
+  });
+}

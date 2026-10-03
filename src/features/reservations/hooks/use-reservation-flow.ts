@@ -26,6 +26,7 @@ const defaultFormData: ReservationFormData = {
   phone: "",
   message: "",
   experienceInterests: [],
+  arrivalTime: "",
   termsAccepted: false,
 };
 
@@ -54,6 +55,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     rooms: initialRooms = 1,
     maxGuestsPerUnit = MAX_GUESTS,
     addableRooms = [],
+    bookingMode = "instant",
     useDemoTestAmount = false,
   } = options;
 
@@ -330,10 +332,14 @@ export function useReservationFlow(options: ReservationFlowProps) {
 
   const handleReserveAndPay = useCallback(async () => {
     const reservationId = await submitReservation();
-    if (reservationId) {
-      await initiatePayment(reservationId);
+    if (!reservationId) return;
+    // Request mode: staff confirm first; the guest pays later from their manage link.
+    if (bookingMode === "request") {
+      setStatus("success");
+      return;
     }
-  }, [initiatePayment, submitReservation]);
+    await initiatePayment(reservationId);
+  }, [bookingMode, initiatePayment, submitReservation]);
 
   return {
     formData,

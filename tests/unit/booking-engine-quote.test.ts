@@ -24,6 +24,7 @@ const base: RateConfig = {
   restrictions: [],
   stayRules: [],
   ratePlans: [],
+  engine: DEFAULT_RATE_CONFIG.engine,
   depositPct: 20,
   holdMinutes: 60,
   cancellation: { allowGuestCancel: true, freeCancelHoursBefore: 48, refundPctWithinWindow: 100 },

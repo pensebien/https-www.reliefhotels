@@ -5,6 +5,7 @@ export type ReservationFormData = {
   phone: string;
   message: string;
   experienceInterests: string[];
+  arrivalTime: string;
   termsAccepted: boolean;
 };
 
@@ -67,6 +68,9 @@ export type ReservationFlowProps = {
   /** Other room types free for these dates, for "Add another room type". */
   addableRooms?: AddableRoom[];
   ratePlans?: BookableRatePlan[];
+  /** Booking engine mode: "request" waits for staff approval before payment. */
+  bookingMode?: "instant" | "request";
+  arrivalTimeField?: "hidden" | "optional" | "required";
   useDemoTestAmount?: boolean;
 };
 

@@ -62,6 +62,7 @@ export function buildReservationPayload(
       : undefined,
     couponCode: stayContext.couponCode,
     ratePlanId: stayContext.ratePlanId,
+    arrivalTime: formData.arrivalTime || undefined,
     extraIds: stayContext.extraIds,
     stayPreference: summaryParts.join(" · "),
     message: message || "No special requests",

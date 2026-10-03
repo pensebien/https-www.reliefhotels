@@ -1,4 +1,5 @@
 import { rooms } from "@/content/site";
+import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
 import { addReservation, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
@@ -19,13 +20,20 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    const engine = (await getRateConfig()).engine;
+    if (data.itemType === "room" && engine.arrivalTimeField === "required" && !data.arrivalTime) {
+      return NextResponse.json({ error: "Please tell us your expected arrival time" }, { status: 400 });
+    }
+    // Request mode: guest bookings wait for staff approval and hold the room until then.
+    const requestMode = data.itemType === "room" && engine.mode === "request";
+    const reserveOptions = requestMode ? { expiringHold: false } : {};
     const guest = {
       firstName: data.firstName,
       lastName: data.lastName,
       email: data.email,
       phone: data.phone,
       stayPreference: data.stayPreference,
-      message: data.message,
+      message: data.arrivalTime ? `Estimated arrival: ${data.arrivalTime}\n\n${data.message}` : data.message,
     };
 
     let record: ReservationRecord;
@@ -67,6 +75,7 @@ export async function POST(request: Request) {
             ratePlanId: data.ratePlanId || undefined,
           },
           guest,
+          reserveOptions,
         );
         if (!group.ok) {
           return NextResponse.json(
@@ -102,6 +111,7 @@ export async function POST(request: Request) {
             ratePlanId: data.ratePlanId || undefined,
           },
           guest,
+          reserveOptions,
         );
 
         if (!result.ok) {
@@ -141,6 +151,7 @@ export async function POST(request: Request) {
       emailSent: sent,
       notified: false,
       demo: !process.env.RESEND_API_KEY,
+      requiresApproval: requestMode,
       ...(quote
         ? {
             totalNgn: quote.totalNgn,

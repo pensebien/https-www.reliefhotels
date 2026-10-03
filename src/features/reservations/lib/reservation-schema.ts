@@ -11,6 +11,7 @@ export const reservationFormSchema = z.object({
     .max(30, "Phone number is too long"),
   message: z.string().max(2000).default(""),
   experienceInterests: z.array(z.string()).default([]),
+  arrivalTime: z.string().default(""),
   termsAccepted: z
     .boolean()
     .refine((val) => val === true, { message: "You must accept the terms" }),

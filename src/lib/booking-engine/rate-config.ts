@@ -158,6 +158,22 @@ export const cancellationPolicySchema = z.object({
   refundPctWithinWindow: z.number().min(0).max(100),
 });
 
+/** Sirvoy "Booking engine" options: instant vs request, booking window, arrival-time question. */
+export const engineOptionsSchema = z
+  .object({
+    /** request: guest bookings wait for staff to confirm before the guest pays. */
+    mode: z.enum(["instant", "request"]),
+    minDaysAhead: z.number().int().min(0).max(365),
+    /** null = no limit (the default, so nothing changes until staff set one). */
+    maxDaysAhead: z.number().int().min(1).max(1095).nullable(),
+    /** Same-day bookings close at this Calabar time ("HH:MM"); null = open all day. */
+    sameDayCutoff: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable(),
+    arrivalTimeField: z.enum(["hidden", "optional", "required"]),
+  })
+  .refine((e) => e.maxDaysAhead === null || e.maxDaysAhead > e.minDaysAhead, {
+    message: "Furthest booking must be after the earliest",
+  });
+
 export const rateConfigSchema = z.object({
   rooms: z.array(roomRatePolicySchema),
   seasons: z.array(seasonalRateSchema).max(200),
@@ -167,6 +183,7 @@ export const rateConfigSchema = z.object({
   restrictions: z.array(availabilityRestrictionSchema).max(200),
   stayRules: z.array(stayRuleSchema).max(100),
   ratePlans: z.array(ratePlanSchema).max(10),
+  engine: engineOptionsSchema,
   depositPct: z.number().min(0).max(100),
   /** Minutes an unpaid online booking holds its room before it is released. */
   holdMinutes: z.number().int().min(5).max(24 * 60),
@@ -183,6 +200,7 @@ export type CancellationPolicy = z.infer<typeof cancellationPolicySchema>;
 export type AvailabilityRestriction = z.infer<typeof availabilityRestrictionSchema>;
 export type StayRule = z.infer<typeof stayRuleSchema>;
 export type RatePlan = z.input<typeof ratePlanSchema>;
+export type EngineOptions = z.infer<typeof engineOptionsSchema>;
 export type RateConfig = {
   rooms: RoomRatePolicy[];
   seasons: SeasonalRate[];
@@ -192,6 +210,7 @@ export type RateConfig = {
   restrictions: AvailabilityRestriction[];
   stayRules: StayRule[];
   ratePlans: RatePlan[];
+  engine: EngineOptions;
   depositPct: number;
   holdMinutes: number;
   cancellation: CancellationPolicy;
@@ -224,6 +243,13 @@ export const DEFAULT_RATE_CONFIG: RateConfig = {
   restrictions: [],
   stayRules: [],
   ratePlans: [],
+  engine: {
+    mode: "instant",
+    minDaysAhead: 0,
+    maxDaysAhead: null,
+    sameDayCutoff: null,
+    arrivalTimeField: "optional",
+  },
   depositPct: 20,
   holdMinutes: 60,
   cancellation: {
@@ -244,6 +270,7 @@ export function normalizeRateConfig(raw: unknown): RateConfig {
     ...DEFAULT_RATE_CONFIG,
     ...stored,
     cancellation: { ...DEFAULT_RATE_CONFIG.cancellation, ...stored.cancellation },
+    engine: { ...DEFAULT_RATE_CONFIG.engine, ...stored.engine },
     rooms: rooms.map(
       (room) =>
         stored.rooms?.find((r) => r.roomId === room.id) ?? defaultRoomPolicy(room),

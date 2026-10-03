@@ -150,6 +150,8 @@ export default async function BookPage({
           extras={extras}
           addableRooms={addableRooms}
           ratePlans={ratePlans}
+          bookingMode={rateConfig.engine.mode}
+          arrivalTimeField={rateConfig.engine.arrivalTimeField}
           priceFrom={room.priceFrom}
         />
         <ConciergeContactPrompt />

@@ -629,7 +629,12 @@
     "rateNonRefundable": "Non-refundable: cheaper, but payments aren't returned if you cancel.",
     "rateOff": "{pct}% off",
     "rateMore": "+{pct}%",
-    "extraIncluded": "Included"
+    "extraIncluded": "Included",
+    "arrivalTime": "Expected arrival time",
+    "arrivalTimeOptional": "Expected arrival time (optional)",
+    "sendRequest": "Send booking request",
+    "requestSentTitle": "Booking request sent",
+    "requestSentBody": "We'll check availability and email {email} within 24 hours. Once confirmed, you'll get a link to pay your deposit."
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -1615,7 +1620,19 @@
       "thu": "Thu",
       "fri": "Fri",
       "sat": "Sat"
-    }
+    },
+    "engineTitle": "Online booking",
+    "engineHint": "How guests book on the website: straight away, or as a request staff confirm first; how far ahead; and whether to ask their arrival time.",
+    "engineMode": "Bookings",
+    "modeInstant": "Confirmed when the deposit is paid",
+    "modeRequest": "Requests — staff confirm, then the guest pays",
+    "minDaysAhead": "Earliest: days ahead",
+    "maxDaysAhead": "Furthest: days ahead (blank = no limit)",
+    "sameDayCutoff": "Same-day bookings close at (blank = never)",
+    "arrivalTimeField": "Ask arrival time",
+    "fieldHidden": "Don't ask",
+    "fieldOptional": "Optional",
+    "fieldRequired": "Required"
   },
   "staffRoomSettings": {
     "metaTitle": "Room setup",

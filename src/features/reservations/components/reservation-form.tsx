@@ -23,6 +23,8 @@ export function ReservationForm(props: ReservationFlowProps) {
     extras = [],
     addableRooms = [],
     ratePlans = [],
+    bookingMode = "instant",
+    arrivalTimeField = "optional",
     useDemoTestAmount = false,
   } = props;
 
@@ -96,6 +98,15 @@ export function ReservationForm(props: ReservationFlowProps) {
     if (validateStep1()) {
       setStep(2);
     }
+  }
+
+  if (status === "success" && bookingMode === "request") {
+    return (
+      <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6 sm:p-8" role="status">
+        <h3 className="font-serif text-2xl font-semibold">{t("requestSentTitle")}</h3>
+        <p className="mt-2 text-muted">{t("requestSentBody", { email: formData.email })}</p>
+      </div>
+    );
   }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -466,6 +477,22 @@ export function ReservationForm(props: ReservationFlowProps) {
               </div>
             </fieldset>
 
+            {arrivalTimeField !== "hidden" ? (
+              <div className="space-y-2">
+                <label htmlFor="res-arrival" className={labelClassName}>
+                  {arrivalTimeField === "required" ? t("arrivalTime") : t("arrivalTimeOptional")}
+                </label>
+                <input
+                  id="res-arrival"
+                  type="time"
+                  required={arrivalTimeField === "required"}
+                  value={formData.arrivalTime}
+                  onChange={(e) => updateField("arrivalTime", e.target.value)}
+                  className={inputClassName}
+                />
+              </div>
+            ) : null}
+
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="res-message" className={labelClassName}>
                 {t("specialRequests")}
@@ -532,7 +559,7 @@ export function ReservationForm(props: ReservationFlowProps) {
               ) : (
                 <CreditCard className="h-4 w-4" />
               )}
-              {status === "loading" ? t("submitting") : t("payDeposit")}
+              {status === "loading" ? t("submitting") : bookingMode === "request" ? t("sendRequest") : t("payDeposit")}
             </button>
           </div>
 
