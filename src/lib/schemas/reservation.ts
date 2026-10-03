@@ -20,6 +20,8 @@ export const reservationSchema = z
     /** Rooms of this type (booking engine); server re-quotes and re-checks availability. */
     rooms: z.number().int().min(1).max(4).optional(),
     couponCode: z.string().trim().max(40).optional(),
+    /** Guest agreed to keep their card for the balance / no-show charge. */
+    saveCard: z.boolean().optional(),
     extraIds: z.array(z.string().max(60)).max(20).optional(),
     /**
      * Group booking: several room types on the same dates. When present the

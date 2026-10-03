@@ -11,6 +11,8 @@ export const reservationFormSchema = z.object({
     .max(30, "Phone number is too long"),
   message: z.string().max(2000).default(""),
   experienceInterests: z.array(z.string()).default([]),
+  /** Optional: keep the card for the balance / a no-show charge. */
+  saveCard: z.boolean().default(false),
   termsAccepted: z
     .boolean()
     .refine((val) => val === true, { message: "You must accept the terms" }),
