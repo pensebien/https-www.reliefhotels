@@ -1,6 +1,6 @@
 import { rooms } from "@/content/site";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
-import { addReservation, type ReservationRecord } from "@/lib/demo-store";
+import { addReservation, updateReservationById, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
 import { roomDisplayName } from "@/lib/room-names";
 import { reservationSchema } from "@/lib/schemas/reservation";
@@ -123,6 +123,10 @@ export async function POST(request: Request) {
         emailSent: false,
         status: "pending",
       });
+    }
+
+    if (data.saveCard && data.itemType === "room") {
+      record = (await updateReservationById(record.id, { cardConsent: true })) ?? record;
     }
 
     const [sent] = await Promise.all([

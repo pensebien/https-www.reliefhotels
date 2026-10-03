@@ -12,6 +12,7 @@ import { OnlineCheckinCard, type CheckinInfo } from "./online-checkin-card";
 
 type ManageResponse = {
   checkin?: CheckinInfo;
+  savedCard?: { brand: string; last4: string; expMonth: string; expYear: string } | null;
   booking: GuestBookingView;
   policy: CancellationPolicy;
   extras: { id: string; label: string }[];
@@ -170,6 +171,39 @@ export function ManageBookingClient() {
 
       {notice ? <p className="text-sm text-teal-dark">{notice}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {data.savedCard ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border p-6">
+          <div>
+            <p className="font-medium">{t("cardOnFile")}</p>
+            <p className="mt-1 text-sm text-muted">
+              {t("cardSummary", {
+                brand: data.savedCard.brand.toUpperCase(),
+                last4: data.savedCard.last4,
+                exp: `${data.savedCard.expMonth}/${data.savedCard.expYear.slice(-2)}`,
+              })}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={busy !== null}
+            onClick={async () => {
+              const res = await fetch("/api/booking/manage/card", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, t: token }),
+              });
+              if (res.ok) {
+                setNotice(t("cardRemoved"));
+                load();
+              }
+            }}
+            className="rounded-full border border-border px-4 py-2 text-sm hover:border-red-600/40"
+          >
+            {t("removeCard")}
+          </button>
+        </div>
+      ) : null}
 
       {data.checkin ? (
         <OnlineCheckinCard id={id} token={token} info={data.checkin} onDone={load} />

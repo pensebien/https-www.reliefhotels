@@ -620,7 +620,9 @@
     "addRoomsFrom": "From {price} a night · {left} left",
     "addRoomsLess": "One fewer {room}",
     "addRoomsMore": "One more {room}",
-    "groupLine": "{rooms} × {room}, {nights, plural, one {# night} other {# nights}}"
+    "groupLine": "{rooms} × {room}, {nights, plural, one {# night} other {# nights}}",
+    "saveCard": "Keep my card on file for this stay (optional)",
+    "saveCardHint": "The hotel may charge it for the remaining balance or a no-show, as the booking terms describe. Only a secure Paystack token is stored — never your card number — and it's deleted after your stay. You can remove it any time from your booking link."
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -962,6 +964,20 @@
       },
       "viewPhoto": "Open ID photo",
       "purged": "ID details deleted after the retention period."
+    },
+    "savedCard": {
+      "title": "Saved card",
+      "none": "No card on file.",
+      "noConsent": "The guest didn't agree to keep a card.",
+      "summary": "{brand} ••••{last4}, exp {exp}",
+      "balance": "Outstanding: {amount}",
+      "amount": "Amount (₦)",
+      "reason": "Reason",
+      "charge": "Charge card",
+      "working": "Charging…",
+      "done": "Card charged.",
+      "pending": "Charge sent — waiting for Paystack to confirm.",
+      "error": "The charge didn't go through."
     }
   },
   "staffPortal": {
@@ -1474,7 +1490,11 @@
       "error": "Check-in couldn't be saved. Please try again.",
       "doneTitle": "You're checked in",
       "rooms": "Your room: {rooms}"
-    }
+    },
+    "cardOnFile": "Card on file",
+    "cardSummary": "{brand} ending {last4}, expires {exp}",
+    "removeCard": "Remove card",
+    "cardRemoved": "Your card has been removed."
   },
   "staffRateSettings": {
     "metaTitle": "Rates & restrictions",

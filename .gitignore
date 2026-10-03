@@ -72,3 +72,4 @@ next-env.d.ts
 /data/checkins.json
 /data/guest-ids/
 /data/settings/
+/data/saved-cards.json

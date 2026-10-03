@@ -490,6 +490,20 @@ export function ReservationForm(props: ReservationFlowProps) {
             </button>
           </div>
 
+          <label className="mt-4 flex items-start gap-3 rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-sm">
+            <input
+              id="res-save-card"
+              type="checkbox"
+              checked={formData.saveCard}
+              onChange={(e) => updateField("saveCard", e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-border accent-teal"
+            />
+            <span>
+              <span className="block font-medium">{t("saveCard")}</span>
+              <span className="block text-xs leading-5 text-muted">{t("saveCardHint")}</span>
+            </span>
+          </label>
+
           {useDemoTestAmount ? (
             <p className="mt-2 text-xs text-muted">
               {t("payTest")}: {formatNaira(5000)} — use Paystack test card{" "}

@@ -1,4 +1,5 @@
 import { getServerConfig } from "@/lib/config";
+import type { PaystackAuthorization } from "@/lib/paystack";
 import { settlePaystackRefund } from "@/lib/refunds";
 import { confirmPaystackCharge, isValidPaystackSignature } from "@/lib/paystack-confirm";
 import { NextResponse } from "next/server";
@@ -27,7 +28,12 @@ export async function POST(request: Request) {
   try {
     const event = JSON.parse(rawBody) as {
       event?: string;
-      data?: { reference?: string; amount?: number; transaction_reference?: string };
+      data?: {
+        reference?: string;
+        amount?: number;
+        transaction_reference?: string;
+        authorization?: PaystackAuthorization;
+      };
     };
 
     // Refunds we started from the staff booking sheet (src/lib/refunds.ts).
@@ -49,7 +55,11 @@ export async function POST(request: Request) {
 
     // An amount mismatch is still acknowledged (200) so Paystack stops
     // retrying; confirmPaystackCharge logs it for staff to reconcile.
-    const result = await confirmPaystackCharge(event.data.reference, event.data.amount ?? 0);
+    const result = await confirmPaystackCharge(
+      event.data.reference,
+      event.data.amount ?? 0,
+      event.data.authorization,
+    );
     return NextResponse.json({ ok: true, outcome: result.outcome });
   } catch (error) {
     console.error("[paystack/webhook]", error);

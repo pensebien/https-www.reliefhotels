@@ -37,6 +37,7 @@ type ReservationRow = {
   quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
   group_id?: string | null;
   booking_channel?: "online" | "desk" | null;
+  card_consent?: boolean | null;
 };
 
 type PaymentRow = {
@@ -89,6 +90,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     quoteSnapshot: row.quote_snapshot ?? undefined,
     groupId: row.group_id ?? undefined,
     bookingChannel: row.booking_channel ?? undefined,
+    cardConsent: row.card_consent ?? undefined,
   };
 }
 
@@ -153,6 +155,7 @@ function reservationPatchToRow(
   if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
   if (patch.groupId !== undefined) update.group_id = patch.groupId;
   if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
+  if (patch.cardConsent !== undefined) update.card_consent = patch.cardConsent;
   return update;
 }
 

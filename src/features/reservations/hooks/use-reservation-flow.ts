@@ -26,6 +26,7 @@ const defaultFormData: ReservationFormData = {
   phone: "",
   message: "",
   experienceInterests: [],
+  saveCard: false,
   termsAccepted: false,
 };
 

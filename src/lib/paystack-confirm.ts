@@ -8,6 +8,8 @@ import {
   type PaymentRecord,
 } from "@/lib/demo-store";
 import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
+import type { PaystackAuthorization } from "@/lib/paystack";
+import { saveCardIfConsented } from "@/lib/saved-cards";
 
 /**
  * https://paystack.com/docs/payments/webhooks/ — every event is signed with
@@ -44,6 +46,8 @@ export type PaystackConfirmResult =
 export async function confirmPaystackCharge(
   reference: string,
   amountKobo: number,
+  /** Reusable card token from Paystack; kept only if the guest consented. */
+  authorization?: PaystackAuthorization,
 ): Promise<PaystackConfirmResult> {
   const existing = await findPaymentByReference(reference);
   if (!existing) return { outcome: "unknown_reference" };
@@ -76,6 +80,9 @@ export async function confirmPaystackCharge(
       );
       await Promise.all(
         others.map((m) => updateReservationById(m.id, { status: "confirmed", paymentReference: reference })),
+      );
+      await saveCardIfConsented(confirmed, updated.email, authorization).catch((error) =>
+        console.warn("[paystack:confirm] card not saved:", error),
       );
       notified = await handlePaymentConfirmed(updated, confirmed);
     }

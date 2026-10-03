@@ -63,6 +63,8 @@ export type ReservationRecord = {
   groupId?: string;
   /** Where the booking was made; older bookings are inferred (see bookingChannelOf). */
   bookingChannel?: "online" | "desk";
+  /** Guest agreed at checkout to keep their card for the balance or a no-show charge. */
+  cardConsent?: boolean;
 };
 
 /** Online vs front desk, inferring older bookings from the walk-in note. */

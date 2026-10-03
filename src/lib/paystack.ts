@@ -104,12 +104,25 @@ export async function initializePayment(
   };
 }
 
+/** Reusable card token Paystack returns with a successful card charge. */
+export type PaystackAuthorization = {
+  authorization_code: string;
+  card_type?: string;
+  last4?: string;
+  exp_month?: string;
+  exp_year?: string;
+  bank?: string;
+  channel?: string;
+  reusable?: boolean;
+};
+
 export type VerifyPaymentResult = {
   status: "success" | "failed" | "pending";
   reference: string;
   amountKobo: number;
   email: string;
   demo: boolean;
+  authorization?: PaystackAuthorization;
 };
 
 export async function verifyPayment(
@@ -127,6 +140,17 @@ export async function verifyPayment(
       amountKobo: pending?.amountKobo ?? 500000,
       email: pending?.email ?? "",
       demo: true,
+      // Paystack's documented test card, so saved-card flows work in demo mode.
+      authorization: {
+        authorization_code: `AUTH_demo_${reference}`,
+        card_type: "visa",
+        last4: "4081",
+        exp_month: "12",
+        exp_year: "2030",
+        bank: "Test Bank",
+        channel: "card",
+        reusable: true,
+      },
     };
   }
 
@@ -152,6 +176,7 @@ export async function verifyPayment(
       reference: string;
       amount: number;
       customer: { email: string };
+      authorization?: PaystackAuthorization;
     };
   };
 
@@ -182,5 +207,6 @@ export async function verifyPayment(
     amountKobo: data.data.amount,
     email: data.data.customer?.email ?? "",
     demo: false,
+    authorization: data.data.authorization,
   };
 }

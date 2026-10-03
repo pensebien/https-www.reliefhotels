@@ -1,6 +1,7 @@
 import { getCheckinSettings } from "@/lib/checkin/settings";
 import { purgeExpiredIdData } from "@/lib/checkin/store";
 import { runGuestMessages } from "@/lib/guest-messages/run";
+import { purgeExpiredCards } from "@/lib/saved-cards";
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
@@ -22,8 +23,11 @@ async function handle(request: Request) {
   try {
     const guestMessages = await runGuestMessages();
     // Delete guest ID numbers and photos once the retention period is over.
-    const idRecordsPurged = await purgeExpiredIdData((await getCheckinSettings()).retentionDays);
-    return NextResponse.json({ ok: true, guestMessages, idRecordsPurged });
+    const { retentionDays } = await getCheckinSettings();
+    const idRecordsPurged = await purgeExpiredIdData(retentionDays);
+    // Saved card tokens follow the same retention as ID data.
+    const savedCardsPurged = await purgeExpiredCards(retentionDays);
+    return NextResponse.json({ ok: true, guestMessages, idRecordsPurged, savedCardsPurged });
   } catch (error) {
     console.error("[cron/daily]", error);
     return NextResponse.json({ error: "Daily jobs failed" }, { status: 500 });

@@ -43,6 +43,7 @@ export async function GET(request: Request) {
       const confirmed = await confirmPaystackCharge(
         reference,
         result.demo ? 0 : result.amountKobo,
+        result.authorization,
       );
       if (confirmed.outcome === "amount_mismatch") {
         return NextResponse.json(

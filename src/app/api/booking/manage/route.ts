@@ -3,6 +3,7 @@ import { checkinState } from "@/lib/checkin/availability";
 import { getCheckinSettings } from "@/lib/checkin/settings";
 import { findCheckin } from "@/lib/checkin/store";
 import { getRoomSetup, unitLabelMap } from "@/lib/room-setup";
+import { findSavedCard } from "@/lib/saved-cards";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -14,14 +15,18 @@ export async function GET(request: Request) {
   if (!result.ok) return result.response;
 
   const { view, config, members } = result.booking;
-  const [settings, existing, roomSetup] = await Promise.all([
+  const [settings, existing, roomSetup, savedCard] = await Promise.all([
     getCheckinSettings(),
     findCheckin(members[0].id),
     getRoomSetup(),
+    findSavedCard(members[0].id),
   ]);
   const { state, opensOn } = checkinState(members, settings, Boolean(existing));
   const labels = unitLabelMap(roomSetup);
   return NextResponse.json({
+    savedCard: savedCard
+      ? { brand: savedCard.brand, last4: savedCard.last4, expMonth: savedCard.expMonth, expYear: savedCard.expYear }
+      : null,
     checkin: {
       state,
       opensOn,

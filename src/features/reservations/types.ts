@@ -5,6 +5,7 @@ export type ReservationFormData = {
   phone: string;
   message: string;
   experienceInterests: string[];
+  saveCard: boolean;
   termsAccepted: boolean;
 };
 
