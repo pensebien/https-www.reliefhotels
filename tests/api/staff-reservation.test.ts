@@ -11,6 +11,18 @@ function setTestEnv() {
   delete process.env.MONIEPOINT_CLIENT_ID;
 }
 
+/**
+ * Fresh far-future dates per call: walk-ins now refuse overbooking, so fixed
+ * dates fill up as test runs accumulate in data/demo-store.json.
+ */
+let staySeq = 0;
+function uniqueStay() {
+  const base = new Date(Date.UTC(2036, 0, 1 + (Math.floor(Date.now() / 1000) % 3000) + staySeq++ * 3));
+  const out = new Date(base);
+  out.setUTCDate(out.getUTCDate() + 2);
+  return { checkIn: base.toISOString().slice(0, 10), checkOut: out.toISOString().slice(0, 10) };
+}
+
 describe("POST /api/demo/reservations", () => {
   before(() => {
     setTestEnv();
@@ -43,8 +55,7 @@ describe("POST /api/demo/reservations", () => {
             email,
             phone: "+2348012345678",
             roomId: "guest-room",
-            checkIn: "2026-09-01",
-            checkOut: "2026-09-03",
+            ...uniqueStay(),
             guests: 2,
             message: "Arriving by 4pm",
             status: "confirmed",
@@ -83,8 +94,7 @@ describe("POST /api/demo/reservations", () => {
             lastName: "Guest",
             email,
             roomId: "guest-room",
-            checkIn: "2026-10-01",
-            checkOut: "2026-10-02",
+            ...uniqueStay(),
             guests: 1,
             paymentMethod: "moniepoint_terminal",
             status: "pending",
@@ -118,8 +128,7 @@ describe("POST /api/demo/reservations", () => {
             lastName: "Guest",
             email,
             roomId: "guest-room",
-            checkIn: "2026-10-05",
-            checkOut: "2026-10-07",
+            ...uniqueStay(),
             guests: 2,
             paymentMethod: "moniepoint_transfer",
             status: "pending",
@@ -153,8 +162,7 @@ describe("POST /api/demo/reservations", () => {
             lastName: "Guest",
             email,
             roomId: "guest-room",
-            checkIn: "2026-10-10",
-            checkOut: "2026-10-11",
+            ...uniqueStay(),
             guests: 1,
             paymentMethod: "paystack_terminal",
             status: "pending",
