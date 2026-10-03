@@ -894,6 +894,19 @@
       "live": "Test/Live keys",
       "resend": "Sending via Resend",
       "console": "Logged to server console"
+    },
+    "roomAssignment": {
+      "title": "Room",
+      "notAssigned": "No room assigned yet.",
+      "assigned": "Assigned: {rooms}",
+      "chooseRoom": "Choose room",
+      "roomSlot": "Room {n}",
+      "taken": "{room} — taken",
+      "save": "Save rooms",
+      "auto": "Auto-assign",
+      "working": "Saving…",
+      "loadError": "Rooms could not be loaded.",
+      "saveError": "Rooms could not be saved."
     }
   },
   "staffPortal": {

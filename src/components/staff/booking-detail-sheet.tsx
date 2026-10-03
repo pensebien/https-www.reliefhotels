@@ -1,5 +1,6 @@
 "use client";
 
+import { RoomAssignmentPanel } from "@/components/staff/room-assignment-panel";
 import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import type { CalendarBooking } from "@/lib/inventory-calendar";
 import { toMailtoHref } from "@/lib/contact-links";
@@ -132,6 +133,17 @@ export function BookingDetailSheet({
             />
           ) : null}
           <DetailRow label={t("reservationId")} value={booking.id} mono />
+
+          {canManageStay && dashboardKey ? (
+            <RoomAssignmentPanel
+              reservationId={booking.id}
+              dashboardKey={dashboardKey}
+              onUpdated={() => {
+                onUpdated?.();
+                onClose();
+              }}
+            />
+          ) : null}
 
           {canManageStay && dashboardKey ? (
             <div className="rounded-xl border border-border bg-background/60 p-3">

@@ -29,6 +29,7 @@ import {
   type ReservationRecord,
 } from "@/lib/demo-store";
 import { getRoomAvailability } from "@/lib/room-availability";
+import { autoAssignRooms } from "@/lib/room-assignment";
 import { getRoomSetup } from "@/lib/room-setup";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
@@ -130,7 +131,15 @@ export async function reserveRoom(
     ? await supabaseReserve(data)
     : await fileReserve(data);
 
-  return record ? { ok: true, record, quote } : SOLD_OUT;
+  if (!record) return SOLD_OUT;
+
+  // Give the booking physical rooms straight away (minimise gaps). Never
+  // fails the booking — staff can assign from the calendar instead.
+  const assigned = await autoAssignRooms(record).catch((error) => {
+    console.warn("[reserve] auto room assignment skipped:", error);
+    return record;
+  });
+  return { ok: true, record: assigned, quote };
 }
 
 async function fileReserve(data: NewReservation): Promise<ReservationRecord | null> {

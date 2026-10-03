@@ -33,6 +33,7 @@ type ReservationRow = {
   quoted_deposit_ngn?: number | null;
   hold_expires_at?: string | null;
   cancelled_at?: string | null;
+  assigned_units?: string[] | null;
 };
 
 type PaymentRow = {
@@ -81,6 +82,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     quotedDepositNgn: row.quoted_deposit_ngn ?? undefined,
     holdExpiresAt: row.hold_expires_at ?? undefined,
     cancelledAt: row.cancelled_at ?? undefined,
+    assignedUnits: row.assigned_units ?? undefined,
   };
 }
 
@@ -141,6 +143,7 @@ function reservationPatchToRow(
     update.hold_expires_at = patch.holdExpiresAt;
   }
   if (patch.cancelledAt !== undefined) update.cancelled_at = patch.cancelledAt;
+  if (patch.assignedUnits !== undefined) update.assigned_units = patch.assignedUnits;
   return update;
 }
 
@@ -375,6 +378,27 @@ export async function dbFindPaymentByReference(
   if (error) throw new Error(error.message);
   if (!row) return undefined;
   return mapPayment(row as PaymentRow);
+}
+
+export async function dbListOverlappingRoomReservations(
+  roomId: string,
+  checkIn: string,
+  checkOut: string,
+): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data, error } = await supabase
+    .from("reservations")
+    .select()
+    .eq("item_type", "room")
+    .eq("room_id", roomId)
+    .neq("status", "cancelled")
+    .lt("check_in", checkOut)
+    .gt("check_out", checkIn);
+
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
 }
 
 export async function dbListPaymentsForReservation(

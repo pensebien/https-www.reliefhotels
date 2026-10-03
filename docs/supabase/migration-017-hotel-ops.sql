@@ -27,3 +27,8 @@ insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 values ('room-photos', 'room-photos', true, 5242880,
         array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do nothing;
+
+-- 3. Room assignment: physical rooms per booking, e.g. {guest-room-3}
+--    (unit ids follow room setup numbering; labels live in app_settings).
+alter table reservations
+  add column if not exists assigned_units text[];

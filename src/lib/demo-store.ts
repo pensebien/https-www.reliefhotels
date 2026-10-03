@@ -5,6 +5,7 @@ import {
   dbFindPaymentByReference,
   dbFindReservationById,
   dbGetBookingActivity,
+  dbListOverlappingRoomReservations,
   dbListPaymentsForReservation,
   dbUpdatePaymentByReference,
   dbUpdateReservationById,
@@ -48,6 +49,8 @@ export type ReservationRecord = {
   /** Unpaid online bookings stop holding the room after this instant. */
   holdExpiresAt?: string;
   cancelledAt?: string;
+  /** Physical rooms assigned, e.g. ["guest-room-3"] — one per unit (room setup numbering). */
+  assignedUnits?: string[];
 };
 
 export type NewReservation = Omit<
@@ -227,6 +230,31 @@ export async function updatePaymentByReference(
     store.payments[index] = { ...store.payments[index], ...patch };
     return store.payments[index];
   });
+}
+
+/**
+ * Room reservations of one type overlapping [checkIn, checkOut) that still
+ * hold inventory — the set room assignment must not clash with. Uncapped,
+ * unlike getActivity().
+ */
+export async function listOverlappingRoomReservations(
+  roomId: string,
+  checkIn: string,
+  checkOut: string,
+): Promise<ReservationRecord[]> {
+  const all = isSupabaseEnabled()
+    ? await dbListOverlappingRoomReservations(roomId, checkIn, checkOut)
+    : (await getActivity()).reservations.filter(
+        (r) =>
+          r.itemType === "room" &&
+          r.roomId === roomId &&
+          r.checkIn &&
+          r.checkOut &&
+          r.checkIn < checkOut &&
+          r.checkOut > checkIn,
+      );
+  const now = Date.now();
+  return all.filter((r) => holdsInventory(r, now));
 }
 
 /** Successful payments recorded against a reservation (deposit + any balance). */
