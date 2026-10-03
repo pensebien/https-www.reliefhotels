@@ -35,6 +35,8 @@ export function StaffRoomSettingsClient() {
   const [setup, setSetup] = useState<RoomSetup | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Lives outside the form: a save remounts the form with the saved setup.
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setKey(
@@ -77,6 +79,7 @@ export function StaffRoomSettingsClient() {
     });
     if (!res.ok) return readError(res);
     setSetup(((await res.json()) as { setup: RoomSetup }).setup);
+    setSaved(true);
     return null;
   }
 
@@ -125,7 +128,14 @@ export function StaffRoomSettingsClient() {
       ) : null}
 
       {setup ? (
-        <RoomSetupForm key={JSON.stringify(setup)} initial={setup} onSave={save} onUpload={upload} />
+        <RoomSetupForm
+          key={JSON.stringify(setup)}
+          initial={setup}
+          saved={saved}
+          onEdit={() => setSaved(false)}
+          onSave={save}
+          onUpload={upload}
+        />
       ) : null}
     </div>
   );
@@ -134,10 +144,14 @@ export function StaffRoomSettingsClient() {
 /** Remounted with fresh state whenever the saved setup changes (see parent key). */
 function RoomSetupForm({
   initial,
+  saved,
+  onEdit,
   onSave,
   onUpload,
 }: {
   initial: RoomSetup;
+  saved: boolean;
+  onEdit: () => void;
   onSave: (setup: RoomSetup) => Promise<string | null>;
   onUpload: (roomId: string, file: File) => Promise<{ url?: string; error?: string }>;
 }) {
@@ -158,6 +172,7 @@ function RoomSetupForm({
       rooms: prev.rooms.map((room, i) => (i === index ? { ...room, ...change } : room)),
     }));
     setStatus(null);
+    onEdit();
   }
 
   /** Keep one room number per room: extra rooms get the next free number, fewer rooms drop the last. */
@@ -188,7 +203,7 @@ function RoomSetupForm({
     setSaving(true);
     const error = await onSave(draft);
     setSaving(false);
-    setStatus(error ? { ok: false, message: error } : { ok: true, message: t("saved") });
+    setStatus(error ? { ok: false, message: error } : null);
   }
 
   return (
@@ -325,6 +340,10 @@ function RoomSetupForm({
         {status ? (
           <span className={status.ok ? "text-sm text-teal-dark" : "text-sm text-red-600"}>
             {status.message}
+          </span>
+        ) : saved ? (
+          <span className="text-sm text-teal-dark" role="status">
+            {t("saved")}
           </span>
         ) : (
           <span className="text-xs text-muted">{t("saveHint")}</span>

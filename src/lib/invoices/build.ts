@@ -186,7 +186,7 @@ export function buildInvoiceDocument(input: BuildInvoiceInput): InvoiceDocument 
     kind: "invoice",
     reservation: {
       id: reservation.id,
-      roomLabel: input.roomLabel,
+      roomLabel: [input.roomLabel, ...(input.otherStays ?? []).map((st) => st.roomLabel)].join(" + "),
       roomNumbers: [...input.roomNumbers, ...(input.otherStays ?? []).flatMap((s) => s.roomNumbers)],
       checkIn: reservation.checkIn,
       checkOut: reservation.checkOut,

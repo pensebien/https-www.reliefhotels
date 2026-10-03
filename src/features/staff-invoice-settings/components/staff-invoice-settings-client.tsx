@@ -2,7 +2,8 @@
 
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
 import { Link } from "@/i18n/navigation";
-import { formatDocumentNumber, type InvoiceSettings } from "@/lib/invoices/settings";
+import { formatDocumentNumber } from "@/lib/invoices/number-format";
+import type { InvoiceSettings } from "@/lib/invoices/settings";
 import { ArrowLeft } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
@@ -19,6 +20,8 @@ export function StaffInvoiceSettingsClient() {
   const [settings, setSettings] = useState<InvoiceSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Lives outside the form: a save remounts the form with the saved settings.
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setKey(
@@ -56,6 +59,7 @@ export function StaffInvoiceSettingsClient() {
     const body = await res.json().catch(() => null);
     if (!res.ok) return `${body?.error ?? "Save failed"}${body?.issues ? `: ${body.issues.join("; ")}` : ""}`;
     setSettings(body.settings);
+    setSaved(true);
     return null;
   }
 
@@ -85,7 +89,15 @@ export function StaffInvoiceSettingsClient() {
         />
       )}
       {error ? <p className="mb-6 text-sm text-red-600">{error}</p> : null}
-      {settings ? <SettingsForm key={JSON.stringify(settings)} initial={settings} onSave={save} /> : null}
+      {settings ? (
+        <SettingsForm
+          key={JSON.stringify(settings)}
+          initial={settings}
+          saved={saved}
+          onEdit={() => setSaved(false)}
+          onSave={save}
+        />
+      ) : null}
     </div>
   );
 }
@@ -102,9 +114,13 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 function SettingsForm({
   initial,
+  saved,
+  onEdit,
   onSave,
 }: {
   initial: InvoiceSettings;
+  saved: boolean;
+  onEdit: () => void;
   onSave: (s: InvoiceSettings) => Promise<string | null>;
 }) {
   const t = useTranslations("staffInvoiceSettings");
@@ -114,6 +130,7 @@ function SettingsForm({
   const set = <K extends keyof InvoiceSettings>(k: K, v: InvoiceSettings[K]) => {
     setS((prev) => ({ ...prev, [k]: v }));
     setStatus(null);
+    onEdit();
   };
   const year = new Date().getFullYear();
   const num = (v: string) => (v === "" ? 0 : Number(v));
@@ -123,7 +140,7 @@ function SettingsForm({
     setSaving(true);
     const error = await onSave(s);
     setSaving(false);
-    setStatus(error ? { ok: false, message: error } : { ok: true, message: t("saved") });
+    setStatus(error ? { ok: false, message: error } : null);
   }
 
   return (
@@ -187,7 +204,11 @@ function SettingsForm({
         <button type="submit" disabled={saving} className="h-10 rounded-lg bg-teal px-5 text-sm font-medium text-gray-950 disabled:opacity-60">
           {saving ? t("saving") : t("save")}
         </button>
-        {status ? <span className={status.ok ? "text-sm text-teal-dark" : "text-sm text-red-600"}>{status.message}</span> : null}
+        {status ? (
+          <span className={status.ok ? "text-sm text-teal-dark" : "text-sm text-red-600"}>{status.message}</span>
+        ) : saved ? (
+          <span className="text-sm text-teal-dark" role="status">{t("saved")}</span>
+        ) : null}
       </div>
     </form>
   );
