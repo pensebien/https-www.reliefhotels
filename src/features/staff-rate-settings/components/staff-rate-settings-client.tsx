@@ -43,6 +43,8 @@ export function StaffRateSettingsClient() {
   const [config, setConfig] = useState<RateConfig | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Lives outside the form: a save remounts the form with the saved config.
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setKey(
@@ -87,6 +89,7 @@ export function StaffRateSettingsClient() {
     });
     if (!res.ok) return readError(res);
     setConfig(((await res.json()) as { config: RateConfig }).config);
+    setSaved(true);
     return null;
   }
 
@@ -122,7 +125,13 @@ export function StaffRateSettingsClient() {
       ) : null}
 
       {config ? (
-        <RateSettingsForm key={JSON.stringify(config)} initial={config} onSave={save} />
+        <RateSettingsForm
+          key={JSON.stringify(config)}
+          initial={config}
+          saved={saved}
+          onEdit={() => setSaved(false)}
+          onSave={save}
+        />
       ) : null}
     </div>
   );
@@ -131,9 +140,13 @@ export function StaffRateSettingsClient() {
 /** Remounted with fresh state whenever the saved config changes (see parent key). */
 function RateSettingsForm({
   initial,
+  saved,
+  onEdit,
   onSave,
 }: {
   initial: RateConfig;
+  saved: boolean;
+  onEdit: () => void;
   onSave: (config: RateConfig) => Promise<string | null>;
 }) {
   const t = useTranslations("staffRateSettings");
@@ -150,6 +163,7 @@ function RateSettingsForm({
   function patch(next: Partial<RateConfig>) {
     setDraft((prev) => ({ ...prev, ...next }));
     setStatus(null);
+    onEdit();
   }
 
   function updateAt<K extends "rooms" | "seasons" | "longStay" | "coupons" | "extras">(
@@ -162,11 +176,13 @@ function RateSettingsForm({
       [list]: prev[list].map((item, i) => (i === index ? { ...item, ...change } : item)),
     }));
     setStatus(null);
+    onEdit();
   }
 
   function removeAt(list: "seasons" | "longStay" | "coupons" | "extras", index: number) {
     setDraft((prev) => ({ ...prev, [list]: prev[list].filter((_, i) => i !== index) }));
     setStatus(null);
+    onEdit();
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -174,7 +190,7 @@ function RateSettingsForm({
     setSaving(true);
     const error = await onSave(draft);
     setSaving(false);
-    setStatus(error ? { ok: false, message: error } : { ok: true, message: t("saved") });
+    setStatus(error ? { ok: false, message: error } : null);
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -351,6 +367,10 @@ function RateSettingsForm({
         {status ? (
           <span className={status.ok ? "text-sm text-teal-dark" : "text-sm text-red-600"}>
             {status.message}
+          </span>
+        ) : saved ? (
+          <span className="text-sm text-teal-dark" role="status">
+            {t("saved")}
           </span>
         ) : null}
       </div>
