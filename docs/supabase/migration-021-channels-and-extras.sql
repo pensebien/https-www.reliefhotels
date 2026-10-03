@@ -1,5 +1,5 @@
 -- Migration 021: calendar sync and no-contract extras (feat/no-contract-extras).
--- Run after 020. Safe to re-run.
+-- Independent of 020 (creates none of its objects), so it can run before or after it. Safe to re-run.
 
 -- 1. iCal channel blocks: bookings imported from OTA calendar feeds become
 --    room blocks tagged with their feed (source) and the OTA event UID.

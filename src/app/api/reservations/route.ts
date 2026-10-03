@@ -1,4 +1,5 @@
 import { rooms } from "@/content/site";
+import { linkRatePlanId as getLinkRatePlanId } from "@/lib/booking-engine/booking-links";
 import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
@@ -84,6 +85,8 @@ export async function POST(request: Request) {
         );
       }
 
+      const linkRatePlanId = data.ratePlanId ? await getLinkRatePlanId(data.bookingLink) : undefined;
+
       // Group booking: several room types in one checkout, one payment.
       if (data.stays && data.stays.length > 1) {
         const group = await reserveGroup(
@@ -95,6 +98,7 @@ export async function POST(request: Request) {
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
             ratePlanId: data.ratePlanId || undefined,
+            linkRatePlanId,
           },
           guest,
           reserveOptions,
@@ -131,6 +135,7 @@ export async function POST(request: Request) {
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
             ratePlanId: data.ratePlanId || undefined,
+            linkRatePlanId,
           },
           guest,
           reserveOptions,

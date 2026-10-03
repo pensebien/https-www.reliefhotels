@@ -25,6 +25,8 @@ export type StayContext = {
   /** Extra room-type lines of a group booking. */
   additionalStays: { roomId: string; rooms: number }[];
   ratePlanId?: string;
+  /** Booking link slug the guest came through. */
+  bookingLink?: string;
 };
 
 /** Bookable extra as shown to the guest (from RateConfig, server-filtered by room). */
@@ -77,6 +79,7 @@ export type ReservationFlowProps = {
   /** Presets from a booking link. */
   initialCouponCode?: string;
   initialRatePlanId?: string;
+  bookingLink?: string;
 };
 
 export type ReservationFlowStatus = "idle" | "loading" | "success" | "error";

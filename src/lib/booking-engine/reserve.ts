@@ -166,7 +166,7 @@ async function insertLine(data: NewReservation): Promise<ReservationRecord | nul
 
 export async function reserveRoom(
   stay: Required<Pick<QuoteInput, "roomId" | "checkIn" | "checkOut" | "guests">> &
-    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions" | "ratePlanId">,
+    Pick<QuoteInput, "rooms" | "couponCode" | "extraIds" | "ignoreRestrictions" | "ratePlanId" | "linkRatePlanId">,
   guest: GuestDetails,
   options: ReserveOptions = {},
 ): Promise<ReserveResult> {

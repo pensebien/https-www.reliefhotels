@@ -53,3 +53,8 @@ export async function resolveBookingLink(slug: string | null | undefined): Promi
 /** True when the link applies to this room type. */
 export const linkCoversRoom = (link: Pick<BookingLink, "roomIds">, roomId: string) =>
   link.roomIds.length === 0 || link.roomIds.includes(roomId);
+
+/** The rate plan a booking link unlocks, for the quote engine's link-only check. */
+export async function linkRatePlanId(slug: string | null | undefined): Promise<string | undefined> {
+  return (await resolveBookingLink(slug))?.ratePlanId;
+}

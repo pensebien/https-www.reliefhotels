@@ -60,6 +60,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     useDemoTestAmount = false,
     initialCouponCode,
     initialRatePlanId,
+    bookingLink,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
@@ -111,8 +112,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
       extraIds,
       additionalStays,
       ratePlanId,
+      bookingLink,
     }),
-    [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
+    [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
   );
 
   // Live server quote — the same engine the reservation and payment routes
@@ -136,6 +138,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
             couponCode,
             extraIds,
             ratePlanId,
+            bookingLink,
             stays: additionalStays.length
               ? [{ roomId: itemId, rooms: units }, ...additionalStays]
               : undefined,
@@ -169,7 +172,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
+  }, [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
 
   const depositNgn = useMemo(
     () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,

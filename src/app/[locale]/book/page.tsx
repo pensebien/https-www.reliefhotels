@@ -160,6 +160,7 @@ export default async function BookPage({
           priceFrom={room.priceFrom}
           initialCouponCode={link?.couponCode}
           initialRatePlanId={ratePlans.some((p) => p.id === link?.ratePlanId) ? link?.ratePlanId : undefined}
+          bookingLink={link?.slug}
         />
         <ConciergeContactPrompt />
       </section>
