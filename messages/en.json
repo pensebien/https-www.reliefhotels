@@ -1275,7 +1275,8 @@
       "roomSettings": "Room setup",
       "invoiceSettings": "Invoices",
       "reports": "Reports",
-      "messageSettings": "Guest messages"
+      "messageSettings": "Guest messages",
+      "channelSettings": "Channels"
     },
     "roles": {
       "cashier": "Cashier",
@@ -1880,5 +1881,38 @@
       "saved": "Saved.",
       "error": "Settings could not be saved."
     }
+  },
+  "staffChannels": {
+    "metaTitle": "Channels",
+    "eyebrow": "Distribution",
+    "title": "Channels (calendar sync)",
+    "subtitle": "Keep Booking.com, Airbnb, Expedia and Google in step with your rooms using calendar links — no partner contract needed. A full channel manager can replace this later.",
+    "backToPortal": "Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Unlock",
+    "error": "That didn't work. Please try again.",
+    "notScheduled": "Automatic sync every 30 minutes isn't set up (CRON_SECRET missing on the server). Use Sync now until it is.",
+    "exportTitle": "Calendar links to give each booking site",
+    "exportHint": "Paste the link for each room type into the booking site's calendar import (e.g. Airbnb → Availability → Sync calendars; Booking.com → Rates & availability → Sync calendars). They'll show dates as unavailable when every room of that type is taken.",
+    "noSecret": "Set BOOKING_LINK_SECRET to create links",
+    "copy": "Copy",
+    "copied": "Link copied.",
+    "importTitle": "Booking-site calendars to import",
+    "importHint": "Paste each site's export (.ics) link and choose the room type it sells. Their bookings block one room of that type here, refreshed every 30 minutes.",
+    "none": "No calendars connected yet.",
+    "channelName": "Booking site",
+    "roomType": "Room type",
+    "feedUrl": "Calendar link (.ics)",
+    "active": "On",
+    "remove": "Remove calendar",
+    "add": "Add calendar",
+    "save": "Save calendars",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "syncNow": "Sync now",
+    "syncing": "Syncing…",
+    "synced": "Synced.",
+    "lastSync": "Last sync {when}: {n, plural, one {# booking} other {# bookings}} blocked",
+    "lastError": "Last sync {when} failed: {error}"
   }
 }
