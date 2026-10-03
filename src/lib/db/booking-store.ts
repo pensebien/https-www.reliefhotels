@@ -33,6 +33,11 @@ type ReservationRow = {
   quoted_deposit_ngn?: number | null;
   hold_expires_at?: string | null;
   cancelled_at?: string | null;
+  assigned_units?: string[] | null;
+  quote_snapshot?: ReservationRecord["quoteSnapshot"] | null;
+  group_id?: string | null;
+  booking_channel?: "online" | "desk" | null;
+  custom_fields?: Record<string, string | boolean> | null;
 };
 
 type PaymentRow = {
@@ -52,6 +57,11 @@ type PaymentRow = {
   source: PaymentRecord["source"];
   created_at: string;
 };
+
+/** Row → record, for callers paging through reservations themselves. */
+export function mapReservationRow(row: unknown): ReservationRecord {
+  return mapReservation(row as ReservationRow);
+}
 
 function mapReservation(row: ReservationRow): ReservationRecord {
   return {
@@ -81,6 +91,11 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     quotedDepositNgn: row.quoted_deposit_ngn ?? undefined,
     holdExpiresAt: row.hold_expires_at ?? undefined,
     cancelledAt: row.cancelled_at ?? undefined,
+    assignedUnits: row.assigned_units ?? undefined,
+    quoteSnapshot: row.quote_snapshot ?? undefined,
+    groupId: row.group_id ?? undefined,
+    bookingChannel: row.booking_channel ?? undefined,
+    customFields: row.custom_fields ?? undefined,
   };
 }
 
@@ -141,6 +156,11 @@ function reservationPatchToRow(
     update.hold_expires_at = patch.holdExpiresAt;
   }
   if (patch.cancelledAt !== undefined) update.cancelled_at = patch.cancelledAt;
+  if (patch.assignedUnits !== undefined) update.assigned_units = patch.assignedUnits;
+  if (patch.quoteSnapshot !== undefined) update.quote_snapshot = patch.quoteSnapshot;
+  if (patch.groupId !== undefined) update.group_id = patch.groupId;
+  if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
+  if (patch.customFields !== undefined) update.custom_fields = patch.customFields;
   return update;
 }
 
@@ -220,15 +240,16 @@ export async function dbCountCouponRedemptions(code: string): Promise<number> {
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error("Supabase not configured");
 
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("reservations")
-    .select("id", { count: "exact", head: true })
+    .select("id, group_id")
     .eq("coupon_code", code)
     .neq("status", "cancelled");
 
   // Pre-016 databases have no coupon_code column, so nothing was redeemed.
   if (error) return 0;
-  return count ?? 0;
+  // A group booking uses the code once, however many room types it has.
+  return new Set((data ?? []).map((r) => (r.group_id as string | null) ?? (r.id as string))).size;
 }
 
 export async function dbUpdateReservationById(
@@ -375,6 +396,84 @@ export async function dbFindPaymentByReference(
   if (error) throw new Error(error.message);
   if (!row) return undefined;
   return mapPayment(row as PaymentRow);
+}
+
+export async function dbListOverlappingRoomReservations(
+  roomId: string,
+  checkIn: string,
+  checkOut: string,
+): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data, error } = await supabase
+    .from("reservations")
+    .select()
+    .eq("item_type", "room")
+    .eq("room_id", roomId)
+    .neq("status", "cancelled")
+    .lt("check_in", checkOut)
+    .gt("check_out", checkIn);
+
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbListReservationsForReport(from: string, to: string): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const endYmd = end.toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from("reservations")
+    .select()
+    .eq("item_type", "room")
+    .or(
+      `and(check_in.lt.${endYmd},check_out.gt.${from}),and(created_at.gte.${from},created_at.lt.${endYmd}),and(cancelled_at.gte.${from},cancelled_at.lt.${endYmd})`,
+    );
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbListPaymentsForReport(from: string, to: string): Promise<PaymentRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const end = new Date(`${to}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() + 1);
+  const { data, error } = await supabase
+    .from("payments")
+    .select()
+    .gte("created_at", from)
+    .lt("created_at", end.toISOString().slice(0, 10));
+  if (error) throw new Error(error.message);
+  return (data as PaymentRow[]).map(mapPayment);
+}
+
+export async function dbListReservationsByGroup(groupId: string): Promise<ReservationRecord[]> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase.from("reservations").select().eq("group_id", groupId);
+  if (error) throw new Error(error.message);
+  return (data as ReservationRow[]).map(mapReservation);
+}
+
+export async function dbFindPendingRefund(
+  transactionReference: string,
+  amountKobo: number,
+): Promise<PaymentRecord | undefined> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase
+    .from("payments")
+    .select()
+    .eq("external_reference", transactionReference)
+    .eq("amount_kobo", amountKobo)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapPayment(data as PaymentRow) : undefined;
 }
 
 export async function dbListPaymentsForReservation(

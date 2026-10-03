@@ -175,6 +175,8 @@ export async function reconcilePaystackTransactions(range: {
         const dateYmd = p.createdAt.slice(0, 10);
         return (
           resolveLedgerChannel(p) === "paystack" &&
+          // Refunds are negative rows; Paystack lists them apart from transactions.
+          p.amountKobo > 0 &&
           dateYmd >= range.from &&
           dateYmd <= range.to
         );

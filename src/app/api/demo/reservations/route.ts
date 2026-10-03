@@ -1,4 +1,5 @@
 import { rooms } from "@/content/site";
+import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { OVERRIDABLE_RULE_CODES, type QuoteErrorCode } from "@/lib/booking-engine/quote";
 import { reserveRoom } from "@/lib/booking-engine/reserve";
 import {
@@ -97,7 +98,7 @@ export async function POST(request: Request) {
         stayPreference,
         message,
       },
-      { status: reservationStatus, expiringHold: false },
+      { status: reservationStatus, expiringHold: false, channel: "desk" },
     );
 
     if (!reserved.ok) {
@@ -197,6 +198,8 @@ export async function POST(request: Request) {
         await syncConfirmedReservationToRayza(record);
       }
     }
+
+    await emitBookingEvent("booking.created", record);
 
     const emailSent = await sendReservationEmail(record);
     if (emailSent) {

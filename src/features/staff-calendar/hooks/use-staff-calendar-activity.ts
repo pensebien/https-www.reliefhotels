@@ -11,6 +11,7 @@ import type {
   StaffCalendarActivityResponse,
   StaffCalendarPayment,
 } from "@/features/staff-calendar/types";
+import type { UnitSetup } from "@/lib/inventory-units";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export function useStaffCalendarActivity(key: string | null) {
@@ -18,6 +19,7 @@ export function useStaffCalendarActivity(key: string | null) {
   const [payments, setPayments] = useState<StaffCalendarPayment[]>([]);
   const [eventInquiries, setEventInquiries] = useState<EventInquiry[]>([]);
   const [roomBlocks, setRoomBlocks] = useState<RoomBlock[]>([]);
+  const [unitSetup, setUnitSetup] = useState<UnitSetup | undefined>(undefined);
   const [moniepoint, setMoniepoint] = useState<
     StaffCalendarActivityResponse["moniepoint"]
   >(undefined);
@@ -41,6 +43,7 @@ export function useStaffCalendarActivity(key: string | null) {
       setPayments(result.payments ?? []);
       setEventInquiries(result.eventInquiries ?? []);
       setRoomBlocks(result.roomBlocks ?? []);
+      setUnitSetup(result.unitSetup);
       setMoniepoint(result.moniepoint);
     }
     setLoading(false);
@@ -70,6 +73,7 @@ export function useStaffCalendarActivity(key: string | null) {
     reservations,
     eventInquiries,
     roomBlocks,
+    unitSetup,
     paymentsByReservation,
     moniepoint,
     refresh: () => key && load(key),

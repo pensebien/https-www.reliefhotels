@@ -12,7 +12,9 @@ export {
   type ReservationFormValues,
 } from "./lib/reservation-schema";
 export type {
+  AddableRoom,
   BookableExtra,
+  BookableRatePlan,
   BookQueryParams,
   ReservationFlowProps,
   ReservationFlowStatus,

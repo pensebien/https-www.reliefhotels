@@ -8,6 +8,7 @@
  * of this codebase's demo/file vs. production/Supabase split.
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { findFnbCatalogItem } from "@/content/fnb-catalog";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import {
@@ -29,7 +30,7 @@ export class FolioStoreError extends Error {
   }
 }
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const STORE_FILE = path.join(STORE_DIR, "folio-charges.json");
 
 type FolioFile = { charges: FolioCharge[] };

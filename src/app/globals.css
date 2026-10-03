@@ -179,3 +179,12 @@ body {
   background-color: #e5e5e5;
   color: #171717;
 }
+
+/* Invoices print without the site chrome (see components/invoice-view.tsx). */
+@media print {
+  header,
+  footer,
+  [data-site-chrome] {
+    display: none !important;
+  }
+}

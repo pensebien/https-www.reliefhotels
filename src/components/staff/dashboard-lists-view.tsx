@@ -11,6 +11,7 @@ import {
   type DashboardPaymentRow,
   type DashboardReservationRow,
 } from "@/components/staff/dashboard-shared";
+import { RefundsPanel } from "@/components/staff/refunds-panel";
 import { StaffReservationActions } from "@/components/staff/staff-reservation-actions";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -264,6 +265,11 @@ export function DashboardListsView({
                       onUpdated={onReservationUpdated}
                       compact
                     />
+                  </div>
+                ) : null}
+                {bookingStatus === "cancelled" && successPayment && r.source !== "demo" ? (
+                  <div className="rounded-b-xl border border-t-0 border-border bg-card/60 px-4 pb-4 pt-2">
+                    <RefundsPanel reservationId={r.id} dashboardKey={dashboardKey} />
                   </div>
                 ) : null}
               </div>

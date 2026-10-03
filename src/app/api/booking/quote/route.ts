@@ -1,4 +1,7 @@
-import { quoteStayLive } from "@/lib/booking-engine/reserve";
+import { linkRatePlanId } from "@/lib/booking-engine/booking-links";
+import { quoteGroup } from "@/lib/booking-engine/group";
+import { getRateConfig } from "@/lib/booking-engine/rate-config";
+import { countCouponRedemptions, quoteStayLive } from "@/lib/booking-engine/reserve";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -12,6 +15,15 @@ const quoteRequestSchema = z.object({
   rooms: z.number().int().min(1).max(4).optional(),
   couponCode: z.string().trim().max(40).optional(),
   extraIds: z.array(z.string().max(60)).max(20).optional(),
+  ratePlanId: z.string().max(60).optional(),
+  /** Booking link slug the guest came through; unlocks its link-only rate plan. */
+  bookingLink: z.string().max(40).optional(),
+  /** Group booking: several room types, same dates; first line is the lead. */
+  stays: z
+    .array(z.object({ roomId: z.string().min(1).max(100), rooms: z.number().int().min(1).max(4) }))
+    .min(1)
+    .max(4)
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +37,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const quote = await quoteStayLive(parsed.data);
+  const { bookingLink, ...rest } = parsed.data;
+  const input = { ...rest, linkRatePlanId: rest.ratePlanId ? await linkRatePlanId(bookingLink) : undefined };
+  if (input.stays && input.stays.length > 1) {
+    const couponRedemptions = input.couponCode ? await countCouponRedemptions(input.couponCode) : 0;
+    const group = quoteGroup({ ...input, stays: input.stays, couponRedemptions }, await getRateConfig());
+    if (!group.ok) {
+      return NextResponse.json({ error: group.message, code: group.code }, { status: 422 });
+    }
+    return NextResponse.json(group);
+  }
+
+  const quote = await quoteStayLive(input);
   if (!quote.ok) {
     return NextResponse.json(
       { error: quote.message, code: quote.code },

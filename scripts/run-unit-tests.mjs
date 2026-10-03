@@ -3,10 +3,20 @@
  * Unit + API tests with a deterministic demo env (no Supabase / Paystack / Resend).
  */
 import { spawn } from "node:child_process";
+import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+// Each run gets a fresh copy of the tracked seed data, so tests never touch
+// (or pile bookings up in) your local data/ folder, and runs don't collide.
+const dataDir = mkdtempSync(path.join(os.tmpdir(), "relief-tests-"));
+cpSync(path.join(root, "data"), dataDir, {
+  recursive: true,
+  filter: (src) => !/demo-store|inquiries|folio-charges|staff-accounts|invoices|guest-message-log|rate-config|settings/.test(path.basename(src)),
+});
 
 const child = spawn(
   "npx",
@@ -23,6 +33,7 @@ const child = spawn(
     shell: process.platform === "win32",
     env: {
       ...process.env,
+      RELIEF_DATA_DIR: dataDir,
       DEMO_MODE: "true",
       NOTIFY_CHANNEL: "console",
       NEXT_PUBLIC_APP_URL: "http://localhost:3002",
@@ -40,4 +51,7 @@ const child = spawn(
   },
 );
 
-child.on("close", (code) => process.exit(code ?? 1));
+child.on("close", (code) => {
+  rmSync(dataDir, { recursive: true, force: true });
+  process.exit(code ?? 1);
+});

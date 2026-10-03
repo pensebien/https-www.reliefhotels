@@ -8,9 +8,9 @@ import {
 } from "@/lib/reservation-dates";
 import {
   buildInventoryUnits,
-  INVENTORY_BY_ROOM_ID,
   resolveReservationRoomId,
   type InventoryUnit,
+  type UnitSetup,
 } from "@/lib/inventory-units";
 
 export type CalendarReservation = {
@@ -24,6 +24,11 @@ export type CalendarReservation = {
   nights?: number;
   guests: number;
   roomId?: string;
+  /** Rooms of this type in the booking (booking engine); absent = 1. */
+  units?: number;
+  /** Rooms assigned by staff, e.g. ["guest-room-3"]; one per unit. */
+  assignedUnits?: string[];
+  customFields?: Record<string, string | boolean>;
   stayPreference: string;
   status: "pending" | "confirmed" | "cancelled" | "checked_out";
   paymentReference?: string;
@@ -53,6 +58,8 @@ export type CalendarBooking = {
   source: string;
   createdAt: string;
   raw: CalendarReservation | EventInquiry | RoomBlock;
+  /** Room staff assigned this booking (or this unit of a multi-room booking) to. */
+  preferredUnitId?: string;
 };
 
 export type CalendarDay = {
@@ -176,25 +183,26 @@ export function reservationToBookings(
 
   if (!roomId) return [];
 
-  return [
-    {
-      id: reservation.id,
-      kind: "stay",
-      roomId,
-      guestName: `${reservation.firstName} ${reservation.lastName}`,
-      email: reservation.email,
-      phone: reservation.phone,
-      checkIn: reservation.checkIn,
-      checkOut: reservation.checkOut,
-      status: reservation.status,
-      guests: reservation.guests,
-      label: reservation.stayPreference,
-      paymentReference: reservation.paymentReference,
-      source: reservation.source,
-      createdAt: reservation.createdAt,
-      raw: reservation,
-    },
-  ];
+  // A multi-room booking occupies one calendar row per room.
+  const units = Math.max(1, reservation.units ?? 1);
+  return Array.from({ length: units }, (_, slot) => ({
+    id: reservation.id,
+    kind: "stay" as const,
+    roomId,
+    guestName: `${reservation.firstName} ${reservation.lastName}`,
+    email: reservation.email,
+    phone: reservation.phone,
+    checkIn: reservation.checkIn!,
+    checkOut: reservation.checkOut!,
+    status: reservation.status,
+    guests: reservation.guests,
+    label: reservation.stayPreference,
+    paymentReference: reservation.paymentReference,
+    source: reservation.source,
+    createdAt: reservation.createdAt,
+    raw: reservation,
+    preferredUnitId: reservation.assignedUnits?.[slot],
+  }));
 }
 
 export function eventInquiryToBookings(
@@ -228,13 +236,17 @@ export function eventInquiryToBookings(
   ];
 }
 
-/** Greedy unit assignment: first free unit for overlapping stays. */
+/**
+ * Staff-assigned rooms are placed first, exactly where staff put them; every
+ * other booking then takes the first free room of its type.
+ */
 export function assignBookingsToUnits(
   bookings: Omit<CalendarBooking, "unitId">[],
   units: InventoryUnit[],
 ): CalendarBooking[] {
   const assigned: CalendarBooking[] = [];
   const byRoom = new Map<string, InventoryUnit[]>();
+  const unitIds = new Set(units.map((u) => u.id));
 
   for (const unit of units) {
     const list = byRoom.get(unit.roomId) ?? [];
@@ -242,9 +254,16 @@ export function assignBookingsToUnits(
     byRoom.set(unit.roomId, list);
   }
 
-  const sorted = [...bookings].sort((a, b) =>
-    a.checkIn.localeCompare(b.checkIn),
+  const pinned = bookings.filter(
+    (b) => b.preferredUnitId && unitIds.has(b.preferredUnitId),
   );
+  for (const booking of pinned) {
+    assigned.push({ ...booking, unitId: booking.preferredUnitId! });
+  }
+
+  const sorted = bookings
+    .filter((b) => !pinned.includes(b))
+    .sort((a, b) => a.checkIn.localeCompare(b.checkIn));
 
   for (const booking of sorted) {
     if (booking.kind === "tour") {
@@ -302,8 +321,14 @@ export function buildInventoryCalendar(input: {
   roomBlocks?: RoomBlock[];
   weekAnchor: Date;
   unitLabels: Record<string, string>;
+  /** Saved room setup (inventory + room numbers); defaults when absent. */
+  unitSetup?: UnitSetup;
 }): { days: CalendarDay[]; rows: CalendarRow[]; bookings: CalendarBooking[] } {
-  const units = buildInventoryUnits();
+  const units = buildInventoryUnits(input.unitSetup);
+  const unitsPerRoom = new Map<string, number>();
+  for (const unit of units) {
+    unitsPerRoom.set(unit.roomId, (unitsPerRoom.get(unit.roomId) ?? 0) + 1);
+  }
   const spaceIds = units.filter((u) => u.kind === "event").map((u) => u.roomId);
   const days = buildWeekDays(input.weekAnchor);
 
@@ -321,9 +346,13 @@ export function buildInventoryCalendar(input: {
     const unitBookings = bookings.filter((b) => b.unitId === unit.id);
     const baseLabel = input.unitLabels[unit.labelKey] ?? unit.roomId;
     const unitLabel =
-      unit.kind === "room" && (INVENTORY_BY_ROOM_ID[unit.roomId] ?? 1) > 1
-        ? `${baseLabel} #${unit.unitIndex}`
-        : baseLabel;
+      unit.kind !== "room"
+        ? baseLabel
+        : unit.unitLabel && input.unitSetup
+          ? `${baseLabel} · ${unit.unitLabel}`
+          : (unitsPerRoom.get(unit.roomId) ?? 1) > 1
+            ? `${baseLabel} #${unit.unitIndex}`
+            : baseLabel;
 
     const cells: CalendarCell[] = days.map((day) => {
       const booking = unitBookings.find((b) =>

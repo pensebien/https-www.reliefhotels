@@ -1,4 +1,5 @@
 import { getServerConfig } from "@/lib/config";
+import { settlePaystackRefund } from "@/lib/refunds";
 import { confirmPaystackCharge, isValidPaystackSignature } from "@/lib/paystack-confirm";
 import { NextResponse } from "next/server";
 
@@ -26,8 +27,21 @@ export async function POST(request: Request) {
   try {
     const event = JSON.parse(rawBody) as {
       event?: string;
-      data?: { reference?: string; amount?: number };
+      data?: { reference?: string; amount?: number; transaction_reference?: string };
     };
+
+    // Refunds we started from the staff booking sheet (src/lib/refunds.ts).
+    if (
+      (event.event === "refund.processed" || event.event === "refund.failed") &&
+      event.data?.transaction_reference
+    ) {
+      const settled = await settlePaystackRefund({
+        transactionReference: event.data.transaction_reference,
+        amountKobo: event.data.amount ?? 0,
+        processed: event.event === "refund.processed",
+      });
+      return NextResponse.json({ ok: true, refund: settled ? "settled" : "unknown" });
+    }
 
     if (event.event !== "charge.success" || !event.data?.reference) {
       return NextResponse.json({ ok: true, ignored: true });

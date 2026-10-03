@@ -7,6 +7,7 @@
  * automatically once `isSupabaseEnabled()` is true.
  */
 
+import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import { isStaffRole, type StaffRole } from "@/lib/staff-roles";
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from "crypto";
@@ -49,7 +50,7 @@ export function verifyPin(pin: string, stored: string): boolean {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const STORE_FILE = path.join(STORE_DIR, "staff-accounts.json");
 
 type StaffAccountsFile = { accounts: StaffAccount[] };

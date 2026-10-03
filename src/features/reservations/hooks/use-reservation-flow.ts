@@ -4,6 +4,7 @@ import {
   parseDateString,
   toDateString,
 } from "@/lib/booking-search";
+import type { GroupQuote } from "@/lib/booking-engine/group";
 import type { QuoteErrorCode, StayQuote } from "@/lib/booking-engine/quote";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { reservationFormSchema } from "../lib/reservation-schema";
@@ -25,6 +26,8 @@ const defaultFormData: ReservationFormData = {
   phone: "",
   message: "",
   experienceInterests: [],
+  arrivalTime: "",
+  customAnswers: {},
   termsAccepted: false,
 };
 
@@ -52,7 +55,12 @@ export function useReservationFlow(options: ReservationFlowProps) {
     priceFrom,
     rooms: initialRooms = 1,
     maxGuestsPerUnit = MAX_GUESTS,
+    addableRooms = [],
+    bookingMode = "instant",
     useDemoTestAmount = false,
+    initialCouponCode,
+    initialRatePlanId,
+    bookingLink,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
@@ -60,10 +68,21 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const [guests, setGuests] = useState(initialGuests);
   const [units, setUnits] = useState(initialRooms);
   const [extraIds, setExtraIds] = useState<string[]>([]);
-  const [couponInput, setCouponInput] = useState("");
-  const [couponCode, setCouponCode] = useState<string | undefined>();
+  const [couponInput, setCouponInput] = useState(initialCouponCode ?? "");
+  const [couponCode, setCouponCode] = useState<string | undefined>(initialCouponCode);
+  const [ratePlanId, setRatePlanId] = useState<string | undefined>(initialRatePlanId);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
+  const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);
+  /** Rooms of other types added to this stay, by room id. */
+  const [additional, setAdditional] = useState<Record<string, number>>({});
+  const additionalStays = useMemo(
+    () =>
+      Object.entries(additional)
+        .filter(([, rooms]) => rooms > 0)
+        .map(([roomId, rooms]) => ({ roomId, rooms })),
+    [additional],
+  );
   const [quoteError, setQuoteError] = useState<{ code: QuoteErrorCode; message: string } | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkOut, setCheckOut] = useState(
@@ -91,8 +110,11 @@ export function useReservationFlow(options: ReservationFlowProps) {
       priceFrom,
       couponCode,
       extraIds,
+      additionalStays,
+      ratePlanId,
+      bookingLink,
     }),
-    [checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, units],
+    [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
   );
 
   // Live server quote — the same engine the reservation and payment routes
@@ -115,17 +137,29 @@ export function useReservationFlow(options: ReservationFlowProps) {
             rooms: units,
             couponCode,
             extraIds,
+            ratePlanId,
+            bookingLink,
+            stays: additionalStays.length
+              ? [{ roomId: itemId, rooms: units }, ...additionalStays]
+              : undefined,
           }),
         });
         const body = await res.json();
         if (res.ok) {
-          setQuote(body as StayQuote);
+          if (Array.isArray(body.lines)) {
+            setGroupQuote(body as GroupQuote);
+            setQuote((body as GroupQuote).lines[0]);
+          } else {
+            setGroupQuote(null);
+            setQuote(body as StayQuote);
+          }
           setQuoteError(null);
         } else if (body.code === "invalid_coupon") {
           setCouponError(body.error);
           setCouponCode(undefined);
         } else {
           setQuote(null);
+          setGroupQuote(null);
           setQuoteError({ code: body.code, message: body.error ?? "Unable to price this stay" });
         }
       } catch (error) {
@@ -138,14 +172,25 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [checkIn, checkOut, couponCode, extraIds, guests, itemId, units]);
+  }, [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
 
   const depositNgn = useMemo(
-    () => quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
-    [nights, priceFrom, quote, units],
+    () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
+    [groupQuote, nights, priceFrom, quote, units],
   );
 
-  const maxGuests = Math.min(MAX_GUESTS, maxGuestsPerUnit * units);
+  const maxGuests = Math.min(
+    MAX_GUESTS,
+    maxGuestsPerUnit * units +
+      additionalStays.reduce(
+        (sum, s) => sum + (addableRooms.find((r) => r.id === s.roomId)?.maxGuestsPerUnit ?? 1) * s.rooms,
+        0,
+      ),
+  );
+
+  const setAdditionalRooms = useCallback((roomId: string, rooms: number) => {
+    setAdditional((prev) => ({ ...prev, [roomId]: Math.max(0, Math.min(4, rooms)) }));
+  }, []);
 
   const updateUnits = useCallback((next: number) => {
     setUnits(Math.min(MAX_ROOMS, Math.max(1, next)));
@@ -293,10 +338,14 @@ export function useReservationFlow(options: ReservationFlowProps) {
 
   const handleReserveAndPay = useCallback(async () => {
     const reservationId = await submitReservation();
-    if (reservationId) {
-      await initiatePayment(reservationId);
+    if (!reservationId) return;
+    // Request mode: staff confirm first; the guest pays later from their manage link.
+    if (bookingMode === "request") {
+      setStatus("success");
+      return;
     }
-  }, [initiatePayment, submitReservation]);
+    await initiatePayment(reservationId);
+  }, [bookingMode, initiatePayment, submitReservation]);
 
   return {
     formData,
@@ -326,6 +375,11 @@ export function useReservationFlow(options: ReservationFlowProps) {
     applyCoupon,
     removeCoupon,
     quote,
+    groupQuote,
+    ratePlanId,
+    setRatePlanId,
+    additional,
+    setAdditionalRooms,
     quoteError,
     quoteLoading,
     submitReservation,

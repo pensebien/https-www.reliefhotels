@@ -1,3 +1,4 @@
+import { dataPath } from "@/lib/data-dir";
 import { demoPayments, demoReservations } from "@/content/demo-data";
 import {
   dbAddPayment,
@@ -5,10 +6,16 @@ import {
   dbFindPaymentByReference,
   dbFindReservationById,
   dbGetBookingActivity,
+  dbFindPendingRefund,
+  dbListPaymentsForReport,
+  dbListReservationsForReport,
+  dbListReservationsByGroup,
+  dbListOverlappingRoomReservations,
   dbListPaymentsForReservation,
   dbUpdatePaymentByReference,
   dbUpdateReservationById,
 } from "@/lib/db/booking-store";
+import type { StayQuote } from "@/lib/booking-engine/quote";
 import { isSupabaseEnabled } from "@/lib/db/client";
 import type {
   FrontDeskPaymentMethod,
@@ -48,7 +55,23 @@ export type ReservationRecord = {
   /** Unpaid online bookings stop holding the room after this instant. */
   holdExpiresAt?: string;
   cancelledAt?: string;
+  /** Physical rooms assigned, e.g. ["guest-room-3"] — one per unit (room setup numbering). */
+  assignedUnits?: string[];
+  /** Full price breakdown locked at booking — invoice lines come from this. */
+  quoteSnapshot?: StayQuote;
+  /** Shared by the room-type lines of one group booking; equals the lead line's id. */
+  groupId?: string;
+  /** Where the booking was made; older bookings are inferred (see bookingChannelOf). */
+  bookingChannel?: "online" | "desk";
+  /** Answers to staff-defined booking questions, keyed by the question's wording. */
+  customFields?: Record<string, string | boolean>;
 };
+
+/** Online vs front desk, inferring older bookings from the walk-in note. */
+export function bookingChannelOf(r: ReservationRecord): "online" | "desk" {
+  if (r.bookingChannel) return r.bookingChannel;
+  return r.message.startsWith("Walk-in booking") ? "desk" : "online";
+}
 
 export type NewReservation = Omit<
   ReservationRecord,
@@ -93,7 +116,7 @@ type Store = {
   payments: PaymentRecord[];
 };
 
-const STORE_DIR = path.join(process.cwd(), "data");
+const STORE_DIR = dataPath();
 const STORE_FILE = path.join(STORE_DIR, "demo-store.json");
 
 const emptyStore = (): Store => ({ reservations: [], payments: [] });
@@ -227,6 +250,95 @@ export async function updatePaymentByReference(
     store.payments[index] = { ...store.payments[index], ...patch };
     return store.payments[index];
   });
+}
+
+/**
+ * Room reservations of one type overlapping [checkIn, checkOut) that still
+ * hold inventory — the set room assignment must not clash with. Uncapped,
+ * unlike getActivity().
+ */
+export async function listOverlappingRoomReservations(
+  roomId: string,
+  checkIn: string,
+  checkOut: string,
+): Promise<ReservationRecord[]> {
+  const all = isSupabaseEnabled()
+    ? await dbListOverlappingRoomReservations(roomId, checkIn, checkOut)
+    : (await getActivity()).reservations.filter(
+        (r) =>
+          r.itemType === "room" &&
+          r.roomId === roomId &&
+          r.checkIn &&
+          r.checkOut &&
+          r.checkIn < checkOut &&
+          r.checkOut > checkIn,
+      );
+  const now = Date.now();
+  return all.filter((r) => holdsInventory(r, now));
+}
+
+/**
+ * Every line of the reservation's group booking, lead (oldest) first; just
+ * the reservation itself when it isn't part of a group.
+ */
+export async function listGroupMembers(reservation: ReservationRecord): Promise<ReservationRecord[]> {
+  if (!reservation.groupId) return [reservation];
+  const members = isSupabaseEnabled()
+    ? await dbListReservationsByGroup(reservation.groupId)
+    : (await getActivity()).reservations.filter((r) => r.groupId === reservation.groupId);
+  // The lead's own id is the group id.
+  const leadId = reservation.groupId;
+  return members.sort(
+    (a, b) =>
+      Number(b.id === leadId) - Number(a.id === leadId) ||
+      a.createdAt.localeCompare(b.createdAt) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
+/**
+ * Room reservations a report over [from, to] needs: stays overlapping the
+ * range, plus bookings created or cancelled in it. Uncapped.
+ */
+export async function listReservationsForReport(from: string, to: string): Promise<ReservationRecord[]> {
+  if (isSupabaseEnabled()) return dbListReservationsForReport(from, to);
+  const end = nextDay(to);
+  const { reservations } = await getActivity();
+  return reservations.filter(
+    (r) =>
+      r.itemType === "room" &&
+      ((r.checkIn && r.checkOut && r.checkIn < end && r.checkOut > from) ||
+        (r.createdAt.slice(0, 10) >= from && r.createdAt.slice(0, 10) <= to) ||
+        (r.cancelledAt && r.cancelledAt.slice(0, 10) >= from && r.cancelledAt.slice(0, 10) <= to)),
+  );
+}
+
+/** Payments created on days [from, to]. Uncapped. */
+export async function listPaymentsForReport(from: string, to: string): Promise<PaymentRecord[]> {
+  if (isSupabaseEnabled()) return dbListPaymentsForReport(from, to);
+  const { payments } = await getActivity();
+  return payments.filter((p) => p.createdAt.slice(0, 10) >= from && p.createdAt.slice(0, 10) <= to);
+}
+
+function nextDay(ymd: string): string {
+  const d = new Date(`${ymd}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** A pending refund row (negative amount) for `transactionReference`. */
+export async function findPendingRefund(
+  transactionReference: string,
+  amountKobo: number,
+): Promise<PaymentRecord | undefined> {
+  if (isSupabaseEnabled()) return dbFindPendingRefund(transactionReference, amountKobo);
+  const { payments } = await getActivity();
+  return payments.find(
+    (p) =>
+      p.externalReference === transactionReference &&
+      p.amountKobo === amountKobo &&
+      p.status === "pending",
+  );
 }
 
 /** Successful payments recorded against a reservation (deposit + any balance). */

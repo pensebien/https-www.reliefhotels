@@ -21,6 +21,11 @@ export function ReservationForm(props: ReservationFlowProps) {
     itemLabel,
     priceFrom,
     extras = [],
+    addableRooms = [],
+    ratePlans = [],
+    bookingMode = "instant",
+    arrivalTimeField = "optional",
+    customFields = [],
     useDemoTestAmount = false,
   } = props;
 
@@ -55,9 +60,18 @@ export function ReservationForm(props: ReservationFlowProps) {
     applyCoupon,
     removeCoupon,
     quote,
+    groupQuote,
+    ratePlanId,
+    setRatePlanId,
+    additional,
+    setAdditionalRooms,
     quoteError,
     quoteLoading,
   } = useReservationFlow(props);
+  const roomLabels = Object.fromEntries([
+    [props.itemId, itemLabel],
+    ...addableRooms.map((r) => [r.id, r.label] as const),
+  ]);
   const canContinue = !quoteError && !quoteLoading;
 
   function validateStep1(): boolean {
@@ -85,6 +99,15 @@ export function ReservationForm(props: ReservationFlowProps) {
     if (validateStep1()) {
       setStep(2);
     }
+  }
+
+  if (status === "success" && bookingMode === "request") {
+    return (
+      <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6 sm:p-8" role="status">
+        <h3 className="font-serif text-2xl font-semibold">{t("requestSentTitle")}</h3>
+        <p className="mt-2 text-muted">{t("requestSentBody", { email: formData.email })}</p>
+      </div>
+    );
   }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -164,6 +187,8 @@ export function ReservationForm(props: ReservationFlowProps) {
           maxGuests={maxGuests}
           onRoomsChange={updateUnits}
           quote={quote}
+          groupQuote={groupQuote}
+          roomLabels={roomLabels}
           quoteError={quoteError?.message}
           footnote={step === 2 ? t("managerNotifyAfterPayment") : undefined}
         />
@@ -171,12 +196,103 @@ export function ReservationForm(props: ReservationFlowProps) {
 
       {step === 1 ? (
         <div className="mt-6 space-y-5">
+          {ratePlans.length > 0 ? (
+            <fieldset className="space-y-2">
+              <legend className={labelClassName}>{t("rateTitle")}</legend>
+              {[{ id: "", label: t("rateStandard"), description: t("rateStandardHint"), adjustPct: 0, refundable: true }, ...ratePlans].map((plan) => {
+                const checked = (ratePlanId ?? "") === plan.id;
+                return (
+                  <label
+                    key={plan.id || "standard"}
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3",
+                      checked ? "border-teal bg-teal/10" : "border-border hover:border-teal/50",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="ratePlan"
+                      checked={checked}
+                      onChange={() => setRatePlanId(plan.id || undefined)}
+                      className="mt-1 accent-teal"
+                    />
+                    <span className="text-sm leading-snug">
+                      <span className="block font-medium">
+                        {plan.label}
+                        {plan.adjustPct ? (
+                          <span className="ml-2 text-teal-dark">
+                            {plan.adjustPct < 0 ? t("rateOff", { pct: -plan.adjustPct }) : t("rateMore", { pct: plan.adjustPct })}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="block text-muted">
+                        {plan.description || (plan.refundable ? t("rateStandardHint") : t("rateNonRefundable"))}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          ) : null}
+
+          {addableRooms.length > 0 ? (
+            <fieldset className="space-y-3">
+              <legend className={labelClassName}>{t("addRoomsTitle")}</legend>
+              <p className="text-xs leading-5 text-muted">{t("addRoomsHint")}</p>
+              <ul className="space-y-2">
+                {addableRooms.map((room) => {
+                  const count = additional[room.id] ?? 0;
+                  const max = Math.min(4, room.availableUnits);
+                  return (
+                    <li
+                      key={room.id}
+                      className={cn(
+                        "flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-3",
+                        count > 0 ? "border-teal bg-teal/10" : "border-border",
+                      )}
+                    >
+                      <span className="text-sm leading-snug">
+                        <span className="block font-medium">{room.label}</span>
+                        <span className="block text-muted">
+                          {t("addRoomsFrom", { price: formatNaira(room.priceFrom), left: room.availableUnits })}
+                        </span>
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+                        <button
+                          type="button"
+                          aria-label={t("addRoomsLess", { room: room.label })}
+                          disabled={count <= 0}
+                          onClick={() => setAdditionalRooms(room.id, count - 1)}
+                          className="h-8 w-8 rounded-lg hover:bg-muted/40 disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center text-sm font-medium tabular-nums" aria-live="polite">
+                          {count}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={t("addRoomsMore", { room: room.label })}
+                          disabled={count >= max}
+                          onClick={() => setAdditionalRooms(room.id, count + 1)}
+                          className="h-8 w-8 rounded-lg hover:bg-muted/40 disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </fieldset>
+          ) : null}
+
           {extras.length > 0 ? (
             <fieldset className="space-y-3">
               <legend className={labelClassName}>{t("extrasTitle")}</legend>
               <div className="grid gap-2 sm:grid-cols-2">
                 {extras.map((extra) => {
-                  const checked = extraIds.includes(extra.id);
+                  const checked = extra.included || extraIds.includes(extra.id);
                   return (
                     <label
                       key={extra.id}
@@ -188,11 +304,15 @@ export function ReservationForm(props: ReservationFlowProps) {
                       <input
                         type="checkbox"
                         checked={checked}
+                        disabled={extra.included}
                         onChange={() => toggleExtra(extra.id)}
                         className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
                       />
                       <span className="text-sm leading-snug">
-                        <span className="block font-medium">{extra.label}</span>
+                        <span className="block font-medium">
+                          {extra.label}
+                          {extra.included ? <span className="ml-2 text-xs text-muted">{t("extraIncluded")}</span> : null}
+                        </span>
                         <span className="block text-muted">
                           {formatNaira(extra.priceNgn)} {t(`extraPricing.${extra.pricing}`)}
                         </span>
@@ -358,6 +478,52 @@ export function ReservationForm(props: ReservationFlowProps) {
               </div>
             </fieldset>
 
+            {arrivalTimeField !== "hidden" ? (
+              <div className="space-y-2">
+                <label htmlFor="res-arrival" className={labelClassName}>
+                  {arrivalTimeField === "required" ? t("arrivalTime") : t("arrivalTimeOptional")}
+                </label>
+                <input
+                  id="res-arrival"
+                  type="time"
+                  required={arrivalTimeField === "required"}
+                  value={formData.arrivalTime}
+                  onChange={(e) => updateField("arrivalTime", e.target.value)}
+                  className={inputClassName}
+                />
+              </div>
+            ) : null}
+
+            {customFields.map((field) =>
+              field.type === "checkbox" ? (
+                <label key={field.id} className="flex items-start gap-3 text-sm sm:col-span-2">
+                  <input
+                    id={`res-cf-${field.id}`}
+                    type="checkbox"
+                    required={field.required}
+                    checked={formData.customAnswers[field.id] === true}
+                    onChange={(e) => updateField("customAnswers", { ...formData.customAnswers, [field.id]: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
+                  />
+                  <span>{field.label}</span>
+                </label>
+              ) : (
+                <div key={field.id} className="space-y-2 sm:col-span-2">
+                  <label htmlFor={`res-cf-${field.id}`} className={labelClassName}>
+                    {field.required ? field.label : t("optionalField", { label: field.label })}
+                  </label>
+                  <input
+                    id={`res-cf-${field.id}`}
+                    type="text"
+                    required={field.required}
+                    value={String(formData.customAnswers[field.id] ?? "")}
+                    onChange={(e) => updateField("customAnswers", { ...formData.customAnswers, [field.id]: e.target.value })}
+                    className={inputClassName}
+                  />
+                </div>
+              ),
+            )}
+
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="res-message" className={labelClassName}>
                 {t("specialRequests")}
@@ -424,7 +590,7 @@ export function ReservationForm(props: ReservationFlowProps) {
               ) : (
                 <CreditCard className="h-4 w-4" />
               )}
-              {status === "loading" ? t("submitting") : t("payDeposit")}
+              {status === "loading" ? t("submitting") : bookingMode === "request" ? t("sendRequest") : t("payDeposit")}
             </button>
           </div>
 
