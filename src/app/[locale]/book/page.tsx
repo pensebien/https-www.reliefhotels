@@ -94,7 +94,10 @@ export default async function BookPage({
   const policy = rateConfig.rooms.find((r) => r.roomId === room.id);
   const extras = rateConfig.extras
     .filter((e) => e.active !== false && (!e.roomIds || e.roomIds.includes(room.id)))
-    .map(({ id, label, priceNgn, pricing }) => ({ id, label, priceNgn, pricing }));
+    .map(({ id, label, priceNgn, pricing, included }) => ({ id, label, priceNgn, pricing, included }));
+  const ratePlans = rateConfig.ratePlans
+    .filter((p) => p.active !== false && (!p.roomIds || p.roomIds.includes(room.id)))
+    .map(({ id, label, description, adjustPct, refundable }) => ({ id, label, description, adjustPct, refundable }));
 
   const tr = await getTranslations("rooms");
 
@@ -146,6 +149,7 @@ export default async function BookPage({
           maxGuestsPerUnit={policy?.maxGuestsPerUnit}
           extras={extras}
           addableRooms={addableRooms}
+          ratePlans={ratePlans}
           priceFrom={room.priceFrom}
         />
         <ConciergeContactPrompt />

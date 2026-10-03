@@ -22,6 +22,7 @@ export function ReservationForm(props: ReservationFlowProps) {
     priceFrom,
     extras = [],
     addableRooms = [],
+    ratePlans = [],
     useDemoTestAmount = false,
   } = props;
 
@@ -57,6 +58,8 @@ export function ReservationForm(props: ReservationFlowProps) {
     removeCoupon,
     quote,
     groupQuote,
+    ratePlanId,
+    setRatePlanId,
     additional,
     setAdditionalRooms,
     quoteError,
@@ -181,6 +184,45 @@ export function ReservationForm(props: ReservationFlowProps) {
 
       {step === 1 ? (
         <div className="mt-6 space-y-5">
+          {ratePlans.length > 0 ? (
+            <fieldset className="space-y-2">
+              <legend className={labelClassName}>{t("rateTitle")}</legend>
+              {[{ id: "", label: t("rateStandard"), description: t("rateStandardHint"), adjustPct: 0, refundable: true }, ...ratePlans].map((plan) => {
+                const checked = (ratePlanId ?? "") === plan.id;
+                return (
+                  <label
+                    key={plan.id || "standard"}
+                    className={cn(
+                      "flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3",
+                      checked ? "border-teal bg-teal/10" : "border-border hover:border-teal/50",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="ratePlan"
+                      checked={checked}
+                      onChange={() => setRatePlanId(plan.id || undefined)}
+                      className="mt-1 accent-teal"
+                    />
+                    <span className="text-sm leading-snug">
+                      <span className="block font-medium">
+                        {plan.label}
+                        {plan.adjustPct ? (
+                          <span className="ml-2 text-teal-dark">
+                            {plan.adjustPct < 0 ? t("rateOff", { pct: -plan.adjustPct }) : t("rateMore", { pct: plan.adjustPct })}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="block text-muted">
+                        {plan.description || (plan.refundable ? t("rateStandardHint") : t("rateNonRefundable"))}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </fieldset>
+          ) : null}
+
           {addableRooms.length > 0 ? (
             <fieldset className="space-y-3">
               <legend className={labelClassName}>{t("addRoomsTitle")}</legend>
@@ -238,7 +280,7 @@ export function ReservationForm(props: ReservationFlowProps) {
               <legend className={labelClassName}>{t("extrasTitle")}</legend>
               <div className="grid gap-2 sm:grid-cols-2">
                 {extras.map((extra) => {
-                  const checked = extraIds.includes(extra.id);
+                  const checked = extra.included || extraIds.includes(extra.id);
                   return (
                     <label
                       key={extra.id}
@@ -250,11 +292,15 @@ export function ReservationForm(props: ReservationFlowProps) {
                       <input
                         type="checkbox"
                         checked={checked}
+                        disabled={extra.included}
                         onChange={() => toggleExtra(extra.id)}
                         className="mt-0.5 h-4 w-4 rounded border-border accent-teal"
                       />
                       <span className="text-sm leading-snug">
-                        <span className="block font-medium">{extra.label}</span>
+                        <span className="block font-medium">
+                          {extra.label}
+                          {extra.included ? <span className="ml-2 text-xs text-muted">{t("extraIncluded")}</span> : null}
+                        </span>
                         <span className="block text-muted">
                           {formatNaira(extra.priceNgn)} {t(`extraPricing.${extra.pricing}`)}
                         </span>

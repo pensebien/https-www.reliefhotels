@@ -22,6 +22,7 @@ export type StayContext = {
   extraIds: string[];
   /** Extra room-type lines of a group booking. */
   additionalStays: { roomId: string; rooms: number }[];
+  ratePlanId?: string;
 };
 
 /** Bookable extra as shown to the guest (from RateConfig, server-filtered by room). */
@@ -29,7 +30,9 @@ export type BookableExtra = {
   id: string;
   label: string;
   priceNgn: number;
-  pricing: "per_stay" | "per_night" | "per_guest_night";
+  pricing: "per_stay" | "per_night" | "per_guest_night" | "per_room" | "per_room_night";
+  /** Always part of the booking; shown ticked and locked. */
+  included?: boolean;
 };
 
 /** Another room type the guest can add to the same stay (group booking). */
@@ -39,6 +42,15 @@ export type AddableRoom = {
   priceFrom: number;
   availableUnits: number;
   maxGuestsPerUnit: number;
+};
+
+/** Alternative rate offered at checkout (from RateConfig.ratePlans). */
+export type BookableRatePlan = {
+  id: string;
+  label: string;
+  description: string;
+  adjustPct: number;
+  refundable: boolean;
 };
 
 export type ReservationFlowProps = {
@@ -54,6 +66,7 @@ export type ReservationFlowProps = {
   extras?: BookableExtra[];
   /** Other room types free for these dates, for "Add another room type". */
   addableRooms?: AddableRoom[];
+  ratePlans?: BookableRatePlan[];
   useDemoTestAmount?: boolean;
 };
 

@@ -61,6 +61,7 @@ export function buildReservationPayload(
       ? [{ roomId: stayContext.itemId, rooms: stayContext.rooms }, ...stayContext.additionalStays]
       : undefined,
     couponCode: stayContext.couponCode,
+    ratePlanId: stayContext.ratePlanId,
     extraIds: stayContext.extraIds,
     stayPreference: summaryParts.join(" · "),
     message: message || "No special requests",

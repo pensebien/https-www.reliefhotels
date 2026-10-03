@@ -20,6 +20,8 @@ export const reservationSchema = z
     /** Rooms of this type (booking engine); server re-quotes and re-checks availability. */
     rooms: z.number().int().min(1).max(4).optional(),
     couponCode: z.string().trim().max(40).optional(),
+    /** Rate plan the guest chose (e.g. non-refundable); omit for the standard rate. */
+    ratePlanId: z.string().max(60).optional(),
     extraIds: z.array(z.string().max(60)).max(20).optional(),
     /**
      * Group booking: several room types on the same dates. When present the

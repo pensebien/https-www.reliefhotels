@@ -21,6 +21,7 @@ export type GroupQuoteInput = {
   extraIds?: string[];
   couponRedemptions?: number;
   ignoreRestrictions?: boolean;
+  ratePlanId?: string;
 };
 
 export type GroupQuote = {
@@ -87,6 +88,7 @@ export function quoteGroup(input: GroupQuoteInput, config: RateConfig): GroupQuo
         couponRedemptions: input.couponRedemptions,
         extraIds: i === 0 ? input.extraIds : undefined,
         ignoreRestrictions: input.ignoreRestrictions,
+        ratePlanId: input.ratePlanId,
       },
       config,
     );

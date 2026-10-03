@@ -64,6 +64,7 @@ export async function POST(request: Request) {
             stays: data.stays,
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
+            ratePlanId: data.ratePlanId || undefined,
           },
           guest,
         );
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
             rooms: data.rooms,
             couponCode: data.couponCode || undefined,
             extraIds: data.extraIds,
+            ratePlanId: data.ratePlanId || undefined,
           },
           guest,
         );

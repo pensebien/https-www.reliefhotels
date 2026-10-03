@@ -45,8 +45,64 @@ export const seasonalRateSchema = z
     minNights: z.number().int().min(1).max(365).optional(),
     /** Closed to arrival on these dates (e.g. fully sold event nights). */
     closedToArrival: z.boolean().optional(),
+    /** Only nights on these weekdays (0 = Sunday … 6 = Saturday); omit for every night. */
+    weekdays: z.array(z.number().int().min(0).max(6)).max(7).optional(),
   })
   .refine((s) => s.to > s.from, { message: "Season end must be after start" });
+
+const weekdaysSchema = z.array(z.number().int().min(0).max(6)).min(1).max(7);
+
+/**
+ * Sirvoy "Restrictions": over [from, to), on the given weekdays and room
+ * types, stop arrivals, departures, or all stays (stop-sell).
+ */
+export const availabilityRestrictionSchema = z
+  .object({
+    id: z.string().min(1).max(60),
+    label: z.string().trim().min(1).max(100),
+    from: dateSchema,
+    to: dateSchema,
+    roomIds: z.array(z.string()).optional(),
+    weekdays: weekdaysSchema.optional(),
+    mode: z.enum(["no_arrival", "no_departure", "closed"]),
+  })
+  .refine((r) => r.to > r.from, { message: "Restriction end must be after start" });
+
+/**
+ * Sirvoy "Stay length": for arrivals on the given weekdays (and dates, room
+ * types), a minimum / maximum stay, optionally in whole weeks.
+ */
+export const stayRuleSchema = z
+  .object({
+    id: z.string().min(1).max(60),
+    label: z.string().trim().min(1).max(100),
+    from: dateSchema.optional(),
+    to: dateSchema.optional(),
+    roomIds: z.array(z.string()).optional(),
+    checkInWeekdays: weekdaysSchema.optional(),
+    minNights: z.number().int().min(1).max(365),
+    maxNights: z.number().int().min(1).max(365).optional(),
+    wholeWeeks: z.boolean().optional(),
+  })
+  .refine((r) => !r.maxNights || r.maxNights >= r.minNights, { message: "Max nights must be at least min nights" });
+
+/**
+ * Sirvoy "Price lists": an alternative rate guests choose at checkout, e.g.
+ * "Non-refundable, 10% off". The standard rate is always offered too.
+ */
+export const ratePlanSchema = z.object({
+  id: z.string().regex(/^[a-z0-9-]{1,60}$/),
+  label: z.string().trim().min(1).max(80),
+  description: z.string().trim().max(300),
+  /** Change to the nightly room rate, e.g. -10 for 10% off. */
+  adjustPct: z.number().min(-90).max(200),
+  /** Non-refundable plans refund nothing on cancellation. */
+  refundable: z.boolean(),
+  /** Deposit % for this plan (e.g. 100 = pay in full); omit for the hotel default. */
+  depositPct: z.number().min(0).max(100).optional(),
+  roomIds: z.array(z.string()).optional(),
+  active: z.boolean().default(true),
+});
 
 export const longStayDiscountSchema = z.object({
   minNights: z.number().int().min(2).max(365),
@@ -86,9 +142,11 @@ export const extraSchema = z.object({
     .regex(/^[a-z0-9-]+$/),
   label: z.string().min(1).max(100),
   priceNgn: ngn,
-  pricing: z.enum(["per_stay", "per_night", "per_guest_night"]),
+  pricing: z.enum(["per_stay", "per_night", "per_guest_night", "per_room", "per_room_night"]),
   roomIds: z.array(z.string()).optional(),
   active: z.boolean().default(true),
+  /** Always part of the booking and its price (e.g. a mandatory city levy). */
+  included: z.boolean().optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -106,6 +164,9 @@ export const rateConfigSchema = z.object({
   longStay: z.array(longStayDiscountSchema).max(20),
   coupons: z.array(couponSchema).max(200),
   extras: z.array(extraSchema).max(50),
+  restrictions: z.array(availabilityRestrictionSchema).max(200),
+  stayRules: z.array(stayRuleSchema).max(100),
+  ratePlans: z.array(ratePlanSchema).max(10),
   depositPct: z.number().min(0).max(100),
   /** Minutes an unpaid online booking holds its room before it is released. */
   holdMinutes: z.number().int().min(5).max(24 * 60),
@@ -119,12 +180,18 @@ export type Coupon = z.input<typeof couponSchema>;
 export type Extra = z.input<typeof extraSchema>;
 export type ExtraPricing = Extra["pricing"];
 export type CancellationPolicy = z.infer<typeof cancellationPolicySchema>;
+export type AvailabilityRestriction = z.infer<typeof availabilityRestrictionSchema>;
+export type StayRule = z.infer<typeof stayRuleSchema>;
+export type RatePlan = z.input<typeof ratePlanSchema>;
 export type RateConfig = {
   rooms: RoomRatePolicy[];
   seasons: SeasonalRate[];
   longStay: LongStayDiscount[];
   coupons: Coupon[];
   extras: Extra[];
+  restrictions: AvailabilityRestriction[];
+  stayRules: StayRule[];
+  ratePlans: RatePlan[];
   depositPct: number;
   holdMinutes: number;
   cancellation: CancellationPolicy;
@@ -154,6 +221,9 @@ export const DEFAULT_RATE_CONFIG: RateConfig = {
   longStay: [],
   coupons: [],
   extras: [],
+  restrictions: [],
+  stayRules: [],
+  ratePlans: [],
   depositPct: 20,
   holdMinutes: 60,
   cancellation: {

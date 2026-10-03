@@ -64,6 +64,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const [extraIds, setExtraIds] = useState<string[]>([]);
   const [couponInput, setCouponInput] = useState("");
   const [couponCode, setCouponCode] = useState<string | undefined>();
+  const [ratePlanId, setRatePlanId] = useState<string | undefined>();
   const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
   const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);
@@ -104,8 +105,9 @@ export function useReservationFlow(options: ReservationFlowProps) {
       couponCode,
       extraIds,
       additionalStays,
+      ratePlanId,
     }),
-    [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, units],
+    [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
   );
 
   // Live server quote — the same engine the reservation and payment routes
@@ -128,6 +130,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
             rooms: units,
             couponCode,
             extraIds,
+            ratePlanId,
             stays: additionalStays.length
               ? [{ roomId: itemId, rooms: units }, ...additionalStays]
               : undefined,
@@ -161,7 +164,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, units]);
+  }, [additionalStays, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
 
   const depositNgn = useMemo(
     () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
@@ -361,6 +364,8 @@ export function useReservationFlow(options: ReservationFlowProps) {
     removeCoupon,
     quote,
     groupQuote,
+    ratePlanId,
+    setRatePlanId,
     additional,
     setAdditionalRooms,
     quoteError,

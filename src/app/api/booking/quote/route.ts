@@ -14,6 +14,7 @@ const quoteRequestSchema = z.object({
   rooms: z.number().int().min(1).max(4).optional(),
   couponCode: z.string().trim().max(40).optional(),
   extraIds: z.array(z.string().max(60)).max(20).optional(),
+  ratePlanId: z.string().max(60).optional(),
   /** Group booking: several room types, same dates; first line is the lead. */
   stays: z
     .array(z.object({ roomId: z.string().min(1).max(100), rooms: z.number().int().min(1).max(4) }))

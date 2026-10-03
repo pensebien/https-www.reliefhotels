@@ -610,7 +610,9 @@
     "extraPricing": {
       "per_stay": "per stay",
       "per_night": "per night",
-      "per_guest_night": "per guest, per night"
+      "per_guest_night": "per guest, per night",
+      "per_room": "per room",
+      "per_room_night": "per room, per night"
     },
     "promoCode": "Promo code",
     "applyPromo": "Apply",
@@ -620,7 +622,14 @@
     "addRoomsFrom": "From {price} a night · {left} left",
     "addRoomsLess": "One fewer {room}",
     "addRoomsMore": "One more {room}",
-    "groupLine": "{rooms} × {room}, {nights, plural, one {# night} other {# nights}}"
+    "groupLine": "{rooms} × {room}, {nights, plural, one {# night} other {# nights}}",
+    "rateTitle": "Choose your rate",
+    "rateStandard": "Flexible rate",
+    "rateStandardHint": "Free cancellation within the hotel's cancellation window.",
+    "rateNonRefundable": "Non-refundable: cheaper, but payments aren't returned if you cancel.",
+    "rateOff": "{pct}% off",
+    "rateMore": "+{pct}%",
+    "extraIncluded": "Included"
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -1474,7 +1483,8 @@
       "error": "Check-in couldn't be saved. Please try again.",
       "doneTitle": "You're checked in",
       "rooms": "Your room: {rooms}"
-    }
+    },
+    "cancelNonRefundable": "You booked a non-refundable rate, so payments aren't returned if you cancel."
   },
   "staffRateSettings": {
     "metaTitle": "Rates & restrictions",
@@ -1536,7 +1546,42 @@
     "pricing": "Charged",
     "perStay": "Per stay",
     "perNight": "Per night",
-    "perGuestNight": "Per guest per night"
+    "perGuestNight": "Per guest per night",
+    "onWeekdays": "On",
+    "everyDay": "every day",
+    "perRoom": "Per room",
+    "perRoomNight": "Per room per night",
+    "includedExtra": "Always included",
+    "restrictionsTitle": "Restrictions",
+    "restrictionsHint": "Stop arrivals, departures, or all bookings on chosen dates and weekdays — for example no Sunday arrivals, or a stop-sell for a private event.",
+    "addRestriction": "Add restriction",
+    "restrictionMode": "What's blocked",
+    "modeNoArrival": "No arrivals",
+    "modeNoDeparture": "No departures",
+    "modeClosed": "Closed (no stays)",
+    "stayRulesTitle": "Stay length by arrival day",
+    "stayRulesHint": "Minimum or maximum nights for arrivals on certain weekdays or dates — for example Friday arrivals stay at least 2 nights. The strictest rule applies.",
+    "addStayRule": "Add stay rule",
+    "fromOptional": "Arrivals from (optional)",
+    "toOptional": "Arrivals before (optional)",
+    "wholeWeeks": "Whole weeks only",
+    "checkInOn": "Arrivals on",
+    "ratePlansTitle": "Rate plans",
+    "ratePlansHint": "Extra rates guests can choose at checkout next to the flexible rate — for example non-refundable at 10% off, paid in full.",
+    "addRatePlan": "Add rate plan",
+    "nonRefundableLabel": "Non-refundable",
+    "planDepositPct": "Deposit % (blank = default)",
+    "refundable": "Refundable",
+    "planDescription": "Description guests see",
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
   },
   "staffRoomSettings": {
     "metaTitle": "Room setup",
