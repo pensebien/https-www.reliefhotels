@@ -404,6 +404,24 @@ export async function dbListOverlappingRoomReservations(
   return (data as ReservationRow[]).map(mapReservation);
 }
 
+export async function dbFindPendingRefund(
+  transactionReference: string,
+  amountKobo: number,
+): Promise<PaymentRecord | undefined> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+  const { data, error } = await supabase
+    .from("payments")
+    .select()
+    .eq("external_reference", transactionReference)
+    .eq("amount_kobo", amountKobo)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapPayment(data as PaymentRow) : undefined;
+}
+
 export async function dbListPaymentsForReservation(
   reservationId: string,
 ): Promise<PaymentRecord[]> {

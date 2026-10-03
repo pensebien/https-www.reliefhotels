@@ -5,6 +5,7 @@ import {
   dbFindPaymentByReference,
   dbFindReservationById,
   dbGetBookingActivity,
+  dbFindPendingRefund,
   dbListOverlappingRoomReservations,
   dbListPaymentsForReservation,
   dbUpdatePaymentByReference,
@@ -258,6 +259,21 @@ export async function listOverlappingRoomReservations(
       );
   const now = Date.now();
   return all.filter((r) => holdsInventory(r, now));
+}
+
+/** A pending refund row (negative amount) for `transactionReference`. */
+export async function findPendingRefund(
+  transactionReference: string,
+  amountKobo: number,
+): Promise<PaymentRecord | undefined> {
+  if (isSupabaseEnabled()) return dbFindPendingRefund(transactionReference, amountKobo);
+  const { payments } = await getActivity();
+  return payments.find(
+    (p) =>
+      p.externalReference === transactionReference &&
+      p.amountKobo === amountKobo &&
+      p.status === "pending",
+  );
 }
 
 /** Successful payments recorded against a reservation (deposit + any balance). */

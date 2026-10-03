@@ -916,6 +916,27 @@
       "issue": "Issue invoice",
       "issuing": "Issuing…",
       "error": "Invoices could not be loaded."
+    },
+    "refunds": {
+      "title": "Refunds",
+      "payment": "Payment to refund",
+      "paidLeft": "paid {paid}, refundable {left}",
+      "viaPaystack": "Goes back to the guest's card or account through Paystack.",
+      "byHand": "Hand the money back (cash, card terminal or bank transfer); this records it.",
+      "amount": "Amount (₦)",
+      "reason": "Reason",
+      "refund": "Refund",
+      "working": "Refunding…",
+      "donePaystack": "Refunded through Paystack.",
+      "pendingPaystack": "Sent to Paystack — it shows as done when Paystack confirms.",
+      "doneManual": "Refund recorded.",
+      "error": "The refund didn't go through.",
+      "status": {
+        "success": "done",
+        "pending": "waiting for Paystack",
+        "failed": "failed",
+        "abandoned": "abandoned"
+      }
     }
   },
   "staffPortal": {
