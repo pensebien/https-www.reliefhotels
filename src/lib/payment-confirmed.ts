@@ -1,7 +1,7 @@
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
 import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { sendPaymentConfirmationEmail } from "@/lib/email";
-import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-sync";
 import { notifyManager } from "@/lib/notifications";
 
 /**

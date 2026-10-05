@@ -4,6 +4,7 @@ import { rooms } from "@/content/site";
 import { StaffCalendarKeyForm } from "@/features/staff-calendar/components/staff-calendar-key-form";
 import { Link } from "@/i18n/navigation";
 import type { ChannelFeed, FeedStatus } from "@/lib/channels/feeds";
+import { RayzaPanel } from "./rayza-panel";
 import { ArrowLeft, Copy, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
@@ -118,6 +119,8 @@ export function StaffChannelsClient() {
 
       {data ? (
         <div className="space-y-10">
+          <RayzaPanel q={q} roomName={roomName} />
+
           <section aria-labelledby="exports" className="space-y-3">
             <h2 id="exports" className="font-serif text-xl font-medium">{t("exportTitle")}</h2>
             <p className="text-sm text-muted">{t("exportHint")}</p>

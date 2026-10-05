@@ -2,6 +2,7 @@ import { rooms } from "@/content/site";
 import { quoteStay, type QuoteErrorCode } from "@/lib/booking-engine/quote";
 import { bookingWindowError } from "@/lib/booking-engine/booking-window";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
+import { rayzaAvailability } from "@/lib/integrations/rayza-sync";
 import { getRoomSetup } from "@/lib/room-setup";
 import {
   nightsBetween,
@@ -67,7 +68,12 @@ export async function getRoomAvailability(
     getRoomInventory(),
     countOccupiedUnitsByRoom(query.checkIn, query.checkOut),
   ]);
-  const [rateConfig, roomSetup] = await Promise.all([getRateConfig(), getRoomSetup()]);
+  const [rateConfig, roomSetup, rayza] = await Promise.all([
+    getRateConfig(),
+    getRoomSetup(),
+    // RAYZA HMS also sells these rooms (front desk, HMS blocks): both must have one free.
+    rayzaAvailability(query.checkIn, query.checkOut, nights),
+  ]);
   const inventoryByRoom =
     inventoryResult.status === "fulfilled" ? inventoryResult.value : {};
   const occupiedByRoom =
@@ -82,9 +88,22 @@ export async function getRoomAvailability(
     const occupied = occupiedByRoom
       ? (occupiedByRoom[room.id] ?? 0)
       : mockBookedUnits(room.id, checkInDate, checkOutDate);
-    const freeUnits = Math.max(0, inventory - occupied);
+    const rayzaCheck = rayza?.[room.id];
+    const freeUnits = Math.min(Math.max(0, inventory - occupied), rayzaCheck ? rayzaCheck.free : Infinity);
 
+    if (rayzaCheck?.reason) {
+      restricted.push({ id: room.id, code: "closed", message: rayzaCheck.reason });
+      continue;
+    }
     if (freeUnits < query.rooms) continue;
+    if (rayzaCheck && Math.ceil(query.guests / query.rooms) > rayzaCheck.maxOccupancy) {
+      restricted.push({
+        id: room.id,
+        code: "over_capacity",
+        message: `This room sleeps up to ${rayzaCheck.maxOccupancy} guests per room`,
+      });
+      continue;
+    }
 
     if (windowError) {
       restricted.push({ id: room.id, code: "booking_window", message: windowError });

@@ -1923,7 +1923,40 @@
     "syncing": "Syncing…",
     "synced": "Synced.",
     "lastSync": "Last sync {when}: {n, plural, one {# booking} other {# bookings}} blocked",
-    "lastError": "Last sync {when} failed: {error}"
+    "lastError": "Last sync {when} failed: {error}",
+    "rayza": {
+      "title": "RAYZA HMS",
+      "off": "RAYZA Connect is off. Set RAYZA_CONNECT_ENABLED=true and RAYZA_API_KEY on the server to sync bookings with RAYZA HMS.",
+      "hint": "Link each room type to its RAYZA room type. A room then sells online only when RAYZA also has it free (front-desk bookings and HMS blocks count), confirmed bookings are sent to RAYZA, and cancellations release the room there. Anything that fails is retried every 15 minutes. Bookings made before a room type was linked aren't sent automatically; add those in RAYZA.",
+      "unreachable": "Couldn't reach RAYZA: {error}",
+      "rayzaType": "RAYZA room type",
+      "notLinked": "— Not linked —",
+      "reliefSide": "Here: {n, plural, one {# room} other {# rooms}} · sleeps {guests} · {price}",
+      "rayzaSide": "RAYZA: {n, plural, one {# room} other {# rooms}} ({numbers}) · sleeps {guests} · {price}",
+      "missingType": "RAYZA no longer has this room type. Choose another.",
+      "capacityWarning": "Guests can book up to {relief} per room here, but RAYZA allows {rayza}. Bigger parties are turned away until the two match.",
+      "numbersDiffer": "Room numbers differ from RAYZA.",
+      "import": "Use RAYZA's room numbers",
+      "importing": "Copying…",
+      "imported": "Room numbers copied from RAYZA.",
+      "saveFirst": "Save the links first",
+      "save": "Save links",
+      "saving": "Saving…",
+      "saved": "Saved.",
+      "syncNow": "Sync now",
+      "syncing": "Syncing…",
+      "synced": "Sent {pushed}, released {cancelled}, failed {failed}, left for next run {pending}.",
+      "error": "That didn't work. Please try again.",
+      "recentTitle": "Recent sync",
+      "failedCount": "{n} failed",
+      "noneYet": "Nothing sent to RAYZA yet.",
+      "attempts": "{n} tries",
+      "state": {
+        "pushed": "In RAYZA",
+        "cancelled": "Released in RAYZA",
+        "failed": "Failed ({wanted, select, booked {booking} other {cancellation}})"
+      }
+    }
   },
   "staffGuests": {
     "metaTitle": "Guests",

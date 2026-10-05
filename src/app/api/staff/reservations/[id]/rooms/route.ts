@@ -1,4 +1,5 @@
 import { findReservationById } from "@/lib/demo-store";
+import { updateRoomsOnRayza } from "@/lib/integrations/rayza-sync";
 import { assignRooms, autoAssignRooms, getAssignmentOptions } from "@/lib/room-assignment";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";
 import { NextResponse } from "next/server";
@@ -45,12 +46,14 @@ export async function PUT(request: Request, context: RouteContext) {
       if (!updated.assignedUnits?.length) {
         return NextResponse.json({ error: "No free rooms of this type on these nights" }, { status: 409 });
       }
-      return NextResponse.json({ ok: true, reservation: updated });
+      const rayza = await updateRoomsOnRayza(updated);
+      return NextResponse.json({ ok: true, reservation: updated, rayza: "skipped" in rayza && rayza.skipped ? null : rayza });
     }
 
     const result = await assignRooms(id, parsed.data.unitIds);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status });
-    return NextResponse.json({ ok: true, reservation: result.reservation });
+    const rayza = await updateRoomsOnRayza(result.reservation);
+    return NextResponse.json({ ok: true, reservation: result.reservation, rayza: "skipped" in rayza && rayza.skipped ? null : rayza });
   } catch (error) {
     console.error("[staff/reservations/rooms PUT]", error);
     return NextResponse.json({ error: "Unable to assign rooms" }, { status: 500 });

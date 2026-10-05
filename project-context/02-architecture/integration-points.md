@@ -12,7 +12,7 @@
 | ngrok | Inbound tunnel | HTTPS | N/A | Demo only |
 | Supabase Postgres | Outbound | HTTPS/SQL | `DATABASE_URL` | Production |
 | WhatsApp (Termii or Meta) | Outbound | HTTPS REST | Provider keys | **Launch** |
-| RAYZA Connect (channel relay) | Outbound (best-effort) | HTTPS REST | Bearer API key | Pilot |
+| RAYZA Connect (RAYZA HMS relay) | Two-way: availability in, bookings out | HTTPS REST | Bearer API key | Pilot |
 
 ## 2. Paystack (payments)
 
@@ -65,20 +65,23 @@
 | Env | `NOTIFY_CHANNEL=both`; `WHATSAPP_*` provider keys TBD in POC |
 | KPI | ≥95% delivery on at least one channel; log both attempts |
 
-## 5a. RAYZA Connect (third-party channel relay)
+## 5a. RAYZA Connect (RAYZA HMS relay, API v4.2)
 
-**Purpose:** Keep a partner channel-manager SaaS (RAYZA Connect, at `cloud-relay-nu.vercel.app`) aware of Relief's own bookings, so other channels it powers don't double-sell a room Relief already confirmed. See `ADR-006-rayza-connect-channel.md`.
+**Purpose:** Two-way inventory with the hotel's RAYZA HMS via its Cloud Relay (`cloud-relay-nu.vercel.app`). RAYZA holds the whole house (front-desk bookings, HMS blocks); Relief stays the guest-facing booking engine. See `ADR-006-rayza-connect-channel.md`. Code: `src/lib/integrations/rayza-connect.ts` (HTTP + payloads), `rayza-sync.ts` (orchestration).
 
 | Item | Detail |
 |------|--------|
-| Contract reference | Live `/openapi.json` on the relay — this is a third-party API we don't own; the local stub must track it, not the other way round |
-| Trigger | Staff confirms a reservation → `POST /v1/bookings`; staff cancels → `POST /v1/bookings/{ref}/cancel` |
-| Auth | `Authorization: Bearer {RAYZA_API_KEY}` |
-| Room identifier | Relief's own room `id` (e.g. `signature-suite`), sent as-is — RAYZA has no separate catalog to map against |
-| Amount | Naira amount from the matched successful `PaymentRecord`, omitted if unpaid |
-| Idempotency | Same `booking_reference` re-POSTed → `already_received` (not an error); cancelling an already-gone reference → 404, treated as success |
-| Feature flag | `RAYZA_CONNECT_ENABLED=true` + `RAYZA_API_KEY` (unset → sync silently skipped) |
-| Direction | **Outbound only.** Relief does not currently pull bookings created on other RAYZA-connected channels back into its own store — Relief's in-house HMS (separate `agent-*` workstream) is the intended system of record longer-term. |
+| Contract reference | Live `/openapi.json` + docs page on the relay (v4.2.0, checked 2026-10-05) |
+| Room types | Staff link each Relief room type to a RAYZA `room_type_identifier` (Staff → Channels → RAYZA HMS). Unlinked types aren't synced. "Use RAYZA's room numbers" copies RAYZA's numbers and count into room setup |
+| Availability | `GET /v1/rooms?check_in&check_out`: a room sells only when Relief **and** RAYZA have one free, RAYZA's min stay / closed-to-arrival / departure and max occupancy apply. Search uses a 30 s cache; the booking write path re-checks live. RAYZA unreachable → Relief inventory alone (fail-open, logged) |
+| Booking | On confirmation (payment, staff confirm, walk-in, cashier) → `POST /v1/bookings`, one per room, every line of a group. Sends amount (required), deposit, payment status, adults, assigned room number when RAYZA knows it. `409` with a room number → retried without it |
+| References | `BK-RH-<12 hex of reservation id>[-n]`. RAYZA rewrites references not starting with `BK-` (e.g. `RH-AB12` → `BK-AB12`), which made pre-v4.2 cancels 404 silently. The reference RAYZA returns is stored |
+| Cancel | Staff cancel and guest self-cancel → `POST /v1/bookings/{ref}/cancel` for each stored ref. `200` (cancelled / already_cancelled) = done; `404` = RAYZA never had it |
+| Room move | Staff assign/move → `PATCH /v1/bookings/{ref}` `{room_number}` |
+| Sync status | `rayza_sync` table (migration 022; JSON file in file mode): pushed / cancelled / failed per reservation. A refusal (e.g. `ROOM_UNAVAILABLE`, `OCCUPANCY_LIMIT_EXCEEDED`) is noted once on the booking's staff notes |
+| Retry | Netlify `rayza-sync` every 15 min → `/api/cron/rayza` (`CRON_SECRET`); "Sync now" on the Channels page retries everything. Only bookings made after a room type was linked are backfilled |
+| Feature flag | `RAYZA_CONNECT_ENABLED=true` + `RAYZA_API_KEY` |
+| Known relay quirk | `GET /v1/rooms` without dates lists only rooms free **today** (docs say all rooms); the client fills the rest from nights far ahead |
 
 ## 6. Hosting & DNS
 

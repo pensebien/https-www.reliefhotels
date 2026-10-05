@@ -29,6 +29,7 @@ import {
   type NewReservation,
   type ReservationRecord,
 } from "@/lib/demo-store";
+import { rayzaRejection } from "@/lib/integrations/rayza-sync";
 import { getRoomAvailability } from "@/lib/room-availability";
 import { autoAssignRooms } from "@/lib/room-assignment";
 import { roomDisplayName } from "@/lib/room-names";
@@ -181,6 +182,13 @@ export async function reserveRoom(
   if (!quote.ok) {
     return { ok: false, status: 422, code: quote.code, message: quote.message };
   }
+  const rayzaNo = await rayzaRejection(
+    [{ roomId: quote.roomId, rooms: quote.rooms, guests: quote.guests }],
+    quote.checkIn,
+    quote.checkOut,
+    quote.nights,
+  );
+  if (rayzaNo) return { ok: false, status: 409, code: "sold_out", message: rayzaNo };
 
   const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold, undefined, channel));
   return record ? { ok: true, record, quote } : SOLD_OUT;
@@ -210,6 +218,13 @@ export async function reserveGroup(
   const couponRedemptions = input.couponCode ? await countCouponRedemptions(input.couponCode) : 0;
   const quote = quoteGroup({ ...input, couponRedemptions }, config);
   if (!quote.ok) return { ok: false, status: 422, code: quote.code, message: quote.message };
+  const rayzaNo = await rayzaRejection(
+    quote.lines.map((l) => ({ roomId: l.roomId, rooms: l.rooms, guests: l.guests })),
+    input.checkIn,
+    input.checkOut,
+    quote.lines[0].nights,
+  );
+  if (rayzaNo) return { ok: false, status: 409, code: "sold_out", message: rayzaNo };
 
   const records: ReservationRecord[] = [];
   let groupId: string | undefined;

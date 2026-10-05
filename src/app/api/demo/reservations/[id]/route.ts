@@ -11,7 +11,7 @@ import {
 import {
   cancelReservationOnRayza,
   pushReservationToRayza,
-} from "@/lib/integrations/rayza-connect";
+} from "@/lib/integrations/rayza-sync";
 import { addDays, formatYmd } from "@/lib/reservation-dates";
 import { staffReservationPatchSchema } from "@/lib/schemas/staff-reservation-patch";
 import { requireStaffAccess } from "@/lib/staff-auth-guard";

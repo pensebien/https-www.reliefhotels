@@ -9,7 +9,7 @@ import {
 } from "@/lib/demo-store";
 import { nightsBetween } from "@/lib/booking-search";
 import { sendReservationEmail } from "@/lib/email";
-import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-connect";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-sync";
 import { pushTerminalPayment, pushTransferPayment } from "@/lib/moniepoint";
 import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { paymentChannelForMethod } from "@/lib/payment-methods";

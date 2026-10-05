@@ -47,6 +47,9 @@ const child = spawn(
       MONIEPOINT_CLIENT_ID: "",
       MONIEPOINT_CLIENT_SECRET: "",
       MONIEPOINT_TERMINAL_SERIAL: "",
+      // Tests that need RAYZA turn it on against a fake; never the real relay.
+      RAYZA_CONNECT_ENABLED: "",
+      RAYZA_API_KEY: "",
     },
   },
 );
