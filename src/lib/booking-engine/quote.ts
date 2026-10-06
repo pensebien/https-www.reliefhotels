@@ -148,6 +148,35 @@ function nightlyRate(
   return Math.round(rate);
 }
 
+/** One night of one room type as the engine sees it: price and the rules on that date. */
+export type DayRate = {
+  nightlyNgn: number;
+  seasonLabel?: string;
+  closed: boolean;
+  noArrival: boolean;
+  noDeparture: boolean;
+  /** Strictest minimum stay for arrivals that day (stay rules and season). */
+  minNights?: number;
+};
+
+export function dayRate(config: RateConfig, roomId: string, date: string): DayRate | null {
+  const policy = config.rooms.find((r) => r.roomId === roomId);
+  if (!policy) return null;
+  const season = seasonFor(config, roomId, date);
+  const hits = config.restrictions.filter((r) => restrictionHits(r, roomId, date));
+  const mins = [policy.minNights, season?.minNights, ...stayRulesFor(config, roomId, date).map((r) => r.minNights)].filter(
+    (n): n is number => typeof n === "number",
+  );
+  return {
+    nightlyNgn: nightlyRate(policy, season, date),
+    seasonLabel: season?.label,
+    closed: hits.some((r) => r.mode === "closed"),
+    noArrival: Boolean(season?.closedToArrival) || hits.some((r) => r.mode === "no_arrival"),
+    noDeparture: hits.some((r) => r.mode === "no_departure"),
+    minNights: mins.length ? Math.max(...mins) : undefined,
+  };
+}
+
 function findCoupon(config: RateConfig, code: string | undefined) {
   if (!code) return undefined;
   const wanted = code.trim().toUpperCase();
@@ -291,14 +320,6 @@ export function quoteStay(
   const longStayDiscountNgn = Math.round((roomSubtotalNgn * longStayPct) / 100);
 
   const afterLongStay = roomSubtotalNgn - longStayDiscountNgn;
-  const couponDiscountNgn = coupon
-    ? Math.min(
-        afterLongStay,
-        Math.round(
-          coupon.amountNgn ?? (afterLongStay * (coupon.pct ?? 0)) / 100,
-        ),
-      )
-    : 0;
 
   const extras: ExtraLine[] = [];
   const included = config.extras
@@ -321,7 +342,16 @@ export function quoteStay(
   }
   const extrasTotalNgn = extras.reduce((sum, e) => sum + e.totalNgn, 0);
 
+  // The coupon comes off rooms (default), extras, or both; never below zero.
+  const appliesTo = coupon?.appliesTo ?? "rooms";
+  const discountBase =
+    (appliesTo === "extras" ? 0 : afterLongStay) + (appliesTo === "rooms" ? 0 : extrasTotalNgn);
+  const couponDiscountNgn = coupon
+    ? Math.min(discountBase, Math.round(coupon.amountNgn ?? (discountBase * (coupon.pct ?? 0)) / 100))
+    : 0;
+
   const totalNgn = afterLongStay - couponDiscountNgn + extrasTotalNgn;
+  const depositPct = coupon?.skipDeposit ? 0 : (plan?.depositPct ?? config.depositPct);
 
   return {
     ok: true,
@@ -339,8 +369,8 @@ export function quoteStay(
     extras,
     extrasTotalNgn,
     totalNgn,
-    depositNgn: Math.round((totalNgn * (plan?.depositPct ?? config.depositPct)) / 100),
-    depositPct: plan?.depositPct ?? config.depositPct,
+    depositNgn: Math.round((totalNgn * depositPct) / 100),
+    depositPct,
     ratePlan: plan ? { id: plan.id, label: plan.label, refundable: plan.refundable } : undefined,
   };
 }

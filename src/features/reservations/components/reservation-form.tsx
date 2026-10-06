@@ -67,6 +67,7 @@ export function ReservationForm(props: ReservationFlowProps) {
     setAdditionalRooms,
     quoteError,
     quoteLoading,
+    confirmedWithoutPayment,
   } = useReservationFlow(props);
   const roomLabels = Object.fromEntries([
     [props.itemId, itemLabel],
@@ -99,6 +100,15 @@ export function ReservationForm(props: ReservationFlowProps) {
     if (validateStep1()) {
       setStep(2);
     }
+  }
+
+  if (status === "success" && confirmedWithoutPayment) {
+    return (
+      <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6 sm:p-8" role="status">
+        <h3 className="font-serif text-2xl font-semibold">{t("confirmedNoPaymentTitle")}</h3>
+        <p className="mt-2 text-muted">{t("confirmedNoPaymentBody", { email: formData.email })}</p>
+      </div>
+    );
   }
 
   if (status === "success" && bookingMode === "request") {

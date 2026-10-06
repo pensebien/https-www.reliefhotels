@@ -35,8 +35,15 @@ import {
   resolveDateRange,
   type DateRangePreset,
 } from "@/lib/reservation-dates";
+import { bookingsCsv } from "@/lib/booking-export";
+import {
+  BOOKING_PAYMENT_STATUSES,
+  bookingPaymentStatus,
+  collectedNgn,
+  type BookingPaymentStatus,
+} from "@/lib/booking-payment-status";
 import { cn } from "@/lib/utils";
-import { CalendarDays, LayoutList, Plus, RefreshCw } from "lucide-react";
+import { CalendarDays, Download, LayoutList, Plus, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -145,6 +152,9 @@ export function DemoDashboard({
   const [pageSize, setPageSize] = useState<PageSizeOption>(DEFAULT_PAGE_SIZE);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState<SearchScope>("both");
+  const [paymentFilter, setPaymentFilter] = useState<BookingPaymentStatus | "">("");
+  const [channelFilter, setChannelFilter] = useState<"online" | "desk" | "">("");
+  const [tagFilter, setTagFilter] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<DashboardView>(
     variant === "portal" ? "calendar" : "lists",
@@ -304,21 +314,48 @@ export function DemoDashboard({
     });
   }, [activeDateRange, data]);
 
+  const allTags = useMemo(
+    () => [...new Set((data?.reservations ?? []).flatMap((r) => r.tags ?? []))].sort(),
+    [data],
+  );
+
   const filteredReservations = useMemo(() => {
-    if (!normalizedSearch) return baseReservations;
-    return filterReservationsBySearch(
-      baseReservations,
-      paymentsByReservation,
-      searchQuery,
-      searchScope,
+    const searched = normalizedSearch
+      ? filterReservationsBySearch(baseReservations, paymentsByReservation, searchQuery, searchScope)
+      : baseReservations;
+    return searched.filter(
+      (r) =>
+        (!paymentFilter || bookingPaymentStatus(r, paymentsByReservation.get(r.id) ?? []) === paymentFilter) &&
+        (!channelFilter || (r.bookingChannel ?? "online") === channelFilter) &&
+        (!tagFilter || r.tags?.includes(tagFilter)),
     );
   }, [
     baseReservations,
+    channelFilter,
     normalizedSearch,
+    paymentFilter,
     paymentsByReservation,
     searchQuery,
     searchScope,
+    tagFilter,
   ]);
+
+  function exportCsv() {
+    const rows = filteredReservations.map((r) => {
+      const payments = paymentsByReservation.get(r.id) ?? [];
+      return {
+        ...(r as unknown as Parameters<typeof bookingsCsv>[0][number]),
+        paidNgn: collectedNgn(payments),
+        paymentStatus: bookingPaymentStatus(r, payments),
+      };
+    });
+    const url = URL.createObjectURL(new Blob([bookingsCsv(rows)], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `bookings-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   const basePayments = useMemo(() => {
     if (!data) return [];
@@ -389,8 +426,11 @@ export function DemoDashboard({
     let count = 0;
     if (normalizedSearch) count += 1;
     if (datePreset !== defaultDatePreset) count += 1;
+    if (paymentFilter) count += 1;
+    if (channelFilter) count += 1;
+    if (tagFilter) count += 1;
     return count;
-  }, [datePreset, defaultDatePreset, normalizedSearch]);
+  }, [channelFilter, datePreset, defaultDatePreset, normalizedSearch, paymentFilter, tagFilter]);
 
   const filterSummary = useMemo(() => {
     const parts: string[] = [];
@@ -411,9 +451,15 @@ export function DemoDashboard({
         parts.push(t(`dateFilters.${datePreset}`));
       }
     }
+    if (paymentFilter) parts.push(t(`bookingPayment.${paymentFilter}`));
+    if (channelFilter) parts.push(t(`bookingFilters.${channelFilter}`));
+    if (tagFilter) parts.push(`#${tagFilter}`);
     return parts.length > 0 ? parts.join(" · ") : null;
   }, [
     activeDateRange,
+    channelFilter,
+    paymentFilter,
+    tagFilter,
     datePreset,
     defaultDatePreset,
     normalizedSearch,
@@ -553,6 +599,54 @@ export function DemoDashboard({
               dateError={dateError}
             />
 
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="block text-xs">
+                <span className="mb-1 block font-medium text-muted">{t("bookingFilters.payment")}</span>
+                <select
+                  id="filter-payment"
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value as BookingPaymentStatus | "")}
+                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+                >
+                  <option value="">{t("bookingFilters.any")}</option>
+                  {BOOKING_PAYMENT_STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {t(`bookingPayment.${s}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-xs">
+                <span className="mb-1 block font-medium text-muted">{t("bookingFilters.channel")}</span>
+                <select
+                  id="filter-channel"
+                  value={channelFilter}
+                  onChange={(e) => setChannelFilter(e.target.value as "online" | "desk" | "")}
+                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+                >
+                  <option value="">{t("bookingFilters.any")}</option>
+                  <option value="online">{t("bookingFilters.online")}</option>
+                  <option value="desk">{t("bookingFilters.desk")}</option>
+                </select>
+              </label>
+              <label className="block text-xs">
+                <span className="mb-1 block font-medium text-muted">{t("bookingFilters.tag")}</span>
+                <select
+                  id="filter-tag"
+                  value={tagFilter}
+                  onChange={(e) => setTagFilter(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm"
+                >
+                  <option value="">{t("bookingFilters.any")}</option>
+                  {allTags.map((tag) => (
+                    <option key={tag} value={tag}>
+                      #{tag}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             {variant === "demo" ? (
               <div>
                 <p className="mb-2 text-xs font-medium text-muted">
@@ -629,12 +723,23 @@ export function DemoDashboard({
                 {t("viewLists")}
               </button>
             </div>
-            {viewMode === "lists" ? (
-              <DashboardPageSizeSelect
-                value={pageSize}
-                onChange={handlePageSizeChange}
-              />
-            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={exportCsv}
+                disabled={filteredReservations.length === 0}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm hover:border-teal disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" aria-hidden />
+                {t("bookingFilters.export", { n: filteredReservations.length })}
+              </button>
+              {viewMode === "lists" ? (
+                <DashboardPageSizeSelect
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                />
+              ) : null}
+            </div>
           </div>
 
           {viewMode === "calendar" ? (

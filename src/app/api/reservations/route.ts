@@ -1,5 +1,6 @@
 import { rooms } from "@/content/site";
 import { linkRatePlanId as getLinkRatePlanId } from "@/lib/booking-engine/booking-links";
+import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-sync";
 import { emitBookingEvent } from "@/lib/integrations/webhooks";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
 import { reserveGroup, reserveRoom } from "@/lib/booking-engine/reserve";
@@ -60,6 +61,8 @@ export async function POST(request: Request) {
     };
 
     let record: ReservationRecord;
+    /** Every room-type line of this booking (one unless it's a group). */
+    let lineIds: string[] = [];
     let quote: { totalNgn: number; depositNgn: number } | undefined;
     /** What the emails describe — for a group, the whole group. */
     let emailRecord: ReservationRecord | undefined;
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
           );
         }
         record = group.lead;
+        lineIds = group.records.map((r) => r.id);
         quote = group.quote;
         emailRecord = {
           ...group.lead,
@@ -148,6 +152,7 @@ export async function POST(request: Request) {
           );
         }
         record = result.record;
+        lineIds = [record.id];
         quote = result.quote;
       }
     } else {
@@ -168,7 +173,20 @@ export async function POST(request: Request) {
       record = (await updateReservationById(record.id, { customFields: answers })) ?? record;
     }
 
+    // Nothing to pay up front (a pay-at-hotel coupon or a 0% deposit): confirm now
+    // instead of holding the room for a payment that will never come.
+    const noPaymentNeeded = !requestMode && quote !== undefined && quote.depositNgn <= 0 && lineIds.length > 0;
+    if (noPaymentNeeded) {
+      const confirmed = await Promise.all(lineIds.map((id) => updateReservationById(id, { status: "confirmed" })));
+      record = confirmed.find((r) => r?.id === record.id) ?? { ...record, status: "confirmed" };
+      if (emailRecord) emailRecord = { ...emailRecord, status: "confirmed" };
+    }
+
     if (data.itemType === "room") await emitBookingEvent("booking.created", record);
+    if (noPaymentNeeded) {
+      await syncConfirmedReservationToRayza(record);
+      await emitBookingEvent("booking.confirmed", record);
+    }
 
     const [sent] = await Promise.all([
       sendReservationEmail(emailRecord ?? record),
@@ -185,6 +203,7 @@ export async function POST(request: Request) {
       notified: false,
       demo: !process.env.RESEND_API_KEY,
       requiresApproval: requestMode,
+      noPaymentNeeded,
       ...(quote
         ? {
             totalNgn: quote.totalNgn,

@@ -636,7 +636,9 @@
     "sendRequest": "Send booking request",
     "requestSentTitle": "Booking request sent",
     "requestSentBody": "We'll check availability and email {email} within 24 hours. Once confirmed, you'll get a link to pay your deposit.",
-    "optionalField": "{label} (optional)"
+    "optionalField": "{label} (optional)",
+    "confirmedNoPaymentTitle": "Your booking is confirmed",
+    "confirmedNoPaymentBody": "Nothing to pay now — you'll settle at the hotel. We've sent the details to {email}."
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -851,10 +853,12 @@
       "checkoutConfirm": "Check out this guest? The room will be blocked for housekeeping until it's marked clean.",
       "notesLabel": "Staff notes",
       "notesPlaceholder": "VIP arrival, late check-in, etc.",
-      "saveNotes": "Save notes",
+      "saveNotes": "Save notes and tags",
       "working": "Saving…",
       "error": "Could not update booking",
-      "demoReadOnly": "Demo seed bookings are read-only"
+      "demoReadOnly": "Demo seed bookings are read-only",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "VIP, late arrival"
     },
     "storageWarningTitle": "Bookings may not persist on this host",
     "filters": {
@@ -978,6 +982,21 @@
       },
       "viewPhoto": "Open ID photo",
       "purged": "ID details deleted after the retention period."
+    },
+    "bookingPayment": {
+      "unpaid": "Unpaid",
+      "partial": "Part paid",
+      "paid": "Paid",
+      "overpaid": "Overpaid"
+    },
+    "bookingFilters": {
+      "payment": "Payment",
+      "channel": "Made by",
+      "tag": "Tag",
+      "any": "Any",
+      "online": "Guest online",
+      "desk": "Front desk",
+      "export": "Export CSV ({n})"
     }
   },
   "staffPortal": {
@@ -1280,7 +1299,8 @@
       "messageSettings": "Guest messages",
       "channelSettings": "Channels",
       "guests": "Guests",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "rateCalendar": "Rate calendar"
     },
     "roles": {
       "cashier": "Cashier",
@@ -1643,7 +1663,16 @@
     "fieldType": "Answer type",
     "fieldText": "Text",
     "fieldCheckbox": "Tick box",
-    "planLinkOnly": "Booking link only"
+    "planLinkOnly": "Booking link only",
+    "couponAppliesTo": "Discount on",
+    "couponRooms": "Rooms",
+    "couponExtras": "Extras",
+    "couponBoth": "Rooms and extras",
+    "skipDeposit": "No deposit (pay at hotel)",
+    "stockPerDay": "Daily stock",
+    "gaMeasurementId": "Google Analytics ID",
+    "metaPixelId": "Meta Pixel ID",
+    "analyticsHint": "Tracking runs on the public site only after a guest accepts cookies in the banner. Leave blank for no tracking."
   },
   "staffRoomSettings": {
     "metaTitle": "Room setup",
@@ -2051,5 +2080,45 @@
     "copyLink": "Copy link",
     "addLink": "Add booking link",
     "saveLinks": "Save booking links"
+  },
+  "staffRateCalendar": {
+    "metaTitle": "Rate calendar",
+    "eyebrow": "Revenue",
+    "title": "Rate calendar",
+    "subtitle": "Nightly prices, rooms left and booking rules for each room type, day by day. Pick a day to change its price or stop selling it.",
+    "backToPortal": "Back to staff portal",
+    "keyPlaceholder": "Dashboard key",
+    "unlock": "Unlock",
+    "badKey": "Invalid dashboard key.",
+    "noAccess": "Your role cannot do this.",
+    "error": "That didn't work. Please try again.",
+    "earlier": "Earlier dates",
+    "later": "Later dates",
+    "startDate": "First date",
+    "legend": "Amber = seasonal price · red = stop sale · NA/ND = no arrival/departure · min = minimum stay",
+    "roomType": "Room type",
+    "rooms": "{n, plural, one {# room} other {# rooms}}",
+    "cellLabel": "{room} on {date}: ₦{price}, {free} free",
+    "closed": "Stop sale",
+    "free": "{n} free",
+    "noArrivalShort": "NA",
+    "noDepartureShort": "ND",
+    "minShort": "min {n}",
+    "editTitle": "{room} from {date}",
+    "nights": "Nights",
+    "price": "Nightly price (₦)",
+    "setPrice": "Set price",
+    "stopSale": "Stop sale",
+    "reopen": "Reopen",
+    "editHint": "Changes are saved as a season or restriction under Rates & restrictions, where you can edit or remove them later.",
+    "saved": "Saved.",
+    "viewOnly": "Your role can view rates. A manager can change prices and stop sales."
+  },
+  "consent": {
+    "message": "We use cookies to understand how guests use our site and to improve our offers.",
+    "accept": "Accept",
+    "decline": "Decline",
+    "privacy": "Privacy policy",
+    "label": "Cookie consent"
   }
 }

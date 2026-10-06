@@ -133,6 +133,7 @@ function InboxCaseCard({
                 dashboardKey={dashboardKey}
                 source={reservation.source}
                 staffNotes={reservation.staffNotes}
+                tags={reservation.tags}
                 onUpdated={onUpdated}
               />
             </>

@@ -186,6 +186,7 @@ export function BookingDetailSheet({
                     ? booking.raw.staffNotes
                     : undefined
                 }
+                tags={"tags" in booking.raw ? (booking.raw.tags as string[] | undefined) : undefined}
                 onUpdated={() => {
                   onUpdated?.();
                   onClose();

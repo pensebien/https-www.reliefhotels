@@ -1,5 +1,6 @@
 "use client";
 
+import type { BookingPaymentStatus } from "@/lib/booking-payment-status";
 import {
   BookingCategoryIcon,
   PaymentRowTypeIcon,
@@ -35,6 +36,12 @@ export type DashboardReservationRow = {
   source: string;
   createdAt: string;
   emailSent: boolean;
+  quotedTotalNgn?: number;
+  units?: number;
+  assignedUnits?: string[];
+  couponCode?: string;
+  bookingChannel?: "online" | "desk";
+  tags?: string[];
 };
 
 export type DashboardPaymentRow = {
@@ -141,10 +148,12 @@ export function DepositChip({
 export function BookingListCard({
   reservation,
   successPayment,
+  paymentStatus,
   compactMeta = false,
 }: {
   reservation: DashboardReservationRow;
   successPayment?: DashboardPaymentRow;
+  paymentStatus?: BookingPaymentStatus;
   compactMeta?: boolean;
 }) {
   const t = useTranslations("demo");
@@ -203,6 +212,28 @@ export function BookingListCard({
               reference={successPayment?.reference}
             />
           </div>
+          {paymentStatus || reservation.tags?.length ? (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {paymentStatus ? (
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    paymentStatus === "paid" && "bg-teal/15 text-teal-dark",
+                    paymentStatus === "partial" && "bg-amber-500/15 text-amber-800 dark:text-amber-200",
+                    paymentStatus === "unpaid" && "bg-muted/15 text-muted",
+                    paymentStatus === "overpaid" && "bg-red-500/10 text-red-700 dark:text-red-300",
+                  )}
+                >
+                  {t(`bookingPayment.${paymentStatus}`)}
+                </span>
+              ) : null}
+              {reservation.tags?.map((tag) => (
+                <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {!compactMeta ? (
             <>
               {!reservation.checkIn &&

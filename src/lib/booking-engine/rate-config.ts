@@ -130,10 +130,14 @@ export const couponSchema = z
     bypassMinStay: z.boolean().optional(),
     /** Counted from non-cancelled reservations carrying the code. */
     maxRedemptions: z.number().int().min(1).optional(),
+    /** What the discount comes off (Sirvoy: separate rooms vs extras discount). Default rooms. */
+    appliesTo: z.enum(["rooms", "extras", "both"]).optional(),
+    /** Sirvoy "bypass payment requirement": no deposit online, the guest pays at the hotel. */
+    skipDeposit: z.boolean().optional(),
     active: z.boolean().default(true),
   })
-  .refine((c) => c.pct !== undefined || c.amountNgn !== undefined || c.bypassMinStay, {
-    message: "A coupon needs a % off, an amount off, or to skip min stay",
+  .refine((c) => c.pct !== undefined || c.amountNgn !== undefined || c.bypassMinStay || c.skipDeposit, {
+    message: "A coupon needs a % off, an amount off, to skip min stay, or to skip the deposit",
   });
 
 export const extraSchema = z.object({
@@ -149,6 +153,8 @@ export const extraSchema = z.object({
   active: z.boolean().default(true),
   /** Always part of the booking and its price (e.g. a mandatory city levy). */
   included: z.boolean().optional(),
+  /** Sirvoy "limited stock per day": at most this many bookings may have it on any night. */
+  stockPerDay: z.number().int().min(1).max(1000).optional(),
 });
 
 export const cancellationPolicySchema = z.object({
@@ -180,6 +186,13 @@ export const engineOptionsSchema = z
     sameDayCutoff: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable(),
     arrivalTimeField: z.enum(["hidden", "optional", "required"]),
     customFields: z.array(customFieldSchema).max(10).default([]),
+    /** Tracking IDs for the public site; loaded only after a guest accepts cookies. */
+    analytics: z
+      .object({
+        gaMeasurementId: z.string().trim().regex(/^G-[A-Z0-9]{4,20}$/, "Google Analytics IDs look like G-XXXXXXX").optional(),
+        metaPixelId: z.string().trim().regex(/^\d{5,20}$/, "Meta Pixel IDs are digits only").optional(),
+      })
+      .default({}),
   })
   .refine((e) => e.maxDaysAhead === null || e.maxDaysAhead > e.minDaysAhead, {
     message: "Furthest booking must be after the earliest",
@@ -262,6 +275,7 @@ export const DEFAULT_RATE_CONFIG: RateConfig = {
     sameDayCutoff: null,
     arrivalTimeField: "optional",
     customFields: [],
+    analytics: {},
   },
   depositPct: 20,
   holdMinutes: 60,

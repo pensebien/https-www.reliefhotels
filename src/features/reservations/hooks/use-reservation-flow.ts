@@ -93,6 +93,8 @@ export function useReservationFlow(options: ReservationFlowProps) {
     Partial<Record<keyof ReservationFormData, string>>
   >({});
   const [status, setStatus] = useState<ReservationFlowStatus>("idle");
+  /** Confirmed with nothing to pay now (pay-at-hotel coupon or a 0% deposit). */
+  const [confirmedWithoutPayment, setConfirmedWithoutPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const checkIn = initialCheckIn;
@@ -257,7 +259,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     });
   }, []);
 
-  const submitReservation = useCallback(async (): Promise<string | null> => {
+  const submitReservation = useCallback(async (): Promise<{ id: string; noPaymentNeeded: boolean } | null> => {
     const parsed = reservationFormSchema.safeParse(formData);
 
     if (!parsed.success) {
@@ -283,13 +285,13 @@ export function useReservationFlow(options: ReservationFlowProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await res.json()) as { id?: string; error?: string };
+      const data = (await res.json()) as { id?: string; error?: string; noPaymentNeeded?: boolean };
 
       if (!res.ok || !data.id) {
         throw new Error(data.error ?? "Unable to create reservation");
       }
 
-      return data.id;
+      return { id: data.id, noPaymentNeeded: data.noPaymentNeeded === true };
     } catch (error) {
       setStatus("error");
       setErrorMessage(
@@ -337,14 +339,16 @@ export function useReservationFlow(options: ReservationFlowProps) {
   );
 
   const handleReserveAndPay = useCallback(async () => {
-    const reservationId = await submitReservation();
-    if (!reservationId) return;
+    const created = await submitReservation();
+    if (!created) return;
     // Request mode: staff confirm first; the guest pays later from their manage link.
-    if (bookingMode === "request") {
+    // Pay-at-hotel bookings are already confirmed: nothing to pay now.
+    if (bookingMode === "request" || created.noPaymentNeeded) {
+      setConfirmedWithoutPayment(created.noPaymentNeeded);
       setStatus("success");
       return;
     }
-    await initiatePayment(reservationId);
+    await initiatePayment(created.id);
   }, [bookingMode, initiatePayment, submitReservation]);
 
   return {
@@ -385,5 +389,6 @@ export function useReservationFlow(options: ReservationFlowProps) {
     submitReservation,
     initiatePayment,
     handleReserveAndPay,
+    confirmedWithoutPayment,
   };
 }

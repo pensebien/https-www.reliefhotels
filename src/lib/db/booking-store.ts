@@ -38,6 +38,7 @@ type ReservationRow = {
   group_id?: string | null;
   booking_channel?: "online" | "desk" | null;
   custom_fields?: Record<string, string | boolean> | null;
+  tags?: string[] | null;
 };
 
 type PaymentRow = {
@@ -96,6 +97,7 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     groupId: row.group_id ?? undefined,
     bookingChannel: row.booking_channel ?? undefined,
     customFields: row.custom_fields ?? undefined,
+    tags: row.tags ?? undefined,
   };
 }
 
@@ -161,6 +163,7 @@ function reservationPatchToRow(
   if (patch.groupId !== undefined) update.group_id = patch.groupId;
   if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
   if (patch.customFields !== undefined) update.custom_fields = patch.customFields;
+  if (patch.tags !== undefined) update.tags = patch.tags;
   return update;
 }
 

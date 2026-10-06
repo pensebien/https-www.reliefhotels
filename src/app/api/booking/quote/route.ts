@@ -1,7 +1,7 @@
 import { linkRatePlanId } from "@/lib/booking-engine/booking-links";
 import { quoteGroup } from "@/lib/booking-engine/group";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
-import { countCouponRedemptions, quoteStayLive } from "@/lib/booking-engine/reserve";
+import { countCouponRedemptions, extrasStockError, quoteStayLive } from "@/lib/booking-engine/reserve";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -45,6 +45,8 @@ export async function POST(request: Request) {
     if (!group.ok) {
       return NextResponse.json({ error: group.message, code: group.code }, { status: 422 });
     }
+    const extraNo = await extrasStockError(group.lines[0].extras, input.checkIn, input.checkOut);
+    if (extraNo) return NextResponse.json({ error: extraNo, code: "extra_sold_out" }, { status: 422 });
     return NextResponse.json(group);
   }
 
@@ -55,5 +57,7 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
+  const extraNo = await extrasStockError(quote.extras, quote.checkIn, quote.checkOut);
+  if (extraNo) return NextResponse.json({ error: extraNo, code: "extra_sold_out" }, { status: 422 });
   return NextResponse.json(quote);
 }

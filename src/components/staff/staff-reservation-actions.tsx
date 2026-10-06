@@ -9,6 +9,7 @@ export function StaffReservationActions({
   dashboardKey,
   source,
   staffNotes,
+  tags,
   onUpdated,
   compact = false,
   showConfirm = true,
@@ -18,6 +19,7 @@ export function StaffReservationActions({
   dashboardKey: string;
   source: string;
   staffNotes?: string;
+  tags?: string[];
   onUpdated: () => void;
   compact?: boolean;
   /** Hide “Mark as booked” when the stay is already confirmed. */
@@ -31,6 +33,7 @@ export function StaffReservationActions({
   );
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState(staffNotes ?? "");
+  const [tagText, setTagText] = useState((tags ?? []).join(", "));
   const readOnly = source === "demo";
 
   async function patch(body: Record<string, unknown>) {
@@ -99,7 +102,7 @@ export function StaffReservationActions({
     setBusy("notes");
     setError(null);
     try {
-      await patch({ staffNotes: notes.trim() });
+      await patch({ staffNotes: notes.trim(), tags: tagText.split(",").map((tag) => tag.trim()) });
       onUpdated();
     } catch (e) {
       setError(e instanceof Error ? e.message : t("staffActions.error"));
@@ -156,6 +159,17 @@ export function StaffReservationActions({
           rows={2}
           className="mt-1 w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
           placeholder={t("staffActions.notesPlaceholder")}
+        />
+      </label>
+      <label className="block">
+        <span className="text-[10px] font-medium uppercase tracking-wide text-muted">
+          {t("staffActions.tagsLabel")}
+        </span>
+        <input
+          value={tagText}
+          onChange={(e) => setTagText(e.target.value)}
+          className="mt-1 h-8 w-full rounded-lg border border-border bg-background px-2 text-xs"
+          placeholder={t("staffActions.tagsPlaceholder")}
         />
       </label>
       <button

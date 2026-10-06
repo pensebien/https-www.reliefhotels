@@ -21,10 +21,12 @@ import {
   getRoomInventory,
   listRoomBlocks,
 } from "@/lib/db/inventory-store";
+import { addDaysToDateString } from "@/lib/booking-search";
 import {
   fileAddReservationIf,
   getActivity,
   holdsInventory,
+  listReservationsForReport,
   updateReservationById,
   type NewReservation,
   type ReservationRecord,
@@ -38,6 +40,41 @@ import { bookingWindowError } from "./booking-window";
 import { quoteGroup, type GroupQuote, type GroupQuoteInput } from "./group";
 import { quoteStay, type QuoteError, type QuoteInput, type StayQuote } from "./quote";
 import { getRateConfig, type RateConfig } from "./rate-config";
+
+/**
+ * Extras with a daily stock (e.g. 3 airport pickups a day): the first one
+ * already taken on every night of the stay, as a guest-facing message.
+ * A soft limit — checked before the insert, not inside its lock.
+ */
+export async function extrasStockError(
+  extras: { id: string; label: string }[],
+  checkIn: string,
+  checkOut: string,
+  config?: RateConfig,
+): Promise<string | null> {
+  const rates = config ?? (await getRateConfig());
+  const limited = extras
+    .map((e) => ({ ...e, stock: rates.extras.find((x) => x.id === e.id)?.stockPerDay }))
+    .filter((e): e is { id: string; label: string; stock: number } => typeof e.stock === "number");
+  if (limited.length === 0) return null;
+  const nights = eachNight(checkIn, checkOut);
+  const others = (await listReservationsForReport(checkIn, nights[nights.length - 1])).filter(
+    (r) => holdsInventory(r) && r.checkIn && r.checkOut && r.checkIn < checkOut && r.checkOut > checkIn,
+  );
+  for (const extra of limited) {
+    for (const night of nights) {
+      const taken = others.filter((r) => r.extraIds?.includes(extra.id) && r.checkIn! <= night && r.checkOut! > night).length;
+      if (taken >= extra.stock) return `${extra.label} is fully booked on ${night}. Please remove it or change your dates.`;
+    }
+  }
+  return null;
+}
+
+function eachNight(checkIn: string, checkOut: string): string[] {
+  const nights: string[] = [];
+  for (let d = checkIn; d < checkOut; d = addDaysToDateString(d, 1)) nights.push(d);
+  return nights;
+}
 
 export async function countCouponRedemptions(code: string): Promise<number> {
   const wanted = code.trim().toUpperCase();
@@ -189,6 +226,8 @@ export async function reserveRoom(
     quote.nights,
   );
   if (rayzaNo) return { ok: false, status: 409, code: "sold_out", message: rayzaNo };
+  const extraNo = await extrasStockError(quote.extras, quote.checkIn, quote.checkOut, config);
+  if (extraNo) return { ok: false, status: 409, code: "extra_sold_out", message: extraNo };
 
   const record = await insertLine(toNewReservation(quote, guest, config, status, expiringHold, undefined, channel));
   return record ? { ok: true, record, quote } : SOLD_OUT;
@@ -225,6 +264,8 @@ export async function reserveGroup(
     quote.lines[0].nights,
   );
   if (rayzaNo) return { ok: false, status: 409, code: "sold_out", message: rayzaNo };
+  const extraNo = await extrasStockError(quote.lines[0].extras, input.checkIn, input.checkOut, config);
+  if (extraNo) return { ok: false, status: 409, code: "extra_sold_out", message: extraNo };
 
   const records: ReservationRecord[] = [];
   let groupId: string | undefined;

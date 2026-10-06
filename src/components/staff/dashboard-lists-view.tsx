@@ -1,5 +1,7 @@
 "use client";
 
+import { bookingPaymentStatus } from "@/lib/booking-payment-status";
+
 import { DashboardPagination, getPaginationMeta } from "@/components/dashboard-date-pagination";
 import type { DashboardGuestFeedbackRow } from "@/components/staff/dashboard-inbox-view";
 import {
@@ -254,6 +256,7 @@ export function DashboardListsView({
                 <BookingListCard
                   reservation={r}
                   successPayment={successPayment}
+                  paymentStatus={r.itemType === "room" ? bookingPaymentStatus(r, linked) : undefined}
                 />
                 {bookingStatus === "pending" ? (
                   <div className="rounded-b-xl border border-t-0 border-border bg-card/60 px-4 pb-4">
@@ -262,6 +265,7 @@ export function DashboardListsView({
                       dashboardKey={dashboardKey}
                       source={r.source}
                       staffNotes={r.staffNotes}
+                      tags={r.tags}
                       onUpdated={onReservationUpdated}
                       compact
                     />

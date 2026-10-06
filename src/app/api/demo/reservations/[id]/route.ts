@@ -75,7 +75,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    const { status, staffNotes } = parsed.data;
+    const { status, staffNotes, tags } = parsed.data;
 
     if (status === "confirmed" && existing.status === "cancelled") {
       return NextResponse.json(
@@ -96,6 +96,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const patch: Parameters<typeof updateReservationById>[1] = {};
     if (status) patch.status = status;
     if (staffNotes !== undefined) patch.staffNotes = staffNotes;
+    if (tags !== undefined) patch.tags = tags;
 
     const updated = await updateReservationById(id, patch);
     if (!updated) {

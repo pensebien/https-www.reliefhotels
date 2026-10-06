@@ -1,3 +1,4 @@
+import { AnalyticsConsent } from "@/components/analytics-consent";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StaffPortalShell } from "@/components/staff-portal-shell";
@@ -114,6 +115,7 @@ export default async function LocaleLayout({
               <main className="flex-1">{children}</main>
               <SiteFooter />
               <WhatsAppFloat />
+              <AnalyticsConsent />
             </>
           )}
         </NextIntlClientProvider>

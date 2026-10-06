@@ -286,7 +286,28 @@ function RateSettingsForm({
               <option value="required">{t("fieldRequired")}</option>
             </select>
           </label>
+          <label className="block">
+            <span className={cellLabel}>{t("gaMeasurementId")}</span>
+            <input
+              id="engine-ga"
+              placeholder="G-XXXXXXX"
+              value={draft.engine.analytics?.gaMeasurementId ?? ""}
+              onChange={(e) => patch({ engine: { ...draft.engine, analytics: { ...draft.engine.analytics, gaMeasurementId: e.target.value.trim() || undefined } } })}
+              className={inputClass}
+            />
+          </label>
+          <label className="block">
+            <span className={cellLabel}>{t("metaPixelId")}</span>
+            <input
+              id="engine-pixel"
+              inputMode="numeric"
+              value={draft.engine.analytics?.metaPixelId ?? ""}
+              onChange={(e) => patch({ engine: { ...draft.engine, analytics: { ...draft.engine.analytics, metaPixelId: e.target.value.trim() || undefined } } })}
+              className={inputClass}
+            />
+          </label>
         </div>
+        <p className="text-xs text-muted">{t("analyticsHint")}</p>
         <div className="space-y-2">
           <p className={cellLabel}>{t("customFieldsTitle")}</p>
           {draft.engine.customFields.map((field, i) => {
@@ -395,7 +416,20 @@ function RateSettingsForm({
             <DateField label={t("validTo")} value={coupon.validTo} optional onChange={(v) => updateAt("coupons", i, { validTo: v || undefined })} />
             <NumField label={t("minNights")} value={coupon.minNights} min={1} optional onChange={(v) => updateAt("coupons", i, { minNights: v })} />
             <NumField label={t("maxRedemptions")} value={coupon.maxRedemptions} min={1} optional onChange={(v) => updateAt("coupons", i, { maxRedemptions: v })} />
+            <label className="block">
+              <span className={cellLabel}>{t("couponAppliesTo")}</span>
+              <select
+                value={coupon.appliesTo ?? "rooms"}
+                onChange={(e) => updateAt("coupons", i, { appliesTo: e.target.value === "rooms" ? undefined : (e.target.value as Coupon["appliesTo"]) })}
+                className={inputClass}
+              >
+                <option value="rooms">{t("couponRooms")}</option>
+                <option value="extras">{t("couponExtras")}</option>
+                <option value="both">{t("couponBoth")}</option>
+              </select>
+            </label>
             <CheckField label={t("bypassMinStay")} checked={Boolean(coupon.bypassMinStay)} onChange={(v) => updateAt("coupons", i, { bypassMinStay: v || undefined })} />
+            <CheckField label={t("skipDeposit")} checked={Boolean(coupon.skipDeposit)} onChange={(v) => updateAt("coupons", i, { skipDeposit: v || undefined })} />
             <CheckField label={t("active")} checked={coupon.active !== false} onChange={(v) => updateAt("coupons", i, { active: v })} />
             <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={coupon.roomIds} onChange={(v) => updateAt("coupons", i, { roomIds: v })} />
           </Row>
@@ -435,6 +469,7 @@ function RateSettingsForm({
               </select>
             </label>
             <CheckField label={t("active")} checked={extra.active !== false} onChange={(v) => updateAt("extras", i, { active: v })} />
+            <NumField label={t("stockPerDay")} value={extra.stockPerDay} min={1} optional onChange={(v) => updateAt("extras", i, { stockPerDay: v })} />
             <CheckField label={t("includedExtra")} checked={Boolean(extra.included)} onChange={(v) => updateAt("extras", i, { included: v || undefined })} />
             <RoomScope label={t("appliesTo")} allLabel={t("allRooms")} roomName={roomName} value={extra.roomIds} onChange={(v) => updateAt("extras", i, { roomIds: v })} />
           </Row>
