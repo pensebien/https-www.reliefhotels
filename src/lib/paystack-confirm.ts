@@ -1,3 +1,5 @@
+import { Logger } from "@/lib/logger";
+import { recordOpsError } from "@/lib/ops-status";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   findPaymentByReference,
@@ -8,6 +10,8 @@ import {
   type PaymentRecord,
 } from "@/lib/demo-store";
 import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
+
+const log = new Logger("payments");
 
 /**
  * https://paystack.com/docs/payments/webhooks/ — every event is signed with
@@ -52,11 +56,8 @@ export async function confirmPaystackCharge(
   }
 
   if (amountKobo > 0 && existing.amountKobo && amountKobo !== existing.amountKobo) {
-    console.error("[paystack:confirm] amount mismatch", {
-      reference,
-      expected: existing.amountKobo,
-      actual: amountKobo,
-    });
+    log.error("Paystack amount mismatch", { reference, expected_kobo: existing.amountKobo, actual_kobo: amountKobo });
+    await recordOpsError("payments", "Paystack amount mismatch", { reference });
     return { outcome: "amount_mismatch", expected: existing.amountKobo, actual: amountKobo };
   }
 

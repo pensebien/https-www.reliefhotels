@@ -1,8 +1,12 @@
+import { Logger, pruneLogs } from "@/lib/logger";
+import { recordOpsError, recordOpsOk } from "@/lib/ops-status";
 import { getCheckinSettings } from "@/lib/checkin/settings";
 import { purgeExpiredIdData } from "@/lib/checkin/store";
 import { runGuestMessages } from "@/lib/guest-messages/run";
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+
+const log = new Logger("cron");
 
 /**
  * Daily jobs, called by the Netlify scheduled function
@@ -23,9 +27,13 @@ async function handle(request: Request) {
     const guestMessages = await runGuestMessages();
     // Delete guest ID numbers and photos once the retention period is over.
     const idRecordsPurged = await purgeExpiredIdData((await getCheckinSettings()).retentionDays);
-    return NextResponse.json({ ok: true, guestMessages, idRecordsPurged });
+    const logFilesPruned = await pruneLogs();
+    await recordOpsOk("cron");
+    log.info("Daily jobs finished", { id_records_purged: idRecordsPurged, log_files_pruned: logFilesPruned });
+    return NextResponse.json({ ok: true, guestMessages, idRecordsPurged, logFilesPruned });
   } catch (error) {
-    console.error("[cron/daily]", error);
+    log.error("Daily jobs failed", { error: error instanceof Error ? error.message : String(error) });
+    await recordOpsError("cron", "Daily jobs failed");
     return NextResponse.json({ error: "Daily jobs failed" }, { status: 500 });
   }
 }

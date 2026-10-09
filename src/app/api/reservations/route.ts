@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { rooms } from "@/content/site";
 import { linkRatePlanId as getLinkRatePlanId } from "@/lib/booking-engine/booking-links";
 import { syncConfirmedReservationToRayza } from "@/lib/integrations/rayza-sync";
@@ -12,6 +13,8 @@ import { reservationSchema } from "@/lib/schemas/reservation";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "reservations", { limit: 10, windowMs: 600_000 });
+  if (limited) return limited;
   try {
     const body = await request.json();
     const parsed = reservationSchema.safeParse(body);

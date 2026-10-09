@@ -12,9 +12,13 @@
  */
 
 import { isValidDashboardKey, unauthorizedDashboardResponse } from "@/lib/dashboard-auth";
+import { clientIp, sharedLimiter, tooManyRequests } from "@/lib/rate-limit";
 import { isStaffAuthEnabled, getStaffSessionFromRequest, type StaffSessionPayload } from "@/lib/staff-session";
 import type { StaffRole } from "@/lib/staff-roles";
 import { NextResponse } from "next/server";
+
+/** Wrong dashboard keys allowed per IP before a 15-minute lockout. */
+const DASHBOARD_KEY_LIMIT = { limit: 20, windowMs: 15 * 60_000 };
 
 export type StaffAccessResult =
   | { ok: true; session: StaffSessionPayload | null }
@@ -32,7 +36,12 @@ export async function requireStaffAccess(
   if (!isStaffAuthEnabled()) {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key") ?? request.headers.get("x-demo-key");
+    // Wrong keys are counted per IP across all instances; a guesser is shut out
+    // before the key is even checked, so the right key can't be found by trying.
+    const guesses = sharedLimiter(`dashkey:${clientIp(request)}`, DASHBOARD_KEY_LIMIT);
+    if (await guesses.blocked()) return { ok: false, response: tooManyRequests(DASHBOARD_KEY_LIMIT.windowMs) };
     if (!isValidDashboardKey(key)) {
+      await guesses.fail();
       return { ok: false, response: unauthorizedDashboardResponse() };
     }
     return { ok: true, session: null };

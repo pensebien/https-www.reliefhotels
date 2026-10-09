@@ -1,3 +1,6 @@
+import { Logger } from "@/lib/logger";
+import { recordOpsError } from "@/lib/ops-status";
+import { enqueueNotification } from "@/lib/outbox";
 import { site } from "@/content/site";
 import { getServerConfig } from "@/lib/config";
 import { buildInvoiceUrl, buildManageBookingUrl } from "@/lib/booking-engine/manage-link";
@@ -8,6 +11,8 @@ import type {
   EventInquiry,
   GuestFeedback,
 } from "@/lib/inquiry-store";
+
+const log = new Logger("email");
 
 /** Guest-submitted strings (name, email, message, ...) must never be interpolated into HTML unescaped. */
 export function escapeHtml(value: string): string {
@@ -313,33 +318,52 @@ type ResendEmailInput = {
   bcc?: string[];
 };
 
-/** Shared Resend send path — the one seam every transactional email goes through. */
-async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+async function postToResend(input: ResendEmailInput): Promise<{ ok: boolean; error?: string; retryable: boolean }> {
   const config = getServerConfig();
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: input.from ?? config.email.from,
-      to: input.to,
-      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
-      ...(input.bcc ? { bcc: input.bcc } : {}),
-      subject: input.subject,
-      html: input.html,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[email] Resend error:", err);
-    return false;
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: input.from ?? config.email.from,
+        to: input.to,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        ...(input.bcc ? { bcc: input.bcc } : {}),
+        subject: input.subject,
+        html: input.html,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (res.ok) return { ok: true, retryable: false };
+    const error = (await res.text()).slice(0, 500);
+    // 4xx other than rate limiting means the email itself is wrong; retrying won't help.
+    return { ok: false, error: `Resend ${res.status}: ${error}`, retryable: res.status === 429 || res.status >= 500 };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Resend request failed", retryable: true };
   }
+}
 
-  return true;
+/**
+ * Shared Resend send path — the one seam every transactional email goes
+ * through. A send that fails for a passing reason (outage, timeout, rate
+ * limit) is queued in the outbox and retried by the scheduled job.
+ */
+async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+  const result = await postToResend(input);
+  if (result.ok) return true;
+  log.error("Email send failed", { subject: input.subject, retryable: result.retryable, error: result.error });
+  await recordOpsError("email", "Email send failed", { subject: input.subject, error: result.error });
+  if (result.retryable) await enqueueNotification("email", input as unknown as Record<string, unknown>, result.error);
+  return false;
+}
+
+/** Outbox retry of a queued email (no re-queueing: the outbox tracks attempts). */
+export async function deliverQueuedEmail(payload: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
+  const { ok, error } = await postToResend(payload as unknown as ResendEmailInput);
+  return { ok, error };
 }
 
 export async function sendReservationEmail(
@@ -348,7 +372,7 @@ export async function sendReservationEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo]", {
+    log.info("Email not sent: no provider (demo)", {
       to: config.email.to,
       subject: `Reservation: ${record.firstName} ${record.lastName}`,
       id: record.id,
@@ -371,7 +395,7 @@ export async function sendGuestReservationConfirmation(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest reservation confirmation", record.email);
+    log.info("Email not sent: no provider (demo)", { kind: "guest reservation confirmation", detail: [record.email] });
     return false;
   }
 
@@ -390,7 +414,7 @@ export async function sendFeedbackEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest feedback", {
+    log.info("Email not sent: no provider (demo)", { kind: "guest feedback",
       to: config.email.to,
       from: `${record.firstName} ${record.lastName}`,
       id: record.id,
@@ -413,7 +437,7 @@ export async function sendGuestFeedbackAck(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest feedback ack", record.email);
+    log.info("Email not sent: no provider (demo)", { kind: "guest feedback ack", detail: [record.email] });
     return false;
   }
 
@@ -431,7 +455,7 @@ export async function sendDiningReservationEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] dining reservation", record.id);
+    log.info("Email not sent: no provider (demo)", { kind: "dining reservation", detail: [record.id] });
     return { guestSent: false, staffSent: false };
   }
 
@@ -459,7 +483,7 @@ export async function sendEventInquiryEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] event inquiry", record.id);
+    log.info("Email not sent: no provider (demo)", { kind: "event inquiry", detail: [record.id] });
     return { guestSent: false, staffSent: false };
   }
 
@@ -486,7 +510,7 @@ export async function sendPaymentConfirmationEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] payment confirmation", payload.reference);
+    log.info("Email not sent: no provider (demo)", { kind: "payment confirmation", detail: [payload.reference] });
     return false;
   }
 
@@ -536,7 +560,7 @@ export async function sendGuestCancellationEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest cancellation", record.email, amounts);
+    log.info("Email not sent: no provider (demo)", { kind: "guest cancellation", detail: [record.email, amounts] });
     return false;
   }
 
@@ -593,7 +617,7 @@ export function invoiceEmailHtml(invoice: IssuedInvoice): string {
 export async function sendInvoiceEmail(invoice: IssuedInvoice): Promise<boolean> {
   const config = getServerConfig();
   if (!config.email.configured) {
-    console.info("[email:demo] invoice", invoice.number, invoice.document.guest.email);
+    log.info("Email not sent: no provider (demo)", { kind: "invoice", detail: [invoice.number, invoice.document.guest.email] });
     return false;
   }
   return sendResendEmail({
@@ -622,7 +646,7 @@ export async function sendGuestMessageEmail(
 ): Promise<"sent" | "failed" | "not_configured"> {
   const config = getServerConfig();
   if (!config.email.configured) {
-    console.info("[email:demo] guest message", to, subject);
+    log.info("Email not sent: no provider (demo)", { kind: "guest message", detail: [to, subject] });
     return "not_configured";
   }
   const ok = await sendResendEmail({
@@ -640,7 +664,7 @@ export async function sendBookingApprovedEmail(record: ReservationRecord): Promi
   const config = getServerConfig();
   const url = buildManageBookingUrl(record.id);
   if (!config.email.configured || !url) {
-    console.info("[email:demo] booking approved", record.email);
+    log.info("Email not sent: no provider (demo)", { kind: "booking approved", detail: [record.email] });
     return false;
   }
   const body = `

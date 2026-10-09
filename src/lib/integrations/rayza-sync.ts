@@ -8,6 +8,8 @@
  * when both have it free.
  */
 
+import { Logger } from "@/lib/logger";
+import { recordOpsError, recordOpsOk } from "@/lib/ops-status";
 import { rooms } from "@/content/site";
 import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
@@ -35,6 +37,8 @@ import {
   updateRayzaBooking,
   type RayzaCatalogue,
 } from "./rayza-connect";
+
+const log = new Logger("rayza");
 
 // ─── Room links (Relief room type → RAYZA room type) ────────────────────
 
@@ -171,7 +175,7 @@ export async function rayzaAvailability(
   if (Object.keys(links).length === 0) return null;
   const result = await catalogue({ checkIn, checkOut }, fresh);
   if (!result.ok) {
-    console.warn("[rayza] availability unavailable, using Relief inventory only:", result.error);
+    log.warning("RAYZA availability unavailable, using Relief inventory only", { check_in: checkIn, check_out: checkOut, error: result.error });
     return null;
   }
   return rayzaChecksFrom(result.catalogue, links, nights);
@@ -242,7 +246,7 @@ export async function getSyncRows(ids: string[]): Promise<Map<string, RayzaSyncR
       .in("reservation_id", ids.slice(i, i + 200))) ?? { data: [], error: null };
     // Table missing (migration 022 not applied): sync still works, just without history.
     if (error) {
-      console.error("[rayza] could not read sync status:", error.message);
+      log.error("Could not read sync status", { error: error.message });
       return map;
     }
     for (const r of data ?? []) map.set(r.reservation_id as string, fromDb(r));
@@ -280,7 +284,7 @@ async function saveSyncRow(row: Omit<RayzaSyncRow, "attempts" | "at">, previous?
     attempts: full.attempts,
     at: full.at,
   })) ?? { error: null };
-  if (error) console.error("[rayza] could not record sync status:", error.message);
+  if (error) log.error("Could not record sync status", { reservation_id: full.reservationId, error: error.message });
   return full;
 }
 
@@ -337,6 +341,8 @@ export async function pushReservationToRayza(record: ReservationRecord): Promise
   const fail = async (code: string | undefined, error: string, refs: string[] = []): Promise<RayzaSyncResult> => {
     const row = await saveSyncRow({ reservationId: record.id, state: "failed", wanted: "booked", refs, code, error }, previous);
     await noteFailure(record, row, previous);
+    log.error("RAYZA refused booking", { reservation_id: record.id, code, error });
+    await recordOpsError("rayza", "RAYZA refused booking", { reservation_id: record.id, code, error });
     return { ok: false, code, error };
   };
 
@@ -359,11 +365,13 @@ export async function pushReservationToRayza(record: ReservationRecord): Promise
     }
     if (!result.ok) return fail(result.code, result.error, refs);
     if (result.reference !== body.booking_reference) {
-      console.warn("[rayza] RAYZA stored a different reference", body.booking_reference, "→", result.reference);
+      log.warning("RAYZA stored a different reference", { reservation_id: record.id, sent: body.booking_reference, stored: result.reference });
     }
     refs.push(result.reference);
   }
   await saveSyncRow({ reservationId: record.id, state: "pushed", wanted: "booked", refs }, previous);
+  log.info("Booking pushed to RAYZA", { reservation_id: record.id, refs });
+  await recordOpsOk("rayza");
   return { ok: true, refs };
 }
 
@@ -385,9 +393,12 @@ export async function cancelReservationOnRayza(record: ReservationRecord): Promi
         previous,
       );
       await noteFailure(record, row, previous);
+      log.error("RAYZA cancel failed", { reservation_id: record.id, ref, code: result.code, error: result.error });
+      await recordOpsError("rayza", "RAYZA cancel failed", { reservation_id: record.id, code: result.code, error: result.error });
       return { ok: false, code: result.code, error: result.error };
     }
   }
+  log.info("Booking released on RAYZA", { reservation_id: record.id, refs });
   await saveSyncRow({ reservationId: record.id, state: "cancelled", wanted: "cancelled", refs }, previous);
   return { ok: true, refs };
 }
@@ -405,7 +416,7 @@ export async function updateRoomsOnRayza(record: ReservationRecord): Promise<Ray
     const result = await updateRayzaBooking(ref, { room_number: numbers[i] });
     if (!result.ok) {
       // Not fatal: the booking still holds a room of the right type on RAYZA.
-      console.warn("[rayza] room move not applied", ref, result.error);
+      log.warning("Room move not applied on RAYZA", { reservation_id: record.id, ref, error: result.error });
       return { ok: false, code: result.code, error: result.error };
     }
   }
@@ -421,7 +432,7 @@ export async function syncConfirmedReservationToRayza(record: ReservationRecord)
   const lines = (await listGroupMembers(record)).filter((m) => m.status === "confirmed");
   for (const line of lines.length ? lines : [record]) {
     const result = await pushReservationToRayza(line);
-    if (!result.ok) console.warn("[rayza] push failed for reservation", line.id, result.error);
+    if (!result.ok) log.warning("Push failed", { reservation_id: line.id, code: result.code, error: result.error });
   }
 }
 
@@ -430,7 +441,7 @@ export async function syncCancelledReservationsToRayza(records: ReservationRecor
   if (!isRayzaEnabled()) return;
   for (const record of records) {
     const result = await cancelReservationOnRayza(record);
-    if (!result.ok) console.warn("[rayza] cancel failed for reservation", record.id, result.error);
+    if (!result.ok) log.warning("Cancel failed", { reservation_id: record.id, code: result.code, error: result.error });
   }
 }
 
@@ -483,6 +494,7 @@ export async function reconcileRayza(options: { retryAll?: boolean } = {}): Prom
     else if (op === "push") summary.pushed++;
     else summary.cancelled++;
   }
+  log.info("RAYZA reconcile finished", { ...summary, duration_s: Math.round((Date.now() - started) / 1000) });
   return summary;
 }
 

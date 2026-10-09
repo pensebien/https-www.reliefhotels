@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
 import { checkinState } from "@/lib/checkin/availability";
 import { getCheckinSettings } from "@/lib/checkin/settings";
@@ -20,6 +21,8 @@ const fieldsSchema = z.object({
 
 /** Guest online check-in from the signed manage link (multipart, optional ID photo). */
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "manage", { limit: 20, windowMs: 600_000 });
+  if (limited) return limited;
   const form = await request.formData().catch(() => null);
   if (!form) return NextResponse.json({ error: "Invalid check-in form" }, { status: 400 });
 

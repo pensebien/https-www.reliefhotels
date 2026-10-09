@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { calculateDepositNgn } from "@/lib/booking-deposit";
 import { quoteStay } from "@/lib/booking-engine/quote";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
@@ -10,6 +11,8 @@ import { pluralize } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "paystack-init", { limit: 20, windowMs: 600_000 });
+  if (limited) return limited;
   try {
     const body = await request.json();
     const parsed = paystackInitializeSchema.safeParse(body);

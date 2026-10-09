@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
 import { syncCancelledReservationsToRayza } from "@/lib/integrations/rayza-sync";
 import { emitBookingEvent } from "@/lib/integrations/webhooks";
@@ -6,6 +7,8 @@ import { sendGuestCancellationEmails } from "@/lib/email";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "manage", { limit: 20, windowMs: 600_000 });
+  if (limited) return limited;
   const result = await loadManagedBooking(await request.json().catch(() => null));
   if (!result.ok) return result.response;
 

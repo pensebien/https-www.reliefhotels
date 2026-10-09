@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { linkRatePlanId } from "@/lib/booking-engine/booking-links";
 import { quoteGroup } from "@/lib/booking-engine/group";
 import { getRateConfig } from "@/lib/booking-engine/rate-config";
@@ -27,6 +28,8 @@ const quoteRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "quote", { limit: 120, windowMs: 600_000 });
+  if (limited) return limited;
   const parsed = quoteRequestSchema.safeParse(
     await request.json().catch(() => null),
   );

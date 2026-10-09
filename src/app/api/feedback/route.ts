@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { sendFeedbackEmail, sendGuestFeedbackAck } from "@/lib/email";
 import { addGuestFeedback } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
@@ -17,6 +18,8 @@ const feedbackSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "forms", { limit: 5, windowMs: 600_000 });
+  if (limited) return limited;
   try {
     const body = await request.json();
     const parsed = feedbackSchema.safeParse(body);
