@@ -1,5 +1,10 @@
 # Sirvoy feature map (reference for Relief HMS)
 
+> **Archived 2026-10-09.** The team chose to keep the website simple and leave
+> hotel operations (F&B, restaurant, front desk, OTA channels) to RAYZA. This
+> branch (`archive/sirvoy-pms`, tag `sirvoy-pms-final`) holds the full
+> Sirvoy-parity build; `main` is now a thin RAYZA booking front end.
+
 Captured 2026-10-03 from a fresh Sirvoy test property (read-only browsing of every
 admin screen and settings form). Sirvoy holds **no Relief data** — this is a map of
 what to mimic, not a migration source. Status column is relative to
