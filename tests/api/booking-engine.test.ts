@@ -135,6 +135,18 @@ describe("Booking engine API (RAYZA prices and availability)", () => {
     assert.equal(second.res.status, 200, "room should be bookable once the hold lapsed");
   });
 
+  it("an old pending booking without a hold expiry doesn't block the room", async () => {
+    const stay = uniqueStay();
+    const { addReservation } = await import("@/lib/demo-store");
+    await addReservation({
+      firstName: "Old", lastName: "Desk", email: "old@example.com", phone: "+2348000000000",
+      stayPreference: "t", message: "t", itemType: "room", roomId: "presidential-suite",
+      ...stay, nights: 2, guests: 2, emailSent: false, status: "pending",
+    });
+    const { res } = await reserve({ roomId: "presidential-suite", ...stay });
+    assert.equal(res.status, 200);
+  });
+
   it("availability lists RAYZA's price and free count, and explains restricted rooms", async () => {
     const { GET } = await import("@/app/api/rooms/availability/route");
     const stay = uniqueStay();

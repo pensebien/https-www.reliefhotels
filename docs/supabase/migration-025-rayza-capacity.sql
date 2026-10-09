@@ -37,7 +37,9 @@ begin
   where item_type = 'room'
     and room_id = v_room
     and status = 'pending'
-    and (hold_expires_at is null or hold_expires_at > now())
+    -- Only online holds (they always expire); old pending rows without an
+    -- expiry must not block rooms forever.
+    and hold_expires_at > now()
     and check_in < v_check_out
     and check_out > v_check_in;
 

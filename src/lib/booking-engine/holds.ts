@@ -6,9 +6,14 @@
 
 import { holdsInventory, listReservationsForReport, type ReservationRecord } from "@/lib/demo-store";
 
-/** Is this a pending booking still holding a room RAYZA doesn't know about? */
+/**
+ * Is this a pending online booking still holding a room RAYZA doesn't know
+ * about? Only holds with an expiry count: every online booking gets one, and
+ * older pending bookings without it (retired desk / request-mode flows) must
+ * not block rooms forever.
+ */
 export function isUnpaidHold(r: ReservationRecord, now = Date.now()): boolean {
-  return r.itemType === "room" && r.status === "pending" && holdsInventory(r, now);
+  return r.itemType === "room" && r.status === "pending" && Boolean(r.holdExpiresAt) && holdsInventory(r, now);
 }
 
 /** Units held by unpaid bookings overlapping [checkIn, checkOut), per room type. */
