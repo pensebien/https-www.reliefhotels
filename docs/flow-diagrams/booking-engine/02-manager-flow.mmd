@@ -1,38 +1,28 @@
-%% Manager: configure the booking engine, watch bookings, handle refunds.
-%% Role: manager (full access to cashier, calendar, accounting, rates, tax).
+%% Staff on the website: watch online bookings, reconcile payments, keep RAYZA in sync.
+%% Rates, rooms, front desk, F&B, housekeeping and OTA channels are managed in RAYZA.
 flowchart TD
     classDef staff fill:#dcfce7,stroke:#16a34a,color:#14532d
     classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
+    classDef rayza fill:#ede9fe,stroke:#7c3aed,color:#3b0764
     classDef warn fill:#fef3c7,stroke:#d97706,color:#78350f
 
-    A["Sign in to staff portal<br/>role: manager"]:::staff --> B["/staff/settings/rates"]:::staff
+    A["Sign in to staff portal"]:::staff --> B["/staff — Online bookings"]:::staff
+    A --> R["/staff/rayza — manager only"]:::staff
 
-    subgraph Setup["Set the rules — applies to new searches within 30s"]
-        B --> B1["Deposit %, unpaid hold minutes"]:::staff
-        B --> B2["Cancellation: free window in hours,<br/>refund %, guests can cancel online"]:::staff
-        B --> B3["Room rates: base nightly, weekend uplift,<br/>max guests per room, min / max nights"]:::staff
-        B --> B4["Seasons & events: fixed price or % change,<br/>min nights, closed to arrival"]:::staff
-        B --> B5["Longer-stay discounts"]:::staff
-        B --> B6["Promo codes: % or amount off, dates,<br/>max uses, skip min stay"]:::staff
-        B --> B7["Extras: breakfast, airport pickup…<br/>per stay / night / guest-night"]:::staff
+    subgraph Setup["One-time setup"]
+        R --> R1["Link each website room type<br/>to its RAYZA room type"]:::staff
+        R1 --> R2["Unlinked room types aren't sold online"]:::system
+        R --> R3["Sync now: push/cancel everything,<br/>retrying failed bookings"]:::staff
     end
-    B1 & B2 & B3 & B4 & B5 & B6 & B7 --> C["Save — validated on the server"]:::system
-    C -->|"invalid, e.g. season ends before start"| C1["Error shown, nothing saved"]:::warn
-    C -->|"ok"| D["Guests see new prices and rules"]:::system
 
-    subgraph Daily["Daily operations"]
-        E["Dashboard / calendar:<br/>new, pending, confirmed bookings"]:::staff
-        E --> F{"Staff note:<br/>Paid after room hold expired?"}:::system
-        F -->|"yes"| F1["Check a room is free;<br/>move or refund the guest"]:::warn
-        E --> G{"Guest cancelled online?<br/>front-desk email with refund due"}:::system
-        G -->|"refund due > 0"| G1["Issue refund in Paystack dashboard<br/>or at the desk — not automatic"]:::warn
-        E --> H["Pending bookings whose hold lapsed<br/>no longer block rooms"]:::system
+    subgraph Daily["Daily"]
+        B --> F1["Upcoming / Needs action / All"]:::staff
+        F1 --> N{"Needs action?"}:::system
+        N -->|"RAYZA refused a paid booking"| N1["Rebook in RAYZA or refund;<br/>contact the guest"]:::warn
+        N -->|"RAYZA failed / not sent"| N2["Send to RAYZA again"]:::staff
+        B --> T["Guest paid by direct bank transfer"]:::staff
+        T --> T1["Record transfer received<br/>→ confirmed, pushed to RAYZA, receipt sent"]:::rayza
+        B --> C["Cancel booking<br/>→ released in RAYZA"]:::rayza
+        B --> G["Guest cancelled online:<br/>front-desk email with refund due"]:::system
+        G --> G1["Issue refund in Paystack dashboard<br/>— not automatic"]:::warn
     end
-    D --> E
-
-    subgraph Money["Finance"]
-        I["/staff/accounting: reconcile Paystack,<br/>Moniepoint and cash"]:::staff
-        J["/staff/settings/tax: VAT % and mode"]:::staff
-    end
-    E --> I
-    A --> J

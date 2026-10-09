@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "images.shadcnspace.com" },
-      // Room photos uploaded from /staff/settings/rooms (Supabase Storage).
+      // Room photos staff uploaded earlier (Supabase Storage).
       { protocol: "https", hostname: "**.supabase.co", pathname: "/storage/v1/object/public/**" },
     ],
   },

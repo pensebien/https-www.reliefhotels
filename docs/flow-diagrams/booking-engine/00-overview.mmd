@@ -1,5 +1,7 @@
-%% Booking engine v2 — who does what (PR #43). Arrows point from who acts to what changes.
-%% Per-role detail: 01-guest … 05-housekeeping; deployment: 06-tech-netlify-setup.
+%% Simple site + RAYZA — who does what. Arrows point from who acts to what changes.
+%% Detail: 01-guest, 02-manager (staff); deployment: 06-tech-netlify-setup.
+%% Everything hotel-side (front desk, F&B, restaurant, housekeeping, Booking.com
+%% and other channels, rates) lives in RAYZA. The website only sells rooms.
 flowchart TB
     classDef guest fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
     classDef staff fill:#dcfce7,stroke:#16a34a,color:#14532d
@@ -7,40 +9,29 @@ flowchart TB
     classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
     classDef ext fill:#ede9fe,stroke:#7c3aed,color:#3b0764
 
-    Manager["Manager<br/>sets rates + rules"]:::staff
     Guest["Guest<br/>books online"]:::guest
-    Cashier["Cashier<br/>desk payments, check-out"]:::staff
-    FnB["F&B staff<br/>room charges"]:::staff
-    Cleaner["Cleaner head<br/>cleans rooms"]:::staff
+    Staff["Staff<br/>online bookings view"]:::staff
+    Hotel["Hotel team<br/>front desk, F&B, OTAs"]:::staff
 
-    Rules[("Rate rules")]:::system
-    Engine["Pricing engine"]:::system
-    Reserve["Race-safe booking<br/>reserve_room"]:::system
+    Rayza["RAYZA<br/>rooms, rates, availability,<br/>all bookings"]:::ext
+    Quote["Quote<br/>RAYZA price × nights"]:::system
+    Reserve["Race-safe hold<br/>reserve_room_capped"]:::system
     Manage["Manage-booking link"]:::system
-    Res[("Reservations + payments")]:::system
-    Folio[("Folio charges")]:::system
-    Blocks[("Room blocks")]:::system
+    Res[("Website reservations + payments")]:::system
 
-    Paystack["Paystack"]:::ext
+    Paystack["Paystack<br/>card + Pay with Transfer"]:::ext
     Moniepoint["Moniepoint"]:::ext
     Resend["Resend email"]:::ext
 
-    Manager --> Rules --> Engine
-    Guest -->|"quote"| Engine
-    Guest -->|"book"| Reserve
-    Guest -->|"view / pay / cancel"| Manage
-    Engine --> Reserve --> Res
-    Manage --> Res
-    Guest -->|"pay"| Paystack
-    Cashier -->|"card / transfer"| Moniepoint
-    Cashier -->|"cash, check-out"| Res
-    Paystack -->|"webhook"| Res
+    Hotel --> Rayza
+    Rayza -->|"GET /v1/rooms"| Quote
+    Guest -->|"search + quote"| Quote
+    Guest -->|"book"| Reserve --> Res
+    Guest -->|"pay"| Paystack -->|"webhook"| Res
     Moniepoint -->|"webhook"| Res
-    Res -->|"emails + manage link"| Resend
-    FnB --> Folio
-    Folio -->|"settled at check-out"| Res
-    Cashier -->|"check-out blocks room"| Blocks
-    Cleaner -->|"mark clean"| Blocks
-    Blocks -->|"fewer free rooms"| Reserve
+    Staff -->|"record transfer, retry, cancel"| Res
+    Res -->|"paid → POST /v1/bookings<br/>cancelled → cancel"| Rayza
+    Guest -->|"view / pay / cancel"| Manage --> Res
+    Res -->|"booking + receipt emails"| Resend
 
-    Tech["Tech person: Netlify env vars, migration 016,<br/>webhooks, BOOKING_LINK_SECRET — see 06"]:::tech
+    Tech["Tech person: Netlify env vars (RAYZA_*), migrations 022/024/025,<br/>CRON_SECRET, webhooks — see 06"]:::tech

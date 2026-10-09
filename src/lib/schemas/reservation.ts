@@ -19,24 +19,8 @@ export const reservationSchema = z
     nights: z.number().int().min(1).max(365).optional(),
     /** Rooms of this type (booking engine); server re-quotes and re-checks availability. */
     rooms: z.number().int().min(1).max(4).optional(),
-    couponCode: z.string().trim().max(40).optional(),
-    /** Rate plan the guest chose (e.g. non-refundable); omit for the standard rate. */
-    ratePlanId: z.string().max(60).optional(),
-    /** Booking link slug the guest came through; unlocks its link-only rate plan. */
-    bookingLink: z.string().max(40).optional(),
-    /** Expected arrival time "HH:MM" (booking engine arrival-time question). */
-    customFields: z.record(z.string().max(40), z.union([z.string().max(500), z.boolean()])).optional(),
+    /** Expected arrival time "HH:MM". */
     arrivalTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
-    extraIds: z.array(z.string().max(60)).max(20).optional(),
-    /**
-     * Group booking: several room types on the same dates. When present the
-     * first line is the lead (roomId must match it) and `guests` is the total.
-     */
-    stays: z
-      .array(z.object({ roomId: z.string().min(1).max(100), rooms: z.number().int().min(1).max(4) }))
-      .min(1)
-      .max(4)
-      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.itemType !== "room") return;

@@ -323,7 +323,9 @@
     "executive": {
       "name": "Chambre Executive",
       "description": "Espace de travail, literie premium et accès au salon pour les voyageurs d'affaires."
-    }
+    },
+    "liveUnavailable": "Live availability is temporarily unavailable, so rooms can't be booked online right now.",
+    "liveUnavailableContact": "Call or WhatsApp us to book."
   },
   "tours": {
     "pageTitle": "Visites & Guides Locaux",

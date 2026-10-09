@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const payload = (await request.json().catch(() => null)) as Record<string, unknown> | null;
     const reference = payload ? extractPaymentReference(payload) : undefined;
     if (!reference) {
-      log.info("Moniepoint notice without our reference ignored; confirm transfers in the Cashier");
+      log.info("Moniepoint notice without our reference ignored; record transfers in the staff bookings view");
       return NextResponse.json({ ok: true, ignored: true });
     }
 

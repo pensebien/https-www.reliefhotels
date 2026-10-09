@@ -1,39 +1,40 @@
-%% Tech person: deploy booking engine v2 (PR #43) to Netlify + Supabase.
-%% Do the steps in order; production keeps working if 016 lags, but without holds/promo/race safety.
+%% Tech person: deploy the simple RAYZA booking site to Netlify + Supabase.
+%% Do the steps in order. Without migration 025 bookings still work, but the hold check isn't atomic.
 flowchart TD
     classDef tech fill:#fef3c7,stroke:#d97706,color:#78350f
     classDef system fill:#f3f4f6,stroke:#6b7280,color:#111827
     classDef warn fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
     classDef good fill:#dcfce7,stroke:#16a34a,color:#14532d
 
-    A["1. Supabase SQL Editor"]:::tech --> A1["Run docs/supabase/migration-016-booking-engine.sql<br/>safe to re-run"]:::tech
-    A1 --> A2["Creates: booking_engine_settings,<br/>new reservation columns, reserve_room function"]:::system
+    A["1. Supabase SQL Editor (all safe to re-run)"]:::tech --> A1["migration-022-rayza-sync.sql<br/>RAYZA sync status"]:::tech
+    A1 --> A2["migration-024-hardening.sql<br/>rate limits + email/RAYZA outbox"]:::tech
+    A2 --> A3["migration-025-rayza-capacity.sql<br/>reserve_room_capped()"]:::tech
 
-    A2 --> B["2. Generate the link secret<br/>openssl rand -base64 32"]:::tech
-    B --> C["3. Netlify → Site configuration →<br/>Environment variables"]:::tech
+    A3 --> C["2. Netlify → Site configuration →<br/>Environment variables"]:::tech
 
     subgraph Env["Required env vars — Production context"]
-        C1["BOOKING_LINK_SECRET — NEW<br/>signs guest Manage-booking links"]:::tech
+        C0["RAYZA_CONNECT_ENABLED=true, RAYZA_API_KEY<br/>(off = nothing sold online)"]:::tech
+        C1["BOOKING_LINK_SECRET<br/>signs guest Manage-booking links"]:::tech
         C2["NEXT_PUBLIC_APP_URL = https://www.reliefhotelsandsuites.com"]:::tech
         C3["SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY"]:::tech
         C4["PAYSTACK_SECRET_KEY, NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY"]:::tech
         C5["RESEND_API_KEY + email FROM / reply-to vars"]:::tech
         C6["STAFF_AUTH_ENABLED=true, STAFF_SESSION_SECRET"]:::tech
-        C7["MONIEPOINT_* for POS / transfer"]:::tech
+        C7["CRON_SECRET for the scheduled functions"]:::tech
         C8["DEMO_MODE must NOT be true"]:::warn
     end
-    C --> C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8
+    C --> C0 & C1 & C2 & C3 & C4 & C5 & C6 & C7 & C8
 
     C1 --> W["⚠ Never change BOOKING_LINK_SECRET casually:<br/>every emailed manage link stops working"]:::warn
 
-    C8 --> D["4. Webhooks point at production"]:::tech
+    C8 --> D["3. Webhooks point at production"]:::tech
     D --> D1["Paystack: /api/paystack/webhook"]:::tech
     D --> D2["Moniepoint: /api/moniepoint/webhook"]:::tech
 
-    D1 & D2 --> E["5. Merge PR #43 → Netlify builds and deploys"]:::tech
-    E --> F["6. Verify"]:::tech
-    F --> F1["GET /api/health: storage supabase,<br/>paystackConfigured true, emailConfigured true"]:::system
-    F --> F2["Manager saves /staff/settings/rates once;<br/>confirm guest limits 2 / 2 / 3 / 4"]:::system
-    F --> F3["Test booking: quote shows, reservation saves,<br/>email has Manage link, link opens"]:::system
+    D1 & D2 --> E["4. Merge → Netlify builds and deploys"]:::tech
+    E --> F["5. Verify"]:::tech
+    F --> F1["Manager links room types at /staff/rayza"]:::system
+    F --> F2["GET /api/health: storage supabase,<br/>RAYZA ok, email + Paystack configured"]:::system
+    F --> F3["Test booking: price matches RAYZA,<br/>paid booking appears in RAYZA, emails arrive"]:::system
     F1 & F2 & F3 --> G["Live"]:::good
-    F3 -->|"reservation fails with 500"| X["Check Netlify function logs;<br/>was migration 016 applied?"]:::warn
+    F3 -->|"rooms say 'call or WhatsApp'"| X["RAYZA off, unreachable,<br/>or room types not linked"]:::warn

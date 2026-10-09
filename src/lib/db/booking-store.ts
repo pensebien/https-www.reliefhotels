@@ -239,6 +239,27 @@ export async function dbReserveRoom(
   return row ? mapReservation(row) : null;
 }
 
+/**
+ * reserve_room_capped() (migration 025): insert only if the active unpaid
+ * holds plus this booking fit in `capacity` (RAYZA's free count). Null when full.
+ */
+export async function dbReserveRoomCapped(
+  data: NewReservation,
+  capacity: number,
+): Promise<ReservationRecord | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) throw new Error("Supabase not configured");
+
+  const { data: rows, error } = await supabase.rpc("reserve_room_capped", {
+    p_reservation: newReservationRow(data),
+    p_capacity: capacity,
+  });
+
+  if (error) throw new Error(error.message);
+  const row = (rows as ReservationRow[] | null)?.[0];
+  return row ? mapReservation(row) : null;
+}
+
 export async function dbCountCouponRedemptions(code: string): Promise<number> {
   const supabase = getSupabaseAdmin();
   if (!supabase) throw new Error("Supabase not configured");

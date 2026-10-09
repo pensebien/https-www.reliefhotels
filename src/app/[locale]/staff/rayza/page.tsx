@@ -1,4 +1,4 @@
-import { OpsBoard } from "@/features/staff-ops/components/ops-board";
+import { RayzaPage } from "@/features/staff-rayza/components/rayza-page";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -10,16 +10,15 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "staffOps" });
+  const t = await getTranslations({ locale, namespace: "staffRayza" });
 
   return {
     title: t("metaTitle"),
-    description: t("subtitle"),
     robots: { index: false, follow: false },
   };
 }
 
-export default async function StaffOpsPage({
+export default async function StaffRayzaPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -29,7 +28,7 @@ export default async function StaffOpsPage({
 
   return (
     <Suspense fallback={null}>
-      <OpsBoard />
+      <RayzaPage />
     </Suspense>
   );
 }

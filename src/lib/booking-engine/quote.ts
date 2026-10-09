@@ -1,23 +1,14 @@
 /**
  * Server-side stay quote — the single source of truth for what a guest pays.
- * Clients may display a quote, but reservation and payment routes recompute
- * it from stored dates, never from client-sent nights or amounts.
+ * The price is RAYZA's tax-inclusive nightly rate for the dates; clients may
+ * display a quote, but reservation and payment routes recompute it, never
+ * trusting client-sent nights or amounts.
  */
 
-import {
-  addDaysToDateString,
-  nightsBetween,
-  parseDateString,
-} from "@/lib/booking-search";
-import type {
-  AvailabilityRestriction,
-  Coupon,
-  Extra,
-  RateConfig,
-  RoomRatePolicy,
-  SeasonalRate,
-  StayRule,
-} from "./rate-config";
+import { nightsBetween } from "@/lib/booking-search";
+import { rayzaOffers, type RayzaRoomCheck } from "@/lib/integrations/rayza-sync";
+import { getBookingSettings } from "./booking-settings";
+import { unpaidHoldsByRoom } from "./holds";
 
 export type QuoteInput = {
   roomId: string;
@@ -25,49 +16,15 @@ export type QuoteInput = {
   checkOut: string;
   guests: number;
   rooms?: number;
-  couponCode?: string;
-  extraIds?: string[];
-  /** Non-cancelled reservations already using couponCode (for maxRedemptions). */
-  couponRedemptions?: number;
-  /**
-   * Staff override: price the stay but skip stay rules (capacity, min/max
-   * stay, closed to arrival). Never exposed to guests; never skips availability.
-   */
-  ignoreRestrictions?: boolean;
-  /** Alternative rate the guest chose (rate plan id); omit for the standard rate. */
-  ratePlanId?: string;
-  /** Rate plan unlocked by the booking link the guest came through; link-only plans need it. */
-  linkRatePlanId?: string;
 };
-
-/** Codes a staff member may deliberately override for a walk-in. */
-export const OVERRIDABLE_RULE_CODES: readonly QuoteErrorCode[] = [
-  "over_capacity",
-  "min_stay",
-  "max_stay",
-  "closed_to_arrival",
-  "closed_to_departure",
-  "closed",
-  "stay_length",
-];
-
-export type NightLine = { date: string; nightlyNgn: number; seasonId?: string };
-
-export type ExtraLine = { id: string; label: string; totalNgn: number };
 
 export type QuoteErrorCode =
   | "unknown_room"
   | "invalid_dates"
   | "over_capacity"
-  | "min_stay"
-  | "max_stay"
-  | "closed_to_arrival"
-  | "closed_to_departure"
   | "closed"
-  | "stay_length"
-  | "invalid_coupon"
-  | "invalid_rate_plan"
-  | "unknown_extra";
+  | "sold_out"
+  | "rayza_unavailable";
 
 export type StayQuote = {
   ok: true;
@@ -77,21 +34,18 @@ export type StayQuote = {
   nights: number;
   rooms: number;
   guests: number;
-  perNight: NightLine[];
-  roomSubtotalNgn: number;
-  longStayDiscountNgn: number;
-  couponDiscountNgn: number;
-  couponCode?: string;
-  extras: ExtraLine[];
-  extrasTotalNgn: number;
+  nightlyNgn: number;
   totalNgn: number;
   depositNgn: number;
   depositPct: number;
-  /** The rate plan priced, if not the standard rate. */
-  ratePlan?: { id: string; label: string; refundable: boolean };
+  /** Rooms RAYZA still has free for these dates (before this booking). */
+  free: number;
 };
 
 export type QuoteError = { ok: false; code: QuoteErrorCode; message: string };
+
+export const RAYZA_UNAVAILABLE_MESSAGE =
+  "Live availability is temporarily unavailable. Please call or WhatsApp us to book.";
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -99,278 +53,56 @@ function fail(code: QuoteErrorCode, message: string): QuoteError {
   return { ok: false, code, message };
 }
 
-function weekdayOf(date: string): number {
-  return parseDateString(date).getDay();
-}
-
-function seasonAppliesTo(season: SeasonalRate, roomId: string, date: string) {
-  if (season.roomIds && !season.roomIds.includes(roomId)) return false;
-  if (season.weekdays?.length && !season.weekdays.includes(weekdayOf(date))) return false;
-  return date >= season.from && date < season.to;
-}
-
-function restrictionHits(r: AvailabilityRestriction, roomId: string, date: string): boolean {
-  if (r.roomIds && !r.roomIds.includes(roomId)) return false;
-  if (r.weekdays?.length && !r.weekdays.includes(weekdayOf(date))) return false;
-  return date >= r.from && date < r.to;
-}
-
-/** Stay-length rules for an arrival date; the strictest minimum and maximum win. */
-function stayRulesFor(config: RateConfig, roomId: string, checkIn: string): StayRule[] {
-  return config.stayRules.filter(
-    (rule) =>
-      (!rule.roomIds || rule.roomIds.includes(roomId)) &&
-      (!rule.from || checkIn >= rule.from) &&
-      (!rule.to || checkIn < rule.to) &&
-      (!rule.checkInWeekdays?.length || rule.checkInWeekdays.includes(weekdayOf(checkIn))),
-  );
-}
-
-/** Later seasons in the list win, so owners can layer a short event over a long season. */
-function seasonFor(config: RateConfig, roomId: string, date: string) {
-  let match: SeasonalRate | undefined;
-  for (const season of config.seasons) {
-    if (seasonAppliesTo(season, roomId, date)) match = season;
-  }
-  return match;
-}
-
-function nightlyRate(
-  policy: RoomRatePolicy,
-  season: SeasonalRate | undefined,
-  date: string,
-): number {
-  const day = parseDateString(date).getDay();
-  const weekend = day === 5 || day === 6;
-  let rate = season?.nightlyNgn ?? policy.baseNightlyNgn;
-  if (weekend) rate += policy.weekendUpliftNgn;
-  if (season?.adjustPct) rate = rate * (1 + season.adjustPct / 100);
-  return Math.round(rate);
-}
-
-/** One night of one room type as the engine sees it: price and the rules on that date. */
-export type DayRate = {
-  nightlyNgn: number;
-  seasonLabel?: string;
-  closed: boolean;
-  noArrival: boolean;
-  noDeparture: boolean;
-  /** Strictest minimum stay for arrivals that day (stay rules and season). */
-  minNights?: number;
-};
-
-export function dayRate(config: RateConfig, roomId: string, date: string): DayRate | null {
-  const policy = config.rooms.find((r) => r.roomId === roomId);
-  if (!policy) return null;
-  const season = seasonFor(config, roomId, date);
-  const hits = config.restrictions.filter((r) => restrictionHits(r, roomId, date));
-  const mins = [policy.minNights, season?.minNights, ...stayRulesFor(config, roomId, date).map((r) => r.minNights)].filter(
-    (n): n is number => typeof n === "number",
-  );
-  return {
-    nightlyNgn: nightlyRate(policy, season, date),
-    seasonLabel: season?.label,
-    closed: hits.some((r) => r.mode === "closed"),
-    noArrival: Boolean(season?.closedToArrival) || hits.some((r) => r.mode === "no_arrival"),
-    noDeparture: hits.some((r) => r.mode === "no_departure"),
-    minNights: mins.length ? Math.max(...mins) : undefined,
-  };
-}
-
-function findCoupon(config: RateConfig, code: string | undefined) {
-  if (!code) return undefined;
-  const wanted = code.trim().toUpperCase();
-  return config.coupons.find((c) => c.code.toUpperCase() === wanted);
-}
-
-function couponValid(
-  coupon: Coupon,
-  roomId: string,
-  checkIn: string,
-  nights: number,
-  redemptions: number,
-): boolean {
-  if (coupon.active === false) return false;
-  if (coupon.maxRedemptions && redemptions >= coupon.maxRedemptions) return false;
-  if (coupon.roomIds && !coupon.roomIds.includes(roomId)) return false;
-  if (coupon.validFrom && checkIn < coupon.validFrom) return false;
-  if (coupon.validTo && checkIn >= coupon.validTo) return false;
-  if (coupon.minNights && nights < coupon.minNights) return false;
-  return true;
-}
-
-function extraTotal(extra: Extra, nights: number, guests: number, rooms: number): number {
-  switch (extra.pricing) {
-    case "per_stay":
-      return extra.priceNgn;
-    case "per_night":
-      return extra.priceNgn * nights;
-    case "per_guest_night":
-      return extra.priceNgn * nights * guests;
-    case "per_room":
-      return extra.priceNgn * rooms;
-    case "per_room_night":
-      return extra.priceNgn * nights * rooms;
-  }
-}
-
+/** Pure: price one room-type line from RAYZA's offer for the dates. */
 export function quoteStay(
   input: QuoteInput,
-  config: RateConfig,
+  offer: RayzaRoomCheck | undefined,
+  depositPct: number,
 ): StayQuote | QuoteError {
   const units = input.rooms ?? 1;
-  const policy = config.rooms.find((r) => r.roomId === input.roomId);
-  if (!policy) return fail("unknown_room", "Room not found");
-
-  if (
-    !DATE_RE.test(input.checkIn) ||
-    !DATE_RE.test(input.checkOut) ||
-    input.checkOut <= input.checkIn
-  ) {
+  if (!DATE_RE.test(input.checkIn) || !DATE_RE.test(input.checkOut) || input.checkOut <= input.checkIn) {
     return fail("invalid_dates", "Check-out must be after check-in");
   }
-
-  const enforce = !input.ignoreRestrictions;
-
-  if (enforce && input.guests > policy.maxGuestsPerUnit * units) {
-    return fail(
-      "over_capacity",
-      `This room sleeps up to ${policy.maxGuestsPerUnit} guests per room`,
-    );
+  if (!offer) return fail("unknown_room", "This room can't be booked online. Please contact the hotel.");
+  if (offer.reason) return fail("closed", offer.reason);
+  if (offer.free < units) {
+    return fail("sold_out", "This room is not available for the selected dates. Please choose different dates.");
   }
-
+  if (Math.ceil(input.guests / units) > offer.maxOccupancy) {
+    return fail("over_capacity", `This room sleeps up to ${offer.maxOccupancy} guests per room`);
+  }
   const nights = nightsBetween(input.checkIn, input.checkOut);
-  const coupon = findCoupon(config, input.couponCode);
-  if (input.couponCode && (!coupon || !couponValid(coupon, policy.roomId, input.checkIn, nights, input.couponRedemptions ?? 0))) {
-    return fail("invalid_coupon", "This promo code is not valid for your stay");
-  }
-
-  const plan = input.ratePlanId
-    ? config.ratePlans.find((p) => p.id === input.ratePlanId)
-    : undefined;
-  if (
-    input.ratePlanId &&
-    (!plan ||
-      plan.active === false ||
-      (plan.roomIds && !plan.roomIds.includes(policy.roomId)) ||
-      (plan.linkOnly && plan.id !== input.linkRatePlanId))
-  ) {
-    return fail("invalid_rate_plan", "That rate isn't available for this room");
-  }
-
-  const arrivalSeason = seasonFor(config, policy.roomId, input.checkIn);
-  if (enforce && arrivalSeason?.closedToArrival) {
-    return fail("closed_to_arrival", `Arrivals are closed on ${input.checkIn}`);
-  }
-
-  if (enforce) {
-    const stayDates = Array.from({ length: nights }, (_, i) => addDaysToDateString(input.checkIn, i));
-    for (const r of config.restrictions) {
-      if (r.mode === "no_arrival" && restrictionHits(r, policy.roomId, input.checkIn)) {
-        return fail("closed_to_arrival", `Arrivals aren't possible on ${input.checkIn} (${r.label})`);
-      }
-      if (r.mode === "no_departure" && restrictionHits(r, policy.roomId, input.checkOut)) {
-        return fail("closed_to_departure", `Departures aren't possible on ${input.checkOut} (${r.label})`);
-      }
-      const closedNight = r.mode === "closed" && stayDates.find((d) => restrictionHits(r, policy.roomId, d));
-      if (closedNight) {
-        return fail("closed", `This room can't be booked on ${closedNight} (${r.label})`);
-      }
-    }
-  }
-
-  const rules = stayRulesFor(config, policy.roomId, input.checkIn);
-  const minNights = Math.max(
-    policy.minNights,
-    arrivalSeason?.minNights ?? 1,
-    ...rules.map((r) => r.minNights),
-  );
-  const maxNights = Math.min(
-    policy.maxNights,
-    ...rules.map((r) => r.maxNights ?? Number.POSITIVE_INFINITY),
-  );
-  if (enforce && nights < minNights && !coupon?.bypassMinStay) {
-    return fail("min_stay", `Minimum stay for these dates is ${minNights} nights`);
-  }
-  if (enforce && nights > maxNights) {
-    return fail("max_stay", `Maximum stay for these dates is ${maxNights} nights`);
-  }
-  if (enforce && rules.some((r) => r.wholeWeeks) && nights % 7 !== 0 && !coupon?.bypassMinStay) {
-    return fail("stay_length", "Stays starting on this day are booked in whole weeks (7, 14, 21 nights…)");
-  }
-
-  const perNight: NightLine[] = [];
-  for (let i = 0; i < nights; i++) {
-    const date = addDaysToDateString(input.checkIn, i);
-    const season = seasonFor(config, policy.roomId, date);
-    const base = nightlyRate(policy, season, date);
-    perNight.push({
-      date,
-      nightlyNgn: plan ? Math.round(base * (1 + plan.adjustPct / 100)) : base,
-      seasonId: season?.id,
-    });
-  }
-
-  const roomSubtotalNgn =
-    perNight.reduce((sum, n) => sum + n.nightlyNgn, 0) * units;
-
-  const longStayPct = config.longStay
-    .filter((d) => nights >= d.minNights)
-    .reduce((best, d) => Math.max(best, d.pct), 0);
-  const longStayDiscountNgn = Math.round((roomSubtotalNgn * longStayPct) / 100);
-
-  const afterLongStay = roomSubtotalNgn - longStayDiscountNgn;
-
-  const extras: ExtraLine[] = [];
-  const included = config.extras
-    .filter((e) => e.included && e.active !== false && (!e.roomIds || e.roomIds.includes(policy.roomId)))
-    .map((e) => e.id);
-  for (const id of new Set([...included, ...(input.extraIds ?? [])])) {
-    const extra = config.extras.find((e) => e.id === id);
-    if (
-      !extra ||
-      extra.active === false ||
-      (extra.roomIds && !extra.roomIds.includes(policy.roomId))
-    ) {
-      return fail("unknown_extra", "One of the selected extras is unavailable");
-    }
-    extras.push({
-      id: extra.id,
-      label: extra.label,
-      totalNgn: extraTotal(extra, nights, input.guests, units),
-    });
-  }
-  const extrasTotalNgn = extras.reduce((sum, e) => sum + e.totalNgn, 0);
-
-  // The coupon comes off rooms (default), extras, or both; never below zero.
-  const appliesTo = coupon?.appliesTo ?? "rooms";
-  const discountBase =
-    (appliesTo === "extras" ? 0 : afterLongStay) + (appliesTo === "rooms" ? 0 : extrasTotalNgn);
-  const couponDiscountNgn = coupon
-    ? Math.min(discountBase, Math.round(coupon.amountNgn ?? (discountBase * (coupon.pct ?? 0)) / 100))
-    : 0;
-
-  const totalNgn = afterLongStay - couponDiscountNgn + extrasTotalNgn;
-  const depositPct = coupon?.skipDeposit ? 0 : (plan?.depositPct ?? config.depositPct);
-
+  const totalNgn = Math.round(offer.nightlyNgn * nights * units);
   return {
     ok: true,
-    roomId: policy.roomId,
+    roomId: input.roomId,
     checkIn: input.checkIn,
     checkOut: input.checkOut,
     nights,
     rooms: units,
     guests: input.guests,
-    perNight,
-    roomSubtotalNgn,
-    longStayDiscountNgn,
-    couponDiscountNgn,
-    couponCode: coupon?.code,
-    extras,
-    extrasTotalNgn,
+    nightlyNgn: offer.nightlyNgn,
     totalNgn,
     depositNgn: Math.round((totalNgn * depositPct) / 100),
     depositPct,
-    ratePlan: plan ? { id: plan.id, label: plan.label, refundable: plan.refundable } : undefined,
+    free: offer.free,
   };
+}
+
+/**
+ * Quote against RAYZA now, less the rooms other guests are holding while they
+ * pay. `fresh` bypasses the short catalogue cache.
+ */
+export async function quoteStayLive(input: QuoteInput, fresh = false): Promise<StayQuote | QuoteError> {
+  if (!DATE_RE.test(input.checkIn) || !DATE_RE.test(input.checkOut) || input.checkOut <= input.checkIn) {
+    return fail("invalid_dates", "Check-out must be after check-in");
+  }
+  const [offers, holds] = await Promise.all([
+    rayzaOffers(input.checkIn, input.checkOut, nightsBetween(input.checkIn, input.checkOut), fresh),
+    unpaidHoldsByRoom(input.checkIn, input.checkOut),
+  ]);
+  if (!offers.ok) return fail("rayza_unavailable", RAYZA_UNAVAILABLE_MESSAGE);
+  const offer = offers.checks[input.roomId];
+  const free = offer ? { ...offer, free: Math.max(0, offer.free - (holds[input.roomId] ?? 0)) } : undefined;
+  return quoteStay(input, free, getBookingSettings().depositPct);
 }

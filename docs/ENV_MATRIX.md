@@ -77,9 +77,11 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `TERMII_API_KEY` | Live |
 | `MANAGER_PHONE` | Operations manager |
 | `DEMO_DASHBOARD_KEY` | Keep for stakeholder demo; rotate quarterly |
-| `MONIEPOINT_*` | Front-desk walk-in (cash / terminal / transfer) — see `docs/deploy/MONIEPOINT.md` |
-| `PAYSTACK_TERMINAL_ID` | Front-desk Paystack Terminal push — see `docs/deploy/STAFF.md` |
-| `CASHIER_ENABLED` | Staff cashier module (`true`/`false`) |
+| `RAYZA_CONNECT_ENABLED` | `true` — RAYZA is the source of availability and prices; with it off nothing is sold online |
+| `RAYZA_API_KEY` | RAYZA Connect key (server only) |
+| `RAYZA_BASE_URL` | Optional; default `https://cloud-relay-nu.vercel.app` |
+| `CRON_SECRET` | Bearer secret for `/api/cron/*` (RAYZA retry every 15 min, outbox, daily) |
+| `MONIEPOINT_*` | Moniepoint webhook — see `docs/deploy/MONIEPOINT.md` |
 | `DATABASE_URL` | Supabase connection string (server only) |
 | `WHATSAPP_*` | Provider keys when `NOTIFY_CHANNEL=both` |
 
@@ -109,13 +111,19 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `WHATSAPP_PROVIDER` | WhatsApp | `termii` or `meta` |
 | `META_WHATSAPP_TOKEN` | WhatsApp | If provider=meta |
 | `META_WHATSAPP_PHONE_ID` | WhatsApp | If provider=meta |
-| `MONIEPOINT_CLIENT_ID` | Front-desk terminal | Production walk-in |
-| `MONIEPOINT_CLIENT_SECRET` | Front-desk terminal | Production (server only) |
-| `MONIEPOINT_TERMINAL_SERIAL` | Front-desk terminal | POS serial from Moniepoint |
-| `MONIEPOINT_BASE_URL` | Front-desk terminal | Optional; default `https://channel.moniepoint.com` |
-| `MONIEPOINT_TRANSFER_ACCOUNT_NAME` | Front-desk transfer | Shown in walk-in form |
-| `MONIEPOINT_TRANSFER_ACCOUNT_NUMBER` | Front-desk transfer | Shown in walk-in form |
-| `MONIEPOINT_TRANSFER_BANK_NAME` | Front-desk transfer | Optional; default `Moniepoint` |
+| `RAYZA_CONNECT_ENABLED` | Booking | All that sell rooms (`true`) |
+| `RAYZA_API_KEY` | Booking | All that sell rooms (server only) |
+| `RAYZA_BASE_URL` | Booking | Optional |
+| `CRON_SECRET` | Scheduled jobs | Production |
+| `BOOKING_DEPOSIT_PCT` | Booking | Optional; share paid online, default `20` |
+| `BOOKING_HOLD_MINUTES` | Booking | Optional; unpaid hold, default `60` |
+| `BOOKING_GUEST_CANCEL` | Booking | Optional; `false` turns off online cancelling |
+| `BOOKING_FREE_CANCEL_HOURS` | Booking | Optional; free cancellation window, default `48` |
+| `BOOKING_CANCEL_REFUND_PCT` | Booking | Optional; refund inside the window, default `100` |
+| `GA_MEASUREMENT_ID` / `META_PIXEL_ID` | Analytics | Optional; shown behind the consent banner |
+| `MONIEPOINT_CLIENT_ID` | Moniepoint | Production |
+| `MONIEPOINT_CLIENT_SECRET` | Moniepoint | Production (server only) |
+| `MONIEPOINT_BASE_URL` | Moniepoint | Optional; default `https://channel.moniepoint.com` |
 
 ---
 

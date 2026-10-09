@@ -1,158 +1,121 @@
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
-import { after, before, describe, it, mock } from "node:test";
+import { after, before, beforeEach, describe, it } from "node:test";
+import { fakeRayza, installFakeRayza, resetFakeRayza, uninstallFakeRayza } from "../helpers/fake-rayza";
 
-function setTestEnv() {
-  process.env.DEMO_MODE = "true";
-  process.env.DEMO_DASHBOARD_KEY = "test-dashboard-key";
-  process.env.NOTIFY_CHANNEL = "console";
-  process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3002";
-  delete process.env.SUPABASE_URL;
-  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
-  delete process.env.MONIEPOINT_CLIENT_ID;
-  delete process.env.MONIEPOINT_CLIENT_SECRET;
-  delete process.env.MONIEPOINT_TERMINAL_SERIAL;
-  delete process.env.PAYSTACK_SECRET_KEY;
-  delete process.env.PAYSTACK_TERMINAL_ID;
-}
+/**
+ * handlePaymentConfirmed is the one path every successful payment takes:
+ * the booking goes to RAYZA, the guest gets a receipt, and when RAYZA refuses
+ * a paid booking the guest and the front desk are told so a person can act.
+ */
 
 let staySeq = 0;
 function stayDates() {
-  // Each call gets its own dates: walk-ins refuse overbooking, so bookings
-  // sharing dates (same second, or runs 200 s apart) used to fill the rooms.
   const offset = (Math.floor(Date.now() / 1000) % 4000) * 3 + staySeq++ * 3;
   const base = new Date(Date.UTC(2038, 6, 1 + offset));
-  const checkIn = base.toISOString().slice(0, 10);
   const out = new Date(base);
   out.setUTCDate(out.getUTCDate() + 2);
-  const checkOut = out.toISOString().slice(0, 10);
-  return { checkIn, checkOut };
+  return { checkIn: base.toISOString().slice(0, 10), checkOut: out.toISOString().slice(0, 10) };
 }
 
-/** Finds the Resend call (if any) whose body's subject mentions "Payment received". */
-function findPaymentReceiptCall(fetchMock: ReturnType<typeof mock.method>) {
-  for (const call of fetchMock.mock.calls) {
-    const [url, init] = call.arguments as [string, RequestInit];
-    if (url !== "https://api.resend.com/emails") continue;
-    const body = JSON.parse(init.body as string);
-    if (typeof body.subject === "string" && body.subject.includes("Payment received")) {
-      return body;
-    }
-  }
-  return null;
+const sentEmails: { subject: string; to: string[] }[] = [];
+
+async function paidBooking() {
+  const { addPayment, addReservation, updateReservationById } = await import("@/lib/demo-store");
+  const reservation = await addReservation({
+    firstName: "Paid",
+    lastName: "Guest",
+    email: `paid-${Date.now()}@example.com`,
+    phone: "+2348012345678",
+    stayPreference: "t",
+    message: "t",
+    itemType: "room",
+    roomId: "presidential-suite",
+    ...stayDates(),
+    nights: 2,
+    guests: 2,
+    quotedTotalNgn: 400_000,
+    quotedDepositNgn: 80_000,
+    emailSent: false,
+    status: "pending",
+  });
+  const payment = await addPayment({
+    reference: `RH-TEST-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+    reservationId: reservation.id,
+    email: reservation.email,
+    amountKobo: 8_000_000,
+    currency: "NGN",
+    status: "success",
+    itemType: "room",
+    itemId: "presidential-suite",
+    itemLabel: "presidential-suite — deposit",
+  });
+  const confirmed = (await updateReservationById(reservation.id, { status: "confirmed" }))!;
+  return { reservation: confirmed, payment };
 }
 
-describe("Cash payments now send a guest receipt + manager alert (previously only online checkout did)", () => {
-  const originalKey = process.env.RESEND_API_KEY;
-
-  before(() => {
-    setTestEnv();
+describe("handlePaymentConfirmed", () => {
+  before(async () => {
+    process.env.DEMO_MODE = "true";
+    process.env.NOTIFY_CHANNEL = "console";
+    process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3002";
     process.env.RESEND_API_KEY = "re_test_123";
-  });
-
-  after(() => {
-    if (originalKey === undefined) delete process.env.RESEND_API_KEY;
-    else process.env.RESEND_API_KEY = originalKey;
-  });
-
-  it("walk-in Cash reservation sends the guest a payment receipt", async () => {
-    const fetchMock = mock.method(globalThis, "fetch", async (url: string) => {
-      if (url === "https://api.resend.com/emails") {
-        return new Response(JSON.stringify({ id: "email_1" }), { status: 200 });
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    await installFakeRayza();
+    // Capture Resend calls; everything else goes to the fake RAYZA.
+    const toRayza = globalThis.fetch;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) === "https://api.resend.com/emails") {
+        const body = JSON.parse(String(init?.body)) as { subject: string; to: string[] };
+        sentEmails.push({ subject: body.subject, to: body.to });
+        return new Response(JSON.stringify({ id: "email" }), { status: 200 });
       }
-      throw new Error(`Unexpected fetch to ${url}`);
-    });
-
-    const { POST } = await import("@/app/api/demo/reservations/route");
-    const { checkIn, checkOut } = stayDates();
-    const email = `walkin-receipt-${Date.now()}@example.com`;
-
-    const res = await POST(
-      new Request(
-        "http://localhost/api/demo/reservations?key=test-dashboard-key",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName: "Receipt",
-            lastName: "Test",
-            email,
-            roomId: "guest-room",
-            checkIn,
-            checkOut,
-            guests: 1,
-            paymentMethod: "cash",
-            status: "confirmed",
-          }),
-        },
-      ),
-    );
-    assert.equal(res.status, 200);
-
-    const receipt = findPaymentReceiptCall(fetchMock);
-    assert.ok(receipt, "expected a Resend call with a payment-received subject");
-    assert.deepEqual(receipt.to, [email]);
-
-    fetchMock.mock.restore();
+      return toRayza(input, init);
+    }) as typeof fetch;
   });
 
-  it("cashier Cash settle sends the guest a payment receipt", async () => {
-    const fetchMock = mock.method(globalThis, "fetch", async (url: string) => {
-      if (url === "https://api.resend.com/emails") {
-        return new Response(JSON.stringify({ id: "email_2" }), { status: 200 });
-      }
-      throw new Error(`Unexpected fetch to ${url}`);
-    });
+  beforeEach(async () => {
+    sentEmails.length = 0;
+    await resetFakeRayza();
+  });
 
-    const { POST: createReservation } = await import(
-      "@/app/api/demo/reservations/route"
-    );
-    const { checkIn, checkOut } = stayDates();
-    const email = `cashier-receipt-${Date.now()}@example.com`;
-    const createRes = await createReservation(
-      new Request(
-        "http://localhost/api/demo/reservations?key=test-dashboard-key",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            firstName: "Cashier",
-            lastName: "Receipt",
-            email,
-            roomId: "guest-room",
-            checkIn,
-            checkOut,
-            guests: 1,
-          }),
-        },
-      ),
-    );
-    const { id: reservationId } = (await createRes.json()) as { id: string };
+  after(async () => {
+    delete process.env.RESEND_API_KEY;
+    await uninstallFakeRayza();
+  });
 
-    const { POST: settlePost } = await import(
-      "@/app/api/staff/cashier/settle/route"
-    );
-    const settleRes = await settlePost(
-      new Request(
-        "http://localhost/api/staff/cashier/settle?key=test-dashboard-key",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reservationId,
-            amountNgn: 10000,
-            paymentMethod: "cash",
-            clientMutationId: randomUUID(),
-          }),
-        },
-      ),
-    );
-    assert.equal(settleRes.status, 200);
+  it("sends the paid booking to RAYZA with what was paid, and a receipt to the guest", async () => {
+    const { reservation, payment } = await paidBooking();
+    const { handlePaymentConfirmed } = await import("@/lib/payment-confirmed");
+    await handlePaymentConfirmed(payment, reservation);
 
-    const receipt = findPaymentReceiptCall(fetchMock);
-    assert.ok(receipt, "expected a Resend call with a payment-received subject");
-    assert.deepEqual(receipt.to, [email]);
+    const [pushed] = fakeRayza.active();
+    assert.equal(pushed.body.room_identifier, "presidential-suite");
+    assert.equal(pushed.body.deposit_paid, 80_000);
+    assert.ok(sentEmails.some((e) => e.subject.includes("Payment received") && e.to.includes(reservation.email)));
+    assert.ok(!sentEmails.some((e) => e.subject.includes("ACTION NEEDED")));
+  });
 
-    fetchMock.mock.restore();
+  it("when RAYZA refuses a paid booking, tells the guest and the front desk", async () => {
+    fakeRayza.forceConflict = true;
+    const { reservation, payment } = await paidBooking();
+    const { handlePaymentConfirmed } = await import("@/lib/payment-confirmed");
+    await handlePaymentConfirmed(payment, reservation);
+
+    assert.equal(fakeRayza.active().length, 0);
+    assert.ok(sentEmails.some((e) => e.subject.includes("ACTION NEEDED")), "front desk alerted");
+    assert.ok(sentEmails.some((e) => e.subject.includes("Your payment is received") && e.to.includes(reservation.email)));
+
+    const { loadOpsBoard } = await import("@/lib/staff-ops");
+    const row = (await loadOpsBoard()).find((r) => r.id === reservation.id);
+    assert.equal(row?.needsAttention, true, "flagged in the ops view");
+  });
+
+  it("an unreachable RAYZA is left to the scheduled retry, not escalated", async () => {
+    fakeRayza.down = true;
+    const { reservation, payment } = await paidBooking();
+    const { handlePaymentConfirmed } = await import("@/lib/payment-confirmed");
+    await handlePaymentConfirmed(payment, reservation);
+    assert.ok(!sentEmails.some((e) => e.subject.includes("ACTION NEEDED")));
   });
 });

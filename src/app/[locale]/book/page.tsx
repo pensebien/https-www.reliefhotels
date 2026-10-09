@@ -1,9 +1,8 @@
 import { ConciergeContactPrompt } from "@/components/concierge-contact-prompt";
 import { ReservationForm } from "@/features/reservations";
 import { rooms } from "@/content/site";
-import { linkCoversRoom, resolveBookingLink } from "@/lib/booking-engine/booking-links";
-import { getRateConfig } from "@/lib/booking-engine/rate-config";
-import { getRoomAvailability } from "@/lib/room-availability";
+import { RAYZA_UNAVAILABLE_MESSAGE } from "@/lib/booking-engine/quote";
+import { rayzaOffers } from "@/lib/integrations/rayza-sync";
 import { Link, redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -22,7 +21,6 @@ type BookSearchParams = {
   checkOut?: string;
   guests?: string;
   rooms?: string;
-  link?: string;
 };
 
 export default async function BookPage({
@@ -92,39 +90,12 @@ export default async function BookPage({
     Math.min(12, Math.max(1, Number(sp.guests ?? "2") || 2));
 
   const stayRooms = bookingQuery?.rooms ?? 1;
-  const [rateConfig, linkFound] = await Promise.all([getRateConfig(), resolveBookingLink(sp.link)]);
-  const link = linkFound && linkCoversRoom(linkFound, room.id) ? linkFound : null;
-  const policy = rateConfig.rooms.find((r) => r.roomId === room.id);
-  const extras = rateConfig.extras
-    .filter((e) => e.active !== false && (!e.roomIds || e.roomIds.includes(room.id)))
-    .map(({ id, label, priceNgn, pricing, included }) => ({ id, label, priceNgn, pricing, included }));
-  const ratePlans = rateConfig.ratePlans
-    .filter((p) => p.active !== false && (!p.roomIds || p.roomIds.includes(room.id)))
-    .filter((p) => !p.linkOnly || p.id === link?.ratePlanId)
-    .map(({ id, label, description, adjustPct, refundable }) => ({ id, label, description, adjustPct, refundable }));
+  // RAYZA prices the room and says how many guests it sleeps; without it the
+  // room can't be sold online.
+  const offers = await rayzaOffers(stayCheckIn, stayCheckOut, nights);
+  const offer = offers.ok ? offers.checks[room.id] : undefined;
 
   const tr = await getTranslations("rooms");
-
-  // Other room types still free for these dates, for "Add another room type".
-  const availability = await getRoomAvailability({
-    checkIn: stayCheckIn,
-    checkOut: stayCheckOut,
-    rooms: 1,
-    guests: 1,
-  }).catch(() => null);
-  const addableRooms = (availability?.available ?? [])
-    .filter((a) => a.id !== room.id && (!link || linkCoversRoom(link, a.id)))
-    .map((a) => {
-      const other = rooms.find((r) => r.id === a.id)!;
-      return {
-        id: a.id,
-        label: tr(`${other.nameKey.split(".")[1]}.name`),
-        priceFrom: a.priceFrom,
-        availableUnits: a.availableUnits,
-        maxGuestsPerUnit:
-          rateConfig.rooms.find((r) => r.roomId === a.id)?.maxGuestsPerUnit ?? 2,
-      };
-    });
   const labelKey = room.nameKey.split(".")[1];
   const itemLabel = tr(`${labelKey}.name`);
 
@@ -142,26 +113,24 @@ export default async function BookPage({
       </section>
 
       <section className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
-        <ReservationForm
-          itemId={room.id}
-          itemLabel={itemLabel}
-          checkIn={stayCheckIn}
-          checkOut={stayCheckOut}
-          nights={nights}
-          guests={guests}
-          rooms={stayRooms}
-          maxGuestsPerUnit={policy?.maxGuestsPerUnit}
-          extras={extras}
-          addableRooms={addableRooms}
-          ratePlans={ratePlans}
-          bookingMode={rateConfig.engine.mode}
-          arrivalTimeField={rateConfig.engine.arrivalTimeField}
-          customFields={rateConfig.engine.customFields}
-          priceFrom={room.priceFrom}
-          initialCouponCode={link?.couponCode}
-          initialRatePlanId={ratePlans.some((p) => p.id === link?.ratePlanId) ? link?.ratePlanId : undefined}
-          bookingLink={link?.slug}
-        />
+        {offer ? (
+          <ReservationForm
+            itemId={room.id}
+            itemLabel={itemLabel}
+            checkIn={stayCheckIn}
+            checkOut={stayCheckOut}
+            nights={nights}
+            guests={guests}
+            rooms={stayRooms}
+            maxGuestsPerUnit={offer.maxOccupancy}
+            priceFrom={offer.nightlyNgn}
+          />
+        ) : (
+          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8" role="status">
+            <h3 className="font-serif text-2xl font-semibold">{itemLabel}</h3>
+            <p className="mt-2 text-muted">{RAYZA_UNAVAILABLE_MESSAGE}</p>
+          </div>
+        )}
         <ConciergeContactPrompt />
       </section>
     </div>

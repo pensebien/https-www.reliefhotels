@@ -1,29 +1,26 @@
 /**
  * RAYZA HMS sync: which Relief room type is which RAYZA room type, live
- * availability from RAYZA, pushing/cancelling/moving bookings, and the
+ * availability and prices from RAYZA, pushing/cancelling bookings, and the
  * per-reservation sync status staff see and the scheduled job retries.
  *
- * Relief stays the guest-facing booking engine; RAYZA holds the hotel's
- * whole house (front-desk bookings, HMS blocks). A room sells online only
- * when both have it free.
+ * RAYZA is the hotel's source of truth (front desk, F&B, OTA channels, HMS
+ * blocks, rates). The website only sells what RAYZA says is free, at RAYZA's
+ * price, and hands every paid booking back to it.
  */
 
 import { Logger } from "@/lib/logger";
 import { recordOpsError, recordOpsOk } from "@/lib/ops-status";
 import { rooms } from "@/content/site";
+import { roomDisplayName } from "@/lib/room-names";
 import { dataPath } from "@/lib/data-dir";
 import { getSupabaseAdmin, isSupabaseEnabled } from "@/lib/db/client";
 import {
-  findPaymentByReference,
-  listGroupMembers,
   listPaymentsForReservation,
   listReservationsForReport,
   updateReservationById,
   type ReservationRecord,
 } from "@/lib/demo-store";
 import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
-import { getRateConfig } from "@/lib/booking-engine/rate-config";
-import { getRoomSetup, saveRoomSetup, unitLabelMap } from "@/lib/room-setup";
 import { readSettingsDoc, writeSettingsDoc } from "@/lib/settings-store";
 import { z } from "zod";
 import {
@@ -34,7 +31,6 @@ import {
   isRayzaEnabled,
   legacyRayzaReference,
   rayzaReferences,
-  updateRayzaBooking,
   type RayzaCatalogue,
 } from "./rayza-connect";
 
@@ -132,7 +128,13 @@ export function clearRayzaCache(): void {
 
 // ─── Availability ────────────────────────────────────────────────────────
 
-export type RayzaRoomCheck = { free: number; maxOccupancy: number; reason?: string };
+export type RayzaRoomCheck = {
+  free: number;
+  maxOccupancy: number;
+  /** RAYZA's tax-inclusive nightly price for one room. */
+  nightlyNgn: number;
+  reason?: string;
+};
 
 /** Per linked Relief room type, what RAYZA can still sell for [checkIn, checkOut). */
 export function rayzaChecksFrom(
@@ -144,62 +146,49 @@ export function rayzaChecksFrom(
   for (const [roomId, typeId] of Object.entries(links)) {
     const type = cat.rooms.find((r) => r.id === typeId);
     if (!type) {
-      checks[roomId] = { free: 0, maxOccupancy: 0, reason: `RAYZA no longer has the room type "${typeId}"` };
-    } else if (type.closedToArrival) {
-      checks[roomId] = { free: 0, maxOccupancy: type.maxOccupancy, reason: "Arrivals are closed on this date" };
+      checks[roomId] = { free: 0, maxOccupancy: 0, nightlyNgn: 0, reason: `RAYZA no longer has the room type "${typeId}"` };
+      continue;
+    }
+    const base = { maxOccupancy: type.maxOccupancy, nightlyNgn: type.priceWithTaxNgn };
+    if (type.closedToArrival) {
+      checks[roomId] = { ...base, free: 0, reason: "Arrivals are closed on this date" };
     } else if (type.closedToDeparture) {
-      checks[roomId] = { free: 0, maxOccupancy: type.maxOccupancy, reason: "Departures are closed on this date" };
+      checks[roomId] = { ...base, free: 0, reason: "Departures are closed on this date" };
     } else if (nights < type.minLos) {
-      checks[roomId] = { free: 0, maxOccupancy: type.maxOccupancy, reason: `Minimum stay is ${type.minLos} nights` };
+      checks[roomId] = { ...base, free: 0, reason: `Minimum stay is ${type.minLos} nights` };
     } else {
-      checks[roomId] = { free: type.availableCount, maxOccupancy: type.maxOccupancy };
+      checks[roomId] = { ...base, free: type.availableCount };
     }
   }
   return checks;
 }
 
+export type RayzaOffers =
+  | { ok: true; checks: Record<string, RayzaRoomCheck> }
+  | { ok: false; reason: "disabled" | "unlinked" | "unreachable"; error?: string };
+
 /**
- * Live RAYZA availability for linked room types, or null when RAYZA is off,
- * nothing is linked, or RAYZA can't be reached — then Relief's own inventory
- * decides alone (RAYZA still re-checks when the booking is pushed).
+ * What RAYZA can sell for [checkIn, checkOut), per linked Relief room type.
+ * Not ok means the website can't sell rooms right now: there is no local
+ * fallback, because guessing is how double bookings happen.
  * `fresh` skips the 30-second cache; the booking write path uses it.
  */
-export async function rayzaAvailability(
+export async function rayzaOffers(
   checkIn: string,
   checkOut: string,
   nights: number,
   fresh = false,
-): Promise<Record<string, RayzaRoomCheck> | null> {
-  if (!isRayzaEnabled()) return null;
+): Promise<RayzaOffers> {
+  if (!isRayzaEnabled()) return { ok: false, reason: "disabled" };
   const links = await getRayzaRoomLinks();
-  if (Object.keys(links).length === 0) return null;
+  if (Object.keys(links).length === 0) return { ok: false, reason: "unlinked" };
   const result = await catalogue({ checkIn, checkOut }, fresh);
   if (!result.ok) {
-    log.warning("RAYZA availability unavailable, using Relief inventory only", { check_in: checkIn, check_out: checkOut, error: result.error });
-    return null;
+    log.warning("RAYZA availability unavailable", { check_in: checkIn, check_out: checkOut, error: result.error });
+    await recordOpsError("rayza", "RAYZA availability unavailable", { error: result.error });
+    return { ok: false, reason: "unreachable", error: result.error };
   }
-  return rayzaChecksFrom(result.catalogue, links, nights);
-}
-
-/** Why RAYZA can't take these rooms (sold out, rules, too many guests), or null. */
-export async function rayzaRejection(
-  lines: { roomId: string; rooms: number; guests: number }[],
-  checkIn: string,
-  checkOut: string,
-  nights: number,
-): Promise<string | null> {
-  const checks = await rayzaAvailability(checkIn, checkOut, nights, true);
-  if (!checks) return null;
-  for (const line of lines) {
-    const check = checks[line.roomId];
-    if (!check) continue;
-    if (check.reason) return check.reason;
-    if (check.free < line.rooms) return "This room is no longer available for these dates. Please change your rooms or dates.";
-    if (Math.ceil(line.guests / Math.max(1, line.rooms)) > check.maxOccupancy) {
-      return `This room sleeps up to ${check.maxOccupancy} guests per room`;
-    }
-  }
-  return null;
+  return { ok: true, checks: rayzaChecksFrom(result.catalogue, links, nights) };
 }
 
 // ─── Sync status ─────────────────────────────────────────────────────────
@@ -307,25 +296,7 @@ export type RayzaSyncResult =
 
 async function paidNgn(record: ReservationRecord): Promise<number> {
   const payments = await listPaymentsForReservation(record.id);
-  const own = payments.filter((p) => p.status === "success").reduce((sum, p) => sum + p.amountKobo / 100, 0);
-  // A group's one payment sits on the lead line; each line counts its own deposit share.
-  if (record.groupId) {
-    const paid = own > 0 || (record.paymentReference && (await findPaymentByReference(record.paymentReference))?.status === "success");
-    return paid ? (record.quotedDepositNgn ?? 0) : 0;
-  }
-  return own;
-}
-
-/** Room numbers to send, one per unit — only ones RAYZA knows for that room type. */
-async function roomNumbersFor(record: ReservationRecord, typeId: string): Promise<(string | undefined)[]> {
-  if (!record.assignedUnits?.length) return [];
-  const [setup, all] = await Promise.all([getRoomSetup(), catalogue()]);
-  const known = new Set(all.ok ? (all.catalogue.rooms.find((r) => r.id === typeId)?.roomNumbers ?? []) : []);
-  const labels = unitLabelMap(setup);
-  return record.assignedUnits.map((unit) => {
-    const label = labels[unit];
-    return label && known.has(label) ? label : undefined;
-  });
+  return payments.filter((p) => p.status === "success").reduce((sum, p) => sum + p.amountKobo / 100, 0);
 }
 
 function bookable(record: ReservationRecord): boolean {
@@ -348,21 +319,17 @@ export async function pushReservationToRayza(record: ReservationRecord): Promise
 
   if ((record.phone?.trim().length ?? 0) < 7) return fail("MISSING_PHONE", "RAYZA needs the guest's phone number");
 
-  const [paid, roomNumbers] = await Promise.all([paidNgn(record), roomNumbersFor(record, typeId)]);
+  // RAYZA assigns the room numbers.
   const bodies = buildBookingBodies(record, {
     roomType: typeId,
-    roomNumbers,
-    paidNgn: paid,
+    roomNumbers: [],
+    paidNgn: await paidNgn(record),
     isTest: process.env.DEMO_MODE === "true",
   });
 
   const refs: string[] = [];
   for (const body of bodies) {
-    let result = await createRayzaBooking(body);
-    // The assigned room was taken on RAYZA's side — let RAYZA pick another of the type.
-    if (!result.ok && result.status === 409 && body.room_number) {
-      result = await createRayzaBooking({ ...body, room_number: undefined });
-    }
+    const result = await createRayzaBooking(body);
     if (!result.ok) return fail(result.code, result.error, refs);
     if (result.reference !== body.booking_reference) {
       log.warning("RAYZA stored a different reference", { reservation_id: record.id, sent: body.booking_reference, stored: result.reference });
@@ -403,37 +370,16 @@ export async function cancelReservationOnRayza(record: ReservationRecord): Promi
   return { ok: true, refs };
 }
 
-/** After staff assign or move rooms: tell RAYZA the room numbers (or push if it never got the booking). */
-export async function updateRoomsOnRayza(record: ReservationRecord): Promise<RayzaSyncResult> {
-  if (!isRayzaEnabled() || !bookable(record) || record.status !== "confirmed") return { ok: true, skipped: true };
-  const previous = (await getSyncRows([record.id])).get(record.id);
-  if (previous?.state !== "pushed") return pushReservationToRayza(record);
-  const typeId = (await getRayzaRoomLinks())[record.roomId!];
-  if (!typeId) return { ok: true, skipped: true };
-  const numbers = await roomNumbersFor(record, typeId);
-  for (const [i, ref] of previous.refs.entries()) {
-    if (!numbers[i]) continue;
-    const result = await updateRayzaBooking(ref, { room_number: numbers[i] });
-    if (!result.ok) {
-      // Not fatal: the booking still holds a room of the right type on RAYZA.
-      log.warning("Room move not applied on RAYZA", { reservation_id: record.id, ref, error: result.error });
-      return { ok: false, code: result.code, error: result.error };
-    }
-  }
-  return { ok: true, refs: previous.refs };
-}
-
 /**
- * For confirmation paths with no staff screen waiting (payments, cashier,
- * walk-ins): push every confirmed line of the booking, log failures.
+ * For confirmation paths with no staff screen waiting (payments): push the
+ * booking and log a failure. The result lets the caller tell the guest and
+ * the manager when RAYZA turned a paid booking down.
  */
-export async function syncConfirmedReservationToRayza(record: ReservationRecord): Promise<void> {
-  if (!isRayzaEnabled()) return;
-  const lines = (await listGroupMembers(record)).filter((m) => m.status === "confirmed");
-  for (const line of lines.length ? lines : [record]) {
-    const result = await pushReservationToRayza(line);
-    if (!result.ok) log.warning("Push failed", { reservation_id: line.id, code: result.code, error: result.error });
-  }
+export async function syncConfirmedReservationToRayza(record: ReservationRecord): Promise<RayzaSyncResult> {
+  if (!isRayzaEnabled() || record.status !== "confirmed") return { ok: true, skipped: true };
+  const result = await pushReservationToRayza(record);
+  if (!result.ok) log.warning("Push failed", { reservation_id: record.id, code: result.code, error: result.error });
+  return result;
 }
 
 /** Cancel every given line on RAYZA, logging failures (they are retried by the scheduled sync). */
@@ -498,55 +444,18 @@ export async function reconcileRayza(options: { retryAll?: boolean } = {}): Prom
   return summary;
 }
 
-// ─── Inventory from RAYZA ────────────────────────────────────────────────
-
-/**
- * Copy RAYZA's room numbers (and so the room count) into Relief's room setup
- * for the linked room types. Unit slots keep their position, so existing room
- * assignments carry over to the new numbers.
- */
-export async function importRayzaRoomNumbers(roomIds: string[]): Promise<{ updated: string[] }> {
-  const [links, all, setup] = await Promise.all([getRayzaRoomLinks(), catalogue(undefined, true), getRoomSetup()]);
-  if (!all.ok) throw new Error(all.error);
-  const updated: string[] = [];
-  const next = setup.rooms.map((room) => {
-    const type = roomIds.includes(room.roomId) && links[room.roomId]
-      ? all.catalogue.rooms.find((t) => t.id === links[room.roomId])
-      : undefined;
-    if (!type) return room;
-    if (type.roomNumbers.length !== type.totalRooms) {
-      throw new Error(
-        `RAYZA lists ${type.totalRooms} ${type.name} rooms but only shows numbers for ${type.roomNumbers.length}. Check the rooms in RAYZA, then try again.`,
-      );
-    }
-    updated.push(room.roomId);
-    return { ...room, inventory: type.roomNumbers.length, unitLabels: type.roomNumbers };
-  });
-  await saveRoomSetup({ rooms: next });
-  return { updated };
-}
-
-export type ReliefRoomSummary = { roomId: string; inventory: number; unitLabels: string[]; maxGuests: number; priceNgn: number };
+// ─── Staff overview ──────────────────────────────────────────────────────
 
 export async function rayzaOverview(): Promise<{
   enabled: boolean;
   links: RayzaRoomLinks;
-  relief: ReliefRoomSummary[];
+  relief: { roomId: string; name: string }[];
   catalogue: RayzaCatalogue | null;
   error?: string;
   recent: RayzaSyncRow[];
 }> {
-  const [links, setup, rates] = await Promise.all([getRayzaRoomLinks(), getRoomSetup(), getRateConfig()]);
-  const relief = setup.rooms.map((room) => {
-    const policy = rates.rooms.find((r) => r.roomId === room.roomId);
-    return {
-      roomId: room.roomId,
-      inventory: room.inventory,
-      unitLabels: room.unitLabels,
-      maxGuests: policy?.maxGuestsPerUnit ?? 2,
-      priceNgn: policy?.baseNightlyNgn ?? 0,
-    };
-  });
+  const links = await getRayzaRoomLinks();
+  const relief = rooms.map((room) => ({ roomId: room.id, name: roomDisplayName(room.id) }));
   if (!isRayzaEnabled()) return { enabled: false, links, relief, catalogue: null, recent: [] };
   const [all, recent] = await Promise.all([catalogue(undefined, true), recentSyncRows()]);
   return all.ok

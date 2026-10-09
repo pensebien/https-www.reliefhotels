@@ -151,12 +151,12 @@ describe("rayza-connect", () => {
     const cat = parseCatalogue(SANDBOX_ROOMS)!;
     const links = { "guest-room": "standard-deluxe", "executive-room": "emperical-suites", "signature-suite": "gone" };
     const two = rayzaChecksFrom(cat, links, 2);
-    assert.deepEqual(two["guest-room"], { free: 3, maxOccupancy: 3 });
+    assert.deepEqual(two["guest-room"], { free: 3, maxOccupancy: 3, nightlyNgn: 49450 }, "priced tax-inclusive");
     assert.equal(two["executive-room"].free, 0);
     assert.match(two["executive-room"].reason!, /Arrivals are closed/);
     assert.equal(two["signature-suite"].free, 0);
     assert.match(two["signature-suite"].reason!, /no longer has/);
-    assert.equal(two["presidential-suite"], undefined, "unlinked rooms aren't limited");
+    assert.equal(two["presidential-suite"], undefined, "unlinked rooms aren't sold online");
     const one = rayzaChecksFrom(cat, links, 1);
     assert.match(one["guest-room"].reason!, /Minimum stay is 2/);
   });

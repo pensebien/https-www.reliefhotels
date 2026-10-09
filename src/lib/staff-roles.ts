@@ -2,9 +2,7 @@
  * Role-based access control for the staff shell nav.
  *
  * This module is intentionally UI-agnostic: it only knows about roles,
- * nav items, and which role can reach which `/staff/*` href. Feature
- * teams (cashier, F&B, calendar, accounting, housekeeping) own what
- * actually renders at each href.
+ * nav items, and which role can reach which `/staff/*` href.
  *
  * Note: this matrix used to be nav-filtering only (no server enforcement).
  * `src/lib/staff-auth-guard.ts` (Agent O) is the actual enforcement point —
@@ -35,65 +33,21 @@ export interface StaffNavItem {
 
 export const NAV_ITEMS: StaffNavItem[] = [
   { href: "/staff", labelKey: "dashboard" },
-  { href: "/staff/cashier", labelKey: "cashier" },
-  { href: "/staff/fnb", labelKey: "fnb" },
-  { href: "/staff/calendar", labelKey: "calendar" },
-  { href: "/staff/housekeeping", labelKey: "housekeeping" },
-  { href: "/staff/accounting", labelKey: "accounting" },
-  { href: "/staff/reports", labelKey: "reports" },
-  { href: "/staff/rates", labelKey: "rateCalendar" },
-  { href: "/staff/guests", labelKey: "guests" },
-  { href: "/staff/settings/rooms", labelKey: "roomSettings" },
-  { href: "/staff/settings/rates", labelKey: "rateSettings" },
-  { href: "/staff/settings/channels", labelKey: "channelSettings" },
-  { href: "/staff/settings/messages", labelKey: "messageSettings" },
-  { href: "/staff/settings/invoices", labelKey: "invoiceSettings" },
-  { href: "/staff/settings/integrations", labelKey: "integrations" },
-  { href: "/staff/settings/tax", labelKey: "taxSettings" },
+  { href: "/staff/rayza", labelKey: "rayza" },
 ];
 
 /**
  * Per-role map of href -> access level. Absence of a key means the role
  * cannot reach that href at all (it is hidden from nav and is rejected by
- * `requireStaffAccess()` for the matching API routes).
+ * `requireStaffAccess()` for the matching API routes). Hotel operations
+ * (F&B, housekeeping, front desk) live in RAYZA, so the restaurant and
+ * housekeeping roles only get a read-only view of online bookings.
  */
 const ACCESS_MATRIX: Record<StaffRole, Partial<Record<string, StaffAccessLevel>>> = {
-  cashier: {
-    "/staff": "full",
-    "/staff/guests": "read",
-    "/staff/cashier": "full",
-    "/staff/fnb": "full",
-    "/staff/calendar": "full",
-    "/staff/rates": "read",
-  },
-  manager: {
-    "/staff": "full",
-    "/staff/cashier": "full",
-    "/staff/fnb": "full",
-    "/staff/calendar": "full",
-    "/staff/housekeeping": "read",
-    "/staff/accounting": "full",
-    "/staff/reports": "full",
-    "/staff/rates": "full",
-    "/staff/guests": "full",
-    "/staff/settings/rooms": "full",
-    "/staff/settings/rates": "full",
-    "/staff/settings/channels": "full",
-    "/staff/settings/integrations": "full",
-    "/staff/settings/invoices": "full",
-    "/staff/settings/messages": "full",
-    "/staff/settings/tax": "full",
-  },
-  restaurant_owner: {
-    "/staff": "full",
-    "/staff/fnb": "full",
-    "/staff/settings/tax": "full",
-  },
-  cleaner_head: {
-    "/staff": "full",
-    "/staff/housekeeping": "full",
-    "/staff/calendar": "read",
-  },
+  cashier: { "/staff": "full" },
+  manager: { "/staff": "full", "/staff/rayza": "full" },
+  restaurant_owner: { "/staff": "read" },
+  cleaner_head: { "/staff": "read" },
 };
 
 export function getAccessLevel(role: StaffRole, href: string): StaffAccessLevel | null {

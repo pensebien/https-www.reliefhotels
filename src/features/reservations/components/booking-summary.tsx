@@ -1,6 +1,5 @@
 "use client";
 
-import type { GroupQuote } from "@/lib/booking-engine/group";
 import type { StayQuote } from "@/lib/booking-engine/quote";
 import { formatNaira } from "@/lib/utils";
 import { Minus, Plus } from "lucide-react";
@@ -23,12 +22,8 @@ type BookingSummaryProps = {
   rooms?: number;
   maxGuests?: number;
   onRoomsChange?: (rooms: number) => void;
-  /** Server quote; when present its lines replace the flat-rate estimate. */
+  /** Server quote (RAYZA price); when present it replaces the flat-rate estimate. */
   quote?: StayQuote | null;
-  /** Group booking quote; replaces the single-room lines when present. */
-  groupQuote?: GroupQuote | null;
-  /** Room id → display name, for group lines. */
-  roomLabels?: Record<string, string>;
   quoteError?: string | null;
 };
 
@@ -100,35 +95,12 @@ function Stepper({
 
 function QuoteLines({ quote }: { quote: StayQuote }) {
   const t = useTranslations("booking");
-  const nightly = new Set(quote.perNight.map((n) => n.nightlyNgn));
-  const lines: [string, number][] = [
-    [
-      nightly.size === 1
-        ? t("roomLine", {
-            nights: quote.nights,
-            rooms: quote.rooms,
-            rate: formatNaira(quote.perNight[0].nightlyNgn),
-          })
-        : t("roomLineVaried", { nights: quote.nights, rooms: quote.rooms }),
-      quote.roomSubtotalNgn,
-    ],
-  ];
-  if (quote.longStayDiscountNgn) lines.push([t("longStayLine"), -quote.longStayDiscountNgn]);
-  if (quote.couponDiscountNgn) {
-    lines.push([t("couponLine", { code: quote.couponCode ?? "" }), -quote.couponDiscountNgn]);
-  }
-  for (const extra of quote.extras) lines.push([extra.label, extra.totalNgn]);
-
   return (
-    <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm sm:col-span-2">
-      {lines.map(([label, amount]) => (
-        <div key={label} className="flex justify-between gap-4">
-          <span className="text-muted">{label}</span>
-          <span className={amount < 0 ? "text-teal-dark" : "text-foreground"}>
-            {amount < 0 ? `− ${formatNaira(-amount)}` : formatNaira(amount)}
-          </span>
-        </div>
-      ))}
+    <div className="flex justify-between gap-4 border-t border-border/60 pt-3 text-sm sm:col-span-2">
+      <span className="text-muted">
+        {t("roomLine", { nights: quote.nights, rooms: quote.rooms, rate: formatNaira(quote.nightlyNgn) })}
+      </span>
+      <span className="text-foreground">{formatNaira(quote.totalNgn)}</span>
     </div>
   );
 }
@@ -150,13 +122,11 @@ export function BookingSummary({
   maxGuests = 12,
   onRoomsChange,
   quote,
-  groupQuote,
-  roomLabels = {},
   quoteError,
 }: BookingSummaryProps) {
   const t = useTranslations("booking");
   const depositPct = quote?.depositPct ?? 20;
-  const totalEstimate = groupQuote?.totalNgn ?? quote?.totalNgn ?? calculateTotalEstimateNgn(priceFrom, nights) * rooms;
+  const totalEstimate = quote?.totalNgn ?? calculateTotalEstimateNgn(priceFrom, nights) * rooms;
 
   return (
     <div
@@ -228,20 +198,7 @@ export function BookingSummary({
             ) : null}
           </>
         )}
-        {groupQuote ? (
-          <div className="space-y-1.5 border-t border-border/60 pt-3 text-sm sm:col-span-2">
-            {groupQuote.lines.map((line) => (
-              <div key={line.roomId} className="flex justify-between gap-4">
-                <span className="text-muted">
-                  {t("groupLine", { rooms: line.rooms, room: roomLabels[line.roomId] ?? line.roomId, nights: line.nights })}
-                </span>
-                <span className="text-foreground">{formatNaira(line.totalNgn)}</span>
-              </div>
-            ))}
-          </div>
-        ) : quote ? (
-          <QuoteLines quote={quote} />
-        ) : null}
+        {quote ? <QuoteLines quote={quote} /> : null}
         <div className="sm:col-span-2">
           <dt className="text-xs font-medium uppercase tracking-wider text-muted">
             {t("totalStayEstimate")}

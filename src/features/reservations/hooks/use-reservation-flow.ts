@@ -4,7 +4,6 @@ import {
   parseDateString,
   toDateString,
 } from "@/lib/booking-search";
-import type { GroupQuote } from "@/lib/booking-engine/group";
 import type { QuoteErrorCode, StayQuote } from "@/lib/booking-engine/quote";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { reservationFormSchema } from "../lib/reservation-schema";
@@ -27,7 +26,6 @@ const defaultFormData: ReservationFormData = {
   message: "",
   experienceInterests: [],
   arrivalTime: "",
-  customAnswers: {},
   termsAccepted: false,
 };
 
@@ -55,34 +53,14 @@ export function useReservationFlow(options: ReservationFlowProps) {
     priceFrom,
     rooms: initialRooms = 1,
     maxGuestsPerUnit = MAX_GUESTS,
-    addableRooms = [],
-    bookingMode = "instant",
     useDemoTestAmount = false,
-    initialCouponCode,
-    initialRatePlanId,
-    bookingLink,
   } = options;
 
   const [formData, setFormData] = useState<ReservationFormData>(defaultFormData);
   const [nights, setNights] = useState(initialNights);
   const [guests, setGuests] = useState(initialGuests);
   const [units, setUnits] = useState(initialRooms);
-  const [extraIds, setExtraIds] = useState<string[]>([]);
-  const [couponInput, setCouponInput] = useState(initialCouponCode ?? "");
-  const [couponCode, setCouponCode] = useState<string | undefined>(initialCouponCode);
-  const [ratePlanId, setRatePlanId] = useState<string | undefined>(initialRatePlanId);
-  const [couponError, setCouponError] = useState<string | null>(null);
   const [quote, setQuote] = useState<StayQuote | null>(null);
-  const [groupQuote, setGroupQuote] = useState<GroupQuote | null>(null);
-  /** Rooms of other types added to this stay, by room id. */
-  const [additional, setAdditional] = useState<Record<string, number>>({});
-  const additionalStays = useMemo(
-    () =>
-      Object.entries(additional)
-        .filter(([, rooms]) => rooms > 0)
-        .map(([roomId, rooms]) => ({ roomId, rooms })),
-    [additional],
-  );
   const [quoteError, setQuoteError] = useState<{ code: QuoteErrorCode; message: string } | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [checkOut, setCheckOut] = useState(
@@ -93,7 +71,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     Partial<Record<keyof ReservationFormData, string>>
   >({});
   const [status, setStatus] = useState<ReservationFlowStatus>("idle");
-  /** Confirmed with nothing to pay now (pay-at-hotel coupon or a 0% deposit). */
+  /** Confirmed with nothing to pay now (a 0% deposit). */
   const [confirmedWithoutPayment, setConfirmedWithoutPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -110,17 +88,12 @@ export function useReservationFlow(options: ReservationFlowProps) {
       guests,
       rooms: units,
       priceFrom,
-      couponCode,
-      extraIds,
-      additionalStays,
-      ratePlanId,
-      bookingLink,
     }),
-    [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, itemLabel, nights, priceFrom, ratePlanId, units],
+    [checkIn, checkOut, guests, itemId, itemLabel, nights, priceFrom, units],
   );
 
-  // Live server quote — the same engine the reservation and payment routes
-  // use, so what the guest sees is what they are charged.
+  // Live server quote from RAYZA — the same price the reservation route
+  // locks in, so what the guest sees is what they are charged.
   useEffect(() => {
     if (!checkIn || !checkOut) return;
     const controller = new AbortController();
@@ -137,31 +110,14 @@ export function useReservationFlow(options: ReservationFlowProps) {
             checkOut,
             guests,
             rooms: units,
-            couponCode,
-            extraIds,
-            ratePlanId,
-            bookingLink,
-            stays: additionalStays.length
-              ? [{ roomId: itemId, rooms: units }, ...additionalStays]
-              : undefined,
           }),
         });
         const body = await res.json();
         if (res.ok) {
-          if (Array.isArray(body.lines)) {
-            setGroupQuote(body as GroupQuote);
-            setQuote((body as GroupQuote).lines[0]);
-          } else {
-            setGroupQuote(null);
-            setQuote(body as StayQuote);
-          }
+          setQuote(body as StayQuote);
           setQuoteError(null);
-        } else if (body.code === "invalid_coupon") {
-          setCouponError(body.error);
-          setCouponCode(undefined);
         } else {
           setQuote(null);
-          setGroupQuote(null);
           setQuoteError({ code: body.code, message: body.error ?? "Unable to price this stay" });
         }
       } catch (error) {
@@ -174,46 +130,17 @@ export function useReservationFlow(options: ReservationFlowProps) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [additionalStays, bookingLink, checkIn, checkOut, couponCode, extraIds, guests, itemId, ratePlanId, units]);
+  }, [checkIn, checkOut, guests, itemId, units]);
 
   const depositNgn = useMemo(
-    () => groupQuote?.depositNgn ?? quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
-    [groupQuote, nights, priceFrom, quote, units],
+    () => quote?.depositNgn ?? calculateDepositNgn(priceFrom, nights) * units,
+    [nights, priceFrom, quote, units],
   );
 
-  const maxGuests = Math.min(
-    MAX_GUESTS,
-    maxGuestsPerUnit * units +
-      additionalStays.reduce(
-        (sum, s) => sum + (addableRooms.find((r) => r.id === s.roomId)?.maxGuestsPerUnit ?? 1) * s.rooms,
-        0,
-      ),
-  );
-
-  const setAdditionalRooms = useCallback((roomId: string, rooms: number) => {
-    setAdditional((prev) => ({ ...prev, [roomId]: Math.max(0, Math.min(4, rooms)) }));
-  }, []);
+  const maxGuests = Math.min(MAX_GUESTS, maxGuestsPerUnit * units);
 
   const updateUnits = useCallback((next: number) => {
     setUnits(Math.min(MAX_ROOMS, Math.max(1, next)));
-  }, []);
-
-  const toggleExtra = useCallback((id: string) => {
-    setExtraIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  }, []);
-
-  const applyCoupon = useCallback(() => {
-    const code = couponInput.trim().toUpperCase();
-    setCouponError(null);
-    setCouponCode(code || undefined);
-  }, [couponInput]);
-
-  const removeCoupon = useCallback(() => {
-    setCouponCode(undefined);
-    setCouponInput("");
-    setCouponError(null);
   }, []);
 
   const updateNights = useCallback(
@@ -341,15 +268,14 @@ export function useReservationFlow(options: ReservationFlowProps) {
   const handleReserveAndPay = useCallback(async () => {
     const created = await submitReservation();
     if (!created) return;
-    // Request mode: staff confirm first; the guest pays later from their manage link.
-    // Pay-at-hotel bookings are already confirmed: nothing to pay now.
-    if (bookingMode === "request" || created.noPaymentNeeded) {
-      setConfirmedWithoutPayment(created.noPaymentNeeded);
+    // A 0% deposit is confirmed straight away: nothing to pay now.
+    if (created.noPaymentNeeded) {
+      setConfirmedWithoutPayment(true);
       setStatus("success");
       return;
     }
     await initiatePayment(created.id);
-  }, [bookingMode, initiatePayment, submitReservation]);
+  }, [initiatePayment, submitReservation]);
 
   return {
     formData,
@@ -370,20 +296,7 @@ export function useReservationFlow(options: ReservationFlowProps) {
     units,
     updateUnits,
     maxGuests,
-    extraIds,
-    toggleExtra,
-    couponInput,
-    setCouponInput,
-    couponCode,
-    couponError,
-    applyCoupon,
-    removeCoupon,
     quote,
-    groupQuote,
-    ratePlanId,
-    setRatePlanId,
-    additional,
-    setAdditionalRooms,
     quoteError,
     quoteLoading,
     submitReservation,

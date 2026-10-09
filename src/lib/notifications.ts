@@ -8,7 +8,8 @@ export type NotificationEvent =
   | "reservation.created"
   | "payment.verified"
   | "event.inquiry.created"
-  | "dining.reservation.created";
+  | "dining.reservation.created"
+  | "booking.needs_attention";
 
 export type NotifyPayload = {
   event: NotificationEvent;
@@ -31,7 +32,7 @@ export type NotifyResult = {
 
 /** Manager SMS/WhatsApp only after a verified payment (e.g. 20% room deposit). */
 function isManagerAlertAllowed(event: NotificationEvent): boolean {
-  return event === "payment.verified";
+  return event === "payment.verified" || event === "booking.needs_attention";
 }
 
 function buildMessageBody(payload: NotifyPayload): string {
@@ -44,6 +45,8 @@ function buildMessageBody(payload: NotifyPayload): string {
       const phone = payload.phone ? ` (${payload.phone})` : "";
       return `${prefix} Deposit payment received${guest}${phone}. ${payload.summary} Ref:${payload.referenceId}`;
     }
+    case "booking.needs_attention":
+      return `${prefix} ACTION NEEDED: RAYZA refused a paid booking${payload.guestName ? ` for ${payload.guestName}` : ""}. ${payload.summary} Ref:${payload.referenceId}`;
     case "event.inquiry.created":
       return `${prefix} Event inquiry. ${payload.summary} Ref:${payload.referenceId}`;
     case "dining.reservation.created":

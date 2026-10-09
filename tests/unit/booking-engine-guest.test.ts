@@ -2,11 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { buildGuestBookingView } from "@/lib/booking-engine/guest-booking";
 import { isValidManageToken, signReservationId } from "@/lib/booking-engine/manage-link";
-import {
-  DEFAULT_RATE_CONFIG,
-  normalizeRateConfig,
-  rateConfigSchema,
-} from "@/lib/booking-engine/rate-config";
+import { getBookingSettings } from "@/lib/booking-engine/booking-settings";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
 
 const policy = { allowGuestCancel: true, freeCancelHoursBefore: 48, refundPctWithinWindow: 100 };
@@ -105,35 +101,26 @@ describe("manage-link tokens", () => {
   });
 });
 
-describe("normalizeRateConfig", () => {
-  it("fills missing rooms and new fields from defaults", () => {
-    const config = normalizeRateConfig({
-      rooms: [{ ...DEFAULT_RATE_CONFIG.rooms[0], baseNightlyNgn: 99_000 }],
-      depositPct: 30,
-    });
-    assert.equal(config.rooms.length, DEFAULT_RATE_CONFIG.rooms.length);
-    assert.equal(config.rooms[0].baseNightlyNgn, 99_000);
-    assert.equal(config.depositPct, 30);
-    assert.deepEqual(config.cancellation, DEFAULT_RATE_CONFIG.cancellation);
-  });
-
-  it("falls back to defaults for an invalid stored document", () => {
-    assert.deepEqual(normalizeRateConfig({ depositPct: 500 }), DEFAULT_RATE_CONFIG);
-    assert.deepEqual(normalizeRateConfig(null), DEFAULT_RATE_CONFIG);
-  });
-
-  it("uppercases coupon codes and rejects seasons that end before they start", () => {
-    const parsed = rateConfigSchema.parse({
-      ...DEFAULT_RATE_CONFIG,
-      coupons: [{ code: "summer10", pct: 10 }],
-    });
-    assert.equal(parsed.coupons[0].code, "SUMMER10");
-    assert.equal(
-      rateConfigSchema.safeParse({
-        ...DEFAULT_RATE_CONFIG,
-        seasons: [{ id: "x", label: "x", from: "2026-12-10", to: "2026-12-01" }],
-      }).success,
-      false,
-    );
+describe("getBookingSettings", () => {
+  it("uses safe defaults and ignores out-of-range overrides", () => {
+    const saved = { ...process.env };
+    try {
+      delete process.env.BOOKING_DEPOSIT_PCT;
+      delete process.env.BOOKING_HOLD_MINUTES;
+      assert.deepEqual(getBookingSettings(), {
+        depositPct: 20,
+        holdMinutes: 60,
+        cancellation: { allowGuestCancel: true, freeCancelHoursBefore: 48, refundPctWithinWindow: 100 },
+      });
+      process.env.BOOKING_DEPOSIT_PCT = "500";
+      process.env.BOOKING_HOLD_MINUTES = "30";
+      process.env.BOOKING_GUEST_CANCEL = "false";
+      const settings = getBookingSettings();
+      assert.equal(settings.depositPct, 20);
+      assert.equal(settings.holdMinutes, 30);
+      assert.equal(settings.cancellation.allowGuestCancel, false);
+    } finally {
+      process.env = saved;
+    }
   });
 });
