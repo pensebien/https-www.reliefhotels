@@ -1,16 +1,8 @@
-import { DemoDashboard } from "@/components/demo-dashboard";
+import { OpsBoard } from "@/features/staff-ops/components/ops-board";
 import { routing } from "@/i18n/routing";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
-
-function DashboardFallback() {
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-12 text-muted" aria-hidden>
-      Loading staff portal…
-    </div>
-  );
-}
 
 export async function generateMetadata({
   params,
@@ -18,7 +10,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "staffPortal" });
+  const t = await getTranslations({ locale, namespace: "staffOps" });
 
   return {
     title: t("metaTitle"),
@@ -27,7 +19,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function StaffPortalPage({
+export default async function StaffOpsPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -36,8 +28,8 @@ export default async function StaffPortalPage({
   setRequestLocale(locale);
 
   return (
-    <Suspense fallback={<DashboardFallback />}>
-      <DemoDashboard variant="portal" />
+    <Suspense fallback={null}>
+      <OpsBoard />
     </Suspense>
   );
 }

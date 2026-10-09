@@ -6,7 +6,7 @@
 
 import { rooms } from "@/content/site";
 import type { PaymentRecord, ReservationRecord } from "@/lib/demo-store";
-import type { CancellationPolicy } from "./rate-config";
+import type { CancellationPolicy } from "./booking-settings";
 
 /** Hotel check-in is 14:00 in Calabar (WAT, UTC+1) → 13:00 UTC. */
 const CHECK_IN_UTC_HOUR = 13;
@@ -26,8 +26,6 @@ export type GuestBookingView = {
   guests: number;
   rooms: number;
   status: ReservationRecord["status"];
-  couponCode?: string;
-  extraIds?: string[];
   totalNgn: number;
   depositNgn: number;
   paidNgn: number;
@@ -39,7 +37,7 @@ export type GuestBookingView = {
   /** Last instant a cancellation still gets the in-window refund. */
   freeCancelUntil?: string;
   refundIfCancelledNgn: number;
-  /** False for non-refundable rate plans. */
+  /** False for bookings made on a (since retired) non-refundable rate plan. */
   refundable: boolean;
   /** Room types in the booking — more than one for a group booking. */
   lines: { roomId?: string; rooms: number }[];
@@ -106,8 +104,10 @@ export function buildGuestBookingView(
           policy.freeCancelHoursBefore * 3_600_000,
       )
     : undefined;
-  // A non-refundable rate plan refunds nothing, whenever the guest cancels.
-  const refundable = counted.every((m) => m.quoteSnapshot?.ratePlan?.refundable !== false);
+  // Bookings made on a (since retired) non-refundable rate plan refund nothing.
+  const refundable = counted.every(
+    (m) => (m.quoteSnapshot as { ratePlan?: { refundable?: boolean } } | undefined)?.ratePlan?.refundable !== false,
+  );
   const withinWindow = refundable && (freeCancelUntil ? now <= freeCancelUntil : false);
   const canCancel = policy.allowGuestCancel && active && beforeCheckIn;
 
@@ -122,8 +122,6 @@ export function buildGuestBookingView(
     guests: counted.reduce((sum, m) => sum + m.guests, 0),
     rooms: counted.reduce((sum, m) => sum + (m.units ?? 1), 0),
     status: reservation.status,
-    couponCode: reservation.couponCode,
-    extraIds: reservation.extraIds,
     totalNgn,
     depositNgn,
     paidNgn,

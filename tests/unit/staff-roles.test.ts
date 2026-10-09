@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   canAccess,
+  getAccessLevel,
   getAccessibleNavItems,
   isStaffRole,
   parseStaffRole,
@@ -22,23 +23,23 @@ describe("staff-roles access matrix", () => {
     assert.equal(parseStaffRole(null), "cashier");
   });
 
-  it("gates accounting and tax settings away from cashier/cleaner_head", () => {
-    assert.equal(canAccess("cashier", "/staff/accounting"), false);
-    assert.equal(canAccess("cleaner_head", "/staff/accounting"), false);
-    assert.equal(canAccess("manager", "/staff/accounting"), true);
+  it("only managers reach the RAYZA settings page", () => {
+    assert.equal(canAccess("manager", "/staff/rayza"), true);
+    assert.equal(canAccess("cashier", "/staff/rayza"), false);
+    assert.equal(canAccess("restaurant_owner", "/staff/rayza"), false);
   });
 
-  it("gives cleaner_head full housekeeping access and read-only calendar", () => {
-    const items = getAccessibleNavItems("cleaner_head");
-    const hrefs = items.map((i) => i.href);
-    assert.ok(hrefs.includes("/staff/housekeeping"));
-    assert.ok(hrefs.includes("/staff/calendar"));
-    assert.ok(!hrefs.includes("/staff/accounting"));
+  it("every role sees online bookings; F&B and housekeeping roles only read them", () => {
+    for (const role of ["cashier", "manager", "restaurant_owner", "cleaner_head"] as const) {
+      assert.ok(getAccessibleNavItems(role).some((i) => i.href === "/staff"));
+    }
+    assert.equal(getAccessLevel("cashier", "/staff"), "full");
+    assert.equal(getAccessLevel("cleaner_head", "/staff"), "read");
   });
 
-  it("restaurant_owner cannot reach cashier or room-block routes", () => {
-    assert.equal(canAccess("restaurant_owner", "/staff/cashier"), false);
-    assert.equal(canAccess("restaurant_owner", "/staff/fnb"), true);
-    assert.equal(canAccess("restaurant_owner", "/staff/settings/tax"), true);
+  it("hotel operations pages are gone from the website", () => {
+    for (const href of ["/staff/cashier", "/staff/fnb", "/staff/housekeeping", "/staff/accounting"]) {
+      assert.equal(canAccess("manager", href), false);
+    }
   });
 });

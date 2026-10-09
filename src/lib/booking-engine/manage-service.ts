@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildGuestBookingView, type GuestBookingView } from "./guest-booking";
 import { isValidManageToken } from "./manage-link";
-import { getRateConfig, type RateConfig } from "./rate-config";
+import { getBookingSettings, type BookingSettings } from "./booking-settings";
 
 export const manageTokenSchema = z.object({
   id: z.string().uuid(),
@@ -20,7 +20,7 @@ export type ManagedBooking = {
   /** Every line of a group booking (lead first), or just the reservation. */
   members: ReservationRecord[];
   view: GuestBookingView;
-  config: RateConfig;
+  config: BookingSettings;
 };
 
 /**
@@ -43,10 +43,8 @@ export async function loadManagedBooking(
   if (!reservation || reservation.itemType !== "room") return notFound;
 
   const members = await listGroupMembers(reservation);
-  const [paymentLists, config] = await Promise.all([
-    Promise.all(members.map((m) => listPaymentsForReservation(m.id))),
-    getRateConfig(),
-  ]);
+  const config = getBookingSettings();
+  const paymentLists = await Promise.all(members.map((m) => listPaymentsForReservation(m.id)));
   const view = buildGuestBookingView(
     members[0],
     paymentLists.flat(),

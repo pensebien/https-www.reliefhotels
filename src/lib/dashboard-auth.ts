@@ -1,9 +1,13 @@
+import { timingSafeEqual } from "node:crypto";
 import { getServerConfig } from "@/lib/config";
 import { NextResponse } from "next/server";
 
 export function isValidDashboardKey(key: string | null | undefined): boolean {
   if (!key) return false;
-  return key === getServerConfig().demoDashboardKey;
+  const given = Buffer.from(key);
+  const expected = Buffer.from(getServerConfig().demoDashboardKey);
+  // Constant-time, so response timing doesn't leak how much of the key matched.
+  return given.length === expected.length && timingSafeEqual(given, expected);
 }
 
 export function unauthorizedDashboardResponse() {

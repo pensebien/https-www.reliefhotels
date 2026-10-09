@@ -5,7 +5,6 @@ import {
   RoomCategoryTabs,
 } from "@/components/room-category-tabs";
 import { RoomDetailModal } from "@/components/room-detail-modal";
-import { useBookingLink } from "@/hooks/use-booking-link";
 import { useRoomCatalog } from "@/hooks/use-room-catalog";
 import {
   roomCategories,
@@ -18,17 +17,14 @@ import {
   parseBookingSearchParams,
   parseDateString,
 } from "@/lib/booking-search";
-import type { AvailableRoom, RestrictedRoom } from "@/lib/room-availability";
+import type { AvailableRoom, RoomAvailabilityResult } from "@/lib/room-availability";
 import { Link } from "@/i18n/navigation";
 import { contactSectionHref } from "@/lib/contact-href";
 import { formatNaira } from "@/lib/utils";
 import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-/** Extra query for book links when the guest came through a booking link. */
-const LinkQueryContext = createContext("");
+import { useEffect, useMemo, useState } from "react";
 
 type Room = (typeof rooms)[number];
 /** A catalog room as displayed — photos may come from staff room setup. */
@@ -53,9 +49,10 @@ export function RoomsCatalog() {
   );
 
   const activeTab = resolveActiveTab(searchParams.get("category"));
-  const bookingLink = useBookingLink();
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  /** RAYZA couldn't be asked: nothing is sold online right now. */
+  const [liveUnavailable, setLiveUnavailable] = useState<string | null>(null);
   const [availableById, setAvailableById] = useState<Map<string, AvailableRoom>>(
     () => new Map(),
   );
@@ -90,10 +87,11 @@ export function RoomsCatalog() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error ?? "fetch failed");
-        return data as { available: AvailableRoom[]; restricted?: RestrictedRoom[] };
+        return data as RoomAvailabilityResult;
       })
       .then((data) => {
         if (cancelled) return;
+        setLiveUnavailable(data.liveUnavailable ? (data.liveUnavailableMessage ?? "") : null);
         const map = new Map<string, AvailableRoom>();
         for (const room of data.available) map.set(room.id, room);
         setAvailableById(map);
@@ -116,11 +114,9 @@ export function RoomsCatalog() {
   const catalogRooms = useMemo(() => {
     if (!bookingQuery) return [];
     return rooms.filter(
-      (room) =>
-        (availableById.has(room.id) || restrictedById.has(room.id)) &&
-        (!bookingLink?.roomIds.length || bookingLink.roomIds.includes(room.id)),
+      (room) => availableById.has(room.id) || restrictedById.has(room.id),
     );
-  }, [availableById, bookingLink, bookingQuery, restrictedById]);
+  }, [availableById, bookingQuery, restrictedById]);
 
   const filteredRooms = useMemo(
     () =>
@@ -152,7 +148,7 @@ export function RoomsCatalog() {
     });
 
   return (
-    <LinkQueryContext.Provider value={bookingLink ? `&link=${encodeURIComponent(bookingLink.slug)}` : ""}>
+    <>
       <section className="border-b border-border bg-card">
         <div className="rooms-page-container mx-auto max-w-7xl px-4 py-8 text-center lg:px-16 lg:py-10">
           <h1 className="mx-auto text-center font-serif text-4xl font-medium sm:text-5xl">
@@ -162,12 +158,6 @@ export function RoomsCatalog() {
           {bookingQuery && !loading && !fetchError && (
             <p className="mx-auto mt-4 max-w-2xl text-sm text-muted">{dateBanner}</p>
           )}
-
-          {bookingLink ? (
-            <p className="mx-auto mt-4 inline-block rounded-full bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal-dark">
-              {t("bookingLinkBanner", { label: bookingLink.label })}
-            </p>
-          ) : null}
 
           <div className="mx-auto mt-8 max-w-2xl">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-muted">
@@ -201,6 +191,13 @@ export function RoomsCatalog() {
           </p>
         ) : fetchError ? (
           <p className="text-center text-muted">{t("availabilityError")}</p>
+        ) : liveUnavailable !== null ? (
+          <p className="mx-auto max-w-xl text-center text-muted" role="status">
+            {t("liveUnavailable")}{" "}
+            <Link href={contactSectionHref()} className="text-teal-dark underline">
+              {t("liveUnavailableContact")}
+            </Link>
+          </p>
         ) : filteredRooms.length === 0 ? (
           <p className="text-center text-muted">{t("noRoomsAvailable")}</p>
         ) : groupedRooms ? (
@@ -232,7 +229,7 @@ export function RoomsCatalog() {
           />
         )}
       </section>
-    </LinkQueryContext.Provider>
+    </>
   );
 }
 
@@ -253,7 +250,6 @@ function RoomGrid({
 }) {
   const [detailRoom, setDetailRoom] = useState<DisplayRoom | null>(null);
   const catalog = useRoomCatalog();
-  const linkQs = useContext(LinkQueryContext);
   // Staff-uploaded photos (room setup) replace the built-in ones when present.
   const withPhotos = (room: Room): DisplayRoom => {
     const photos = catalog.get(room.id)?.photos;
@@ -264,7 +260,7 @@ function RoomGrid({
     : undefined;
   const detailBookHref =
     detailRoom &&
-    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}${linkQs}`;
+    `/book?type=room&id=${detailRoom.slug}&${bookingSearchToQueryString(bookingQuery)}`;
 
   return (
     <>
@@ -314,8 +310,7 @@ function RoomCard({
 }) {
   const key = room.nameKey.split(".")[1];
   const stayQs = bookingSearchToQueryString(bookingQuery);
-  const linkQs = useContext(LinkQueryContext);
-  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}${linkQs}`;
+  const bookHref = `/book?type=room&id=${room.slug}&${stayQs}`;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-lg">

@@ -1,22 +1,15 @@
 import { rooms } from "@/content/site";
-import { quoteStay, type QuoteErrorCode } from "@/lib/booking-engine/quote";
-import { bookingWindowError } from "@/lib/booking-engine/booking-window";
-import { getRateConfig } from "@/lib/booking-engine/rate-config";
-import { getRoomSetup } from "@/lib/room-setup";
-import {
-  nightsBetween,
-  parseDateString,
-  type BookingSearchQuery,
-} from "@/lib/booking-search";
-import {
-  countOccupiedUnitsByRoom,
-  getRoomInventory,
-} from "@/lib/db/inventory-store";
+import { getBookingSettings } from "@/lib/booking-engine/booking-settings";
+import { unpaidHoldsByRoom } from "@/lib/booking-engine/holds";
+import { RAYZA_UNAVAILABLE_MESSAGE, quoteStay, type QuoteErrorCode } from "@/lib/booking-engine/quote";
+import { rayzaOffers } from "@/lib/integrations/rayza-sync";
+import { nightsBetween, type BookingSearchQuery } from "@/lib/booking-search";
 
 export type AvailableRoom = {
   id: string;
   slug: string;
   category: (typeof rooms)[number]["category"];
+  /** RAYZA's tax-inclusive nightly price for these dates. */
   priceFrom: number;
   currency: string;
   availableUnits: number;
@@ -24,10 +17,10 @@ export type AvailableRoom = {
   totalFrom: number;
 };
 
-/** A room type with free units that the stay can't be sold on, and why. */
+/** A room type RAYZA has but can't sell for this search, and why. */
 export type RestrictedRoom = {
   id: string;
-  code: QuoteErrorCode | "not_bookable_online" | "booking_window";
+  code: QuoteErrorCode;
   message: string;
 };
 
@@ -39,102 +32,61 @@ export type RoomAvailabilityResult = {
   guests: number;
   available: AvailableRoom[];
   restricted: RestrictedRoom[];
+  /**
+   * RAYZA couldn't be asked (switched off, no rooms linked, or unreachable):
+   * nothing is sold online and guests are pointed to phone/WhatsApp.
+   */
+  liveUnavailable: boolean;
+  liveUnavailableMessage?: string;
 };
 
-/** Fallback mock when inventory lookup fails — keeps demo usable offline. */
-function mockBookedUnits(roomId: string, checkIn: Date, checkOut: Date): number {
-  const inventory = 12;
-  const daySeed = Math.floor(checkIn.getTime() / 86400000);
-  const nightSpan = Math.max(
-    1,
-    Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000),
-  );
-  let hash = 0;
-  for (const ch of roomId) hash = (hash + ch.charCodeAt(0)) % 97;
-  const load = (daySeed + hash + nightSpan * 3) % (inventory + 2);
-  return Math.min(inventory - 1, Math.floor(load / 3));
-}
-
-export async function getRoomAvailability(
-  query: BookingSearchQuery,
-): Promise<RoomAvailabilityResult> {
-  const checkInDate = parseDateString(query.checkIn);
-  const checkOutDate = parseDateString(query.checkOut);
+export async function getRoomAvailability(query: BookingSearchQuery): Promise<RoomAvailabilityResult> {
   const nights = nightsBetween(query.checkIn, query.checkOut);
-
-  // One round-trip for all room types, run in parallel — not one per room.
-  const [inventoryResult, occupiedResult] = await Promise.allSettled([
-    getRoomInventory(),
-    countOccupiedUnitsByRoom(query.checkIn, query.checkOut),
-  ]);
-  const [rateConfig, roomSetup] = await Promise.all([getRateConfig(), getRoomSetup()]);
-  const inventoryByRoom =
-    inventoryResult.status === "fulfilled" ? inventoryResult.value : {};
-  const occupiedByRoom =
-    occupiedResult.status === "fulfilled" ? occupiedResult.value : null;
-
-  const available: AvailableRoom[] = [];
-  const restricted: RestrictedRoom[] = [];
-  const windowError = bookingWindowError(query.checkIn, rateConfig.engine);
-
-  for (const room of rooms) {
-    const inventory = inventoryByRoom[room.id] ?? 1;
-    const occupied = occupiedByRoom
-      ? (occupiedByRoom[room.id] ?? 0)
-      : mockBookedUnits(room.id, checkInDate, checkOutDate);
-    const freeUnits = Math.max(0, inventory - occupied);
-
-    if (freeUnits < query.rooms) continue;
-
-    if (windowError) {
-      restricted.push({ id: room.id, code: "booking_window", message: windowError });
-      continue;
-    }
-
-    if (roomSetup.rooms.find((r) => r.roomId === room.id)?.bookableOnline === false) {
-      restricted.push({
-        id: room.id,
-        code: "not_bookable_online",
-        message: "Book this room by contacting the hotel",
-      });
-      continue;
-    }
-
-    // Hide room types the stay can't be sold on (capacity, min-stay, closed to arrival).
-    const quote = quoteStay(
-      {
-        roomId: room.id,
-        checkIn: query.checkIn,
-        checkOut: query.checkOut,
-        guests: query.guests,
-        rooms: query.rooms,
-      },
-      rateConfig,
-    );
-    if (!quote.ok) {
-      restricted.push({ id: room.id, code: quote.code, message: quote.message });
-      continue;
-    }
-
-    available.push({
-      id: room.id,
-      slug: room.slug,
-      category: room.category,
-      priceFrom: room.priceFrom,
-      currency: room.currency,
-      availableUnits: freeUnits,
-      nights,
-      totalFrom: quote.totalNgn,
-    });
-  }
-
-  return {
+  const result: RoomAvailabilityResult = {
     checkIn: query.checkIn,
     checkOut: query.checkOut,
     nights,
     roomsRequested: query.rooms,
     guests: query.guests,
-    available,
-    restricted,
+    available: [],
+    restricted: [],
+    liveUnavailable: false,
   };
+
+  const [offers, holds] = await Promise.all([
+    rayzaOffers(query.checkIn, query.checkOut, nights),
+    unpaidHoldsByRoom(query.checkIn, query.checkOut),
+  ]);
+  if (!offers.ok) {
+    return { ...result, liveUnavailable: true, liveUnavailableMessage: RAYZA_UNAVAILABLE_MESSAGE };
+  }
+
+  const { depositPct } = getBookingSettings();
+  for (const room of rooms) {
+    const offer = offers.checks[room.id];
+    // Not linked to a RAYZA room type: not sold online.
+    if (!offer) continue;
+    const free = Math.max(0, offer.free - (holds[room.id] ?? 0));
+    const quote = quoteStay(
+      { roomId: room.id, checkIn: query.checkIn, checkOut: query.checkOut, guests: query.guests, rooms: query.rooms },
+      { ...offer, free },
+      depositPct,
+    );
+    if (!quote.ok) {
+      // Sold out simply isn't listed; anything else is shown with its reason.
+      if (quote.code !== "sold_out") result.restricted.push({ id: room.id, code: quote.code, message: quote.message });
+      continue;
+    }
+    result.available.push({
+      id: room.id,
+      slug: room.slug,
+      category: room.category,
+      priceFrom: offer.nightlyNgn,
+      currency: room.currency,
+      availableUnits: free,
+      nights,
+      totalFrom: quote.totalNgn,
+    });
+  }
+  return result;
 }

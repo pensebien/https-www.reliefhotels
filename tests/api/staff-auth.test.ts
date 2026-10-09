@@ -66,7 +66,7 @@ describe("staff auth (login/logout/me + role enforcement)", () => {
     assert.equal(me.role, "manager");
   });
 
-  it("a cashier session cannot reach a cleaner_head/manager-only route", async () => {
+  it("a cashier session cannot reach a manager-only route", async () => {
     const { POST: login } = await import("@/app/api/staff/auth/login/route");
     const loginRes = await login(
       new Request("http://localhost/api/staff/auth/login", {
@@ -77,16 +77,16 @@ describe("staff auth (login/logout/me + role enforcement)", () => {
     );
     const cookie = extractCookie(loginRes);
 
-    const { GET: roomBlocks } = await import("@/app/api/staff/room-blocks/route");
-    const res = await roomBlocks(
-      new Request("http://localhost/api/staff/room-blocks", {
+    const { GET: rayzaSettings } = await import("@/app/api/staff/settings/rayza/route");
+    const res = await rayzaSettings(
+      new Request("http://localhost/api/staff/settings/rayza", {
         headers: { cookie },
       }),
     );
     assert.equal(res.status, 403);
   });
 
-  it("a manager session can reach the room-blocks route", async () => {
+  it("a manager session can reach the RAYZA settings route", async () => {
     const { POST: login } = await import("@/app/api/staff/auth/login/route");
     const loginRes = await login(
       new Request("http://localhost/api/staff/auth/login", {
@@ -97,9 +97,9 @@ describe("staff auth (login/logout/me + role enforcement)", () => {
     );
     const cookie = extractCookie(loginRes);
 
-    const { GET: roomBlocks } = await import("@/app/api/staff/room-blocks/route");
-    const res = await roomBlocks(
-      new Request("http://localhost/api/staff/room-blocks", {
+    const { GET: rayzaSettings } = await import("@/app/api/staff/settings/rayza/route");
+    const res = await rayzaSettings(
+      new Request("http://localhost/api/staff/settings/rayza", {
         headers: { cookie },
       }),
     );

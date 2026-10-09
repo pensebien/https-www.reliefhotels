@@ -1,26 +1,23 @@
 /**
- * Booking payment test cases — cashier first, then customer (Paystack test mode).
+ * Online booking payment test cases (Paystack test mode), against a fake RAYZA.
  *
  * Auth follows https://paystack.com/docs/api/authentication/
  * (Authorization: Bearer SECRET_KEY).
  *
- * Default: DEMO_MODE cash + simulated customer verify (no network).
+ * Default: DEMO_MODE simulated customer verify (no network).
  * Live Paystack test API: RUN_PAYSTACK_LIVE=1 with sk_test_ / pk_test_ in env
  *   npm run test:paystack
  */
 import assert from "node:assert/strict";
-import { randomUUID } from "node:crypto";
-import { before, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
+import { installFakeRayza, uninstallFakeRayza } from "../helpers/fake-rayza";
 
-const DASHBOARD_KEY = process.env.DEMO_DASHBOARD_KEY ?? "relief-demo-2026";
 const runPaystackLive = process.env.RUN_PAYSTACK_LIVE === "1";
 
 function setDemoEnv() {
   process.env.DEMO_MODE = "true";
   process.env.NOTIFY_CHANNEL = "console";
   process.env.NEXT_PUBLIC_APP_URL = "http://localhost:3002";
-  process.env.DEMO_DASHBOARD_KEY = DASHBOARD_KEY;
-  process.env.CASHIER_ENABLED = "true";
   delete process.env.TERMII_API_KEY;
   delete process.env.SUPABASE_URL;
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -45,24 +42,6 @@ function stayDates(offsetDays = 0) {
   };
 }
 
-function walkInBody() {
-  const { checkIn, checkOut, nights } = stayDates(3);
-  return {
-    firstName: "Cashier",
-    lastName: "WalkIn",
-    email: `cashier-qa-${Date.now()}@example.com`,
-    phone: "+2348011111111",
-    stayPreference: `guest-room · ${nights} night(s) · 2 guest(s)`,
-    message: "Cashier walk-in QA",
-    itemType: "room" as const,
-    roomId: "guest-room",
-    checkIn,
-    checkOut,
-    nights,
-    guests: 2,
-  };
-}
-
 function customerBody() {
   const { checkIn, checkOut, nights } = stayDates(40);
   return {
@@ -81,63 +60,7 @@ function customerBody() {
   };
 }
 
-describe("1) Cashier booking settle (front desk)", () => {
-  before(() => {
-    setDemoEnv();
-  });
-
-  it("creates a pending reservation then settles deposit with cash", async () => {
-    const { POST: createReservation } = await import(
-      "@/app/api/reservations/route"
-    );
-    const createRes = await createReservation(
-      new Request("http://localhost/api/reservations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(walkInBody()),
-      }),
-    );
-    const created = (await createRes.json()) as { ok?: boolean; id?: string };
-    assert.equal(createRes.status, 200);
-    assert.ok(created.id);
-
-    const { POST: settle } = await import(
-      "@/app/api/staff/cashier/settle/route"
-    );
-    const settleRes = await settle(
-      new Request(
-        `http://localhost/api/staff/cashier/settle?key=${encodeURIComponent(DASHBOARD_KEY)}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-demo-key": DASHBOARD_KEY,
-          },
-          body: JSON.stringify({
-            reservationId: created.id,
-            amountNgn: 5000,
-            paymentMethod: "cash",
-            clientMutationId: randomUUID(),
-            note: "QA cashier cash settle",
-          }),
-        },
-      ),
-    );
-    const settled = (await settleRes.json()) as {
-      ok?: boolean;
-      status?: string;
-      reference?: string;
-      error?: string;
-    };
-
-    assert.equal(settleRes.status, 200, settled.error ?? "settle failed");
-    assert.equal(settled.ok, true);
-    assert.equal(settled.status, "success");
-    assert.ok(settled.reference);
-  });
-});
-
-describe("2) Customer online booking (Paystack path)", () => {
+describe("1) Customer online booking (Paystack path)", () => {
   before(() => {
     setDemoEnv();
   });
@@ -205,7 +128,7 @@ describe("2) Customer online booking (Paystack path)", () => {
 });
 
 describe(
-  "3) Live Paystack test-mode authentication + initialize",
+  "2) Live Paystack test-mode authentication + initialize",
   { skip: !runPaystackLive },
   () => {
     it("authenticates with Bearer sk_test_ and initializes a real test checkout", async () => {
@@ -275,3 +198,6 @@ describe(
     });
   },
 );
+
+before(installFakeRayza);
+after(uninstallFakeRayza);

@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { sendEventInquiryEmails } from "@/lib/email";
 import { addEventInquiry } from "@/lib/inquiry-store";
 import { NextResponse } from "next/server";
@@ -15,6 +16,8 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "forms", { limit: 5, windowMs: 600_000 });
+  if (limited) return limited;
   try {
     const body = await request.json();
     const parsed = schema.safeParse(body);

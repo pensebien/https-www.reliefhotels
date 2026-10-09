@@ -65,6 +65,8 @@ export type ReservationRecord = {
   bookingChannel?: "online" | "desk";
   /** Answers to staff-defined booking questions, keyed by the question's wording. */
   customFields?: Record<string, string | boolean>;
+  /** Staff labels (e.g. "VIP", "late arrival") for filtering the bookings list. */
+  tags?: string[];
 };
 
 /** Online vs front desk, inferring older bookings from the walk-in note. */

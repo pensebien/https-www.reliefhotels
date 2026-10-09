@@ -1,3 +1,4 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
 import { updateReservationById } from "@/lib/demo-store";
 import { initializePayment } from "@/lib/paystack";
@@ -5,6 +6,8 @@ import { NextResponse } from "next/server";
 
 /** Pays what the manage-booking page shows as due: the deposit, or the balance after it. */
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "manage", { limit: 20, windowMs: 600_000 });
+  if (limited) return limited;
   const result = await loadManagedBooking(await request.json().catch(() => null));
   if (!result.ok) return result.response;
 

@@ -15,7 +15,13 @@ room-night / always included, housekeeping board with recurring tasks, and booki
 (request mode, booking window, arrival-time question). feat/no-contract-extras adds iCal calendar
 sync with Booking.com / Airbnb (no contract), guest profiles, custom booking questions, booking
 webhooks, ledger accounts with journal CSV, and booking links (/go/<name>, a light version of
-multiple booking engines). Still open: full channel manager (Phase 3, needs the provider contract).
+multiple booking engines). feat/rayza-connect-v42 links room types to RAYZA HMS (two-way
+availability, booking push / cancel / room moves). feat/phase-3-parity adds booking tags,
+paid / partial / unpaid / overpaid status with payment, channel and tag filters, bookings CSV
+export, a rate calendar (price, rooms left and rules per day, quick price / stop-sale edits),
+extras with daily stock, coupons on rooms / extras / both and pay-at-hotel coupons (bookings with
+nothing to pay up front confirm immediately), and Google Analytics / Meta Pixel IDs loaded only
+after cookie consent. Still open: full OTA channel manager (needs the provider contract).
 
 ## Daily operations (main menu)
 

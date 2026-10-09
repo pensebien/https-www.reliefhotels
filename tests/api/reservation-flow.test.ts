@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { before, describe, it } from "node:test";
+import { after, before, describe, it } from "node:test";
+import { installFakeRayza, uninstallFakeRayza } from "../helpers/fake-rayza";
 
 function setTestEnv() {
   process.env.DEMO_MODE = "true";
@@ -42,9 +43,12 @@ function reservationBody() {
 }
 
 describe("Reservation API flow (Part 1 + Part 2)", () => {
-  before(() => {
+  before(async () => {
     setTestEnv();
+    await installFakeRayza();
   });
+
+  after(uninstallFakeRayza);
 
   it("POST /api/reservations returns id and notified:false", async () => {
     const { POST } = await import("@/app/api/reservations/route");

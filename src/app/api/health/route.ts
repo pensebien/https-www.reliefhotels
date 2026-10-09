@@ -19,5 +19,9 @@ export async function GET() {
     paystackConfigured: config.paystack.configured,
     paystackMode: config.paystack.mode,
     emailConfigured: config.email.configured,
+    // Scheduled jobs (daily, calendar sync, RAYZA retry, notification retry) need it.
+    cronConfigured: Boolean(process.env.CRON_SECRET?.trim()),
+    rayzaEnabled: process.env.RAYZA_CONNECT_ENABLED === "true" && Boolean(process.env.RAYZA_API_KEY?.trim()),
+    version: process.env.COMMIT_REF?.slice(0, 7) ?? null,
   });
 }

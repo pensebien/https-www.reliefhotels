@@ -1,10 +1,15 @@
+import { Logger } from "@/lib/logger";
+import { enqueueNotification } from "@/lib/outbox";
 import { logNotificationAttempt } from "@/lib/db/notification-log";
+
+const log = new Logger("notify");
 
 export type NotificationEvent =
   | "reservation.created"
   | "payment.verified"
   | "event.inquiry.created"
-  | "dining.reservation.created";
+  | "dining.reservation.created"
+  | "booking.needs_attention";
 
 export type NotifyPayload = {
   event: NotificationEvent;
@@ -27,7 +32,7 @@ export type NotifyResult = {
 
 /** Manager SMS/WhatsApp only after a verified payment (e.g. 20% room deposit). */
 function isManagerAlertAllowed(event: NotificationEvent): boolean {
-  return event === "payment.verified";
+  return event === "payment.verified" || event === "booking.needs_attention";
 }
 
 function buildMessageBody(payload: NotifyPayload): string {
@@ -40,6 +45,8 @@ function buildMessageBody(payload: NotifyPayload): string {
       const phone = payload.phone ? ` (${payload.phone})` : "";
       return `${prefix} Deposit payment received${guest}${phone}. ${payload.summary} Ref:${payload.referenceId}`;
     }
+    case "booking.needs_attention":
+      return `${prefix} ACTION NEEDED: RAYZA refused a paid booking${payload.guestName ? ` for ${payload.guestName}` : ""}. ${payload.summary} Ref:${payload.referenceId}`;
     case "event.inquiry.created":
       return `${prefix} Event inquiry. ${payload.summary} Ref:${payload.referenceId}`;
     case "dining.reservation.created":
@@ -141,6 +148,7 @@ export async function sendGuestText(
 
 export async function notifyManager(
   payload: NotifyPayload,
+  options: { fromOutbox?: boolean } = {},
 ): Promise<NotifyResult> {
   const managerPhone = process.env.MANAGER_PHONE;
   const channel = (process.env.NOTIFY_CHANNEL ?? "console") as
@@ -153,7 +161,7 @@ export async function notifyManager(
   const body = buildMessageBody(payload);
 
   if (!isManagerAlertAllowed(payload.event)) {
-    console.info("[notify:skipped-unpaid]", {
+    log.info("Manager alert skipped: payment not verified", {
       event: payload.event,
       referenceId: payload.referenceId,
       reason: "Manager SMS/WhatsApp requires verified payment",
@@ -174,7 +182,7 @@ export async function notifyManager(
   const wantsWa = channel === "whatsapp" || channel === "both";
 
   if (!managerPhone || (!hasTermii && channel !== "console")) {
-    console.info("[notify:demo]", {
+    log.info("Manager alert not sent: no SMS provider (demo)", {
       to: managerPhone ?? "(unset)",
       event: payload.event,
       body,
@@ -191,7 +199,7 @@ export async function notifyManager(
   }
 
   if (channel === "console") {
-    console.info("[notify:console]", { to: managerPhone, event: payload.event, body });
+    log.info("Manager alert (console channel)", { to: managerPhone, event: payload.event, body });
     return { sent: false, channel: "console", provider: "console-log" };
   }
 
@@ -225,7 +233,7 @@ export async function notifyManager(
         errorMessage: whatsappSent ? undefined : "WhatsApp send failed",
       });
       if (!whatsappSent) {
-        console.info("[notify:whatsapp:fallback-log]", body);
+        log.warning("Manager WhatsApp failed", { event: payload.event, reference_id: payload.referenceId });
         errors.push("WhatsApp failed");
       }
     }
@@ -236,6 +244,10 @@ export async function notifyManager(
         : channel === "sms"
           ? smsSent
           : whatsappSent;
+    // A paid booking's alert must reach the manager: retry it later.
+    if (!sent && !options.fromOutbox) {
+      await enqueueNotification("manager-alert", payload as unknown as Record<string, unknown>, errors.join("; "));
+    }
 
     return {
       sent,
@@ -247,7 +259,10 @@ export async function notifyManager(
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "notify failed";
-    console.error("[notify:error]", message);
+    log.error("Manager alert failed", { event: payload.event, reference_id: payload.referenceId, error: message });
+    if (!options.fromOutbox) {
+      await enqueueNotification("manager-alert", payload as unknown as Record<string, unknown>, message);
+    }
     return {
       sent: false,
       channel,

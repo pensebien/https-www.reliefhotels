@@ -2,19 +2,16 @@
 
 import { rooms } from "@/content/site";
 import type { GuestBookingView } from "@/lib/booking-engine/guest-booking";
-import type { CancellationPolicy } from "@/lib/booking-engine/rate-config";
+import type { CancellationPolicy } from "@/lib/booking-engine/booking-settings";
 import { formatNaira } from "@/lib/utils";
 import { CreditCard, Loader2, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { OnlineCheckinCard, type CheckinInfo } from "./online-checkin-card";
 
 type ManageResponse = {
-  checkin?: CheckinInfo;
   booking: GuestBookingView;
   policy: CancellationPolicy;
-  extras: { id: string; label: string }[];
 };
 
 function formatDate(ymd?: string): string {
@@ -122,7 +119,7 @@ export function ManageBookingClient() {
     );
   }
 
-  const { booking, policy, extras } = data;
+  const { booking, policy } = data;
   const nameOf = (roomId?: string) => {
     const room = rooms.find((r) => r.id === roomId);
     return room ? tRooms(`${room.nameKey.split(".")[1]}.name`) : (roomId ?? "");
@@ -152,10 +149,6 @@ export function ManageBookingClient() {
           <Detail label={t("checkOut")} value={formatDate(booking.checkOut)} />
           <Detail label={t("guests")} value={String(booking.guests)} />
           <Detail label={t("rooms")} value={String(booking.rooms)} />
-          {booking.couponCode ? <Detail label={t("promoCode")} value={booking.couponCode} /> : null}
-          {extras.length ? (
-            <Detail label={t("extras")} value={extras.map((e) => e.label).join(", ")} />
-          ) : null}
         </dl>
 
         <dl className="mt-6 grid gap-3 border-t border-border/60 pt-6 text-sm sm:grid-cols-3">
@@ -170,10 +163,6 @@ export function ManageBookingClient() {
 
       {notice ? <p className="text-sm text-teal-dark">{notice}</p> : null}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      {data.checkin ? (
-        <OnlineCheckinCard id={id} token={token} info={data.checkin} onDone={load} />
-      ) : null}
 
       {booking.amountDueKind ? (
         <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6">

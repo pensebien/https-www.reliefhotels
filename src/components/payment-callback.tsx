@@ -177,12 +177,6 @@ export function PaymentCallback() {
           >
             {t("backHome")}
           </Link>
-          <Link
-            href="/demo"
-            className="rounded-full border border-border px-6 py-3 text-sm font-medium"
-          >
-            {t("viewDashboard")}
-          </Link>
         </div>
       </div>
     );

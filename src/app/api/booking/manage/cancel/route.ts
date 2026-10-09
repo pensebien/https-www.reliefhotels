@@ -1,10 +1,13 @@
+import { guardPublicPost } from "@/lib/rate-limit";
 import { loadManagedBooking } from "@/lib/booking-engine/manage-service";
-import { emitBookingEvent } from "@/lib/integrations/webhooks";
+import { syncCancelledReservationsToRayza } from "@/lib/integrations/rayza-sync";
 import { updateReservationById } from "@/lib/demo-store";
 import { sendGuestCancellationEmails } from "@/lib/email";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  const limited = guardPublicPost(request, "manage", { limit: 20, windowMs: 600_000 });
+  if (limited) return limited;
   const result = await loadManagedBooking(await request.json().catch(() => null));
   if (!result.ok) return result.response;
 
@@ -35,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
     // A group booking is cancelled as a whole.
-    await Promise.all(
+    const others = await Promise.all(
       members
         .filter((m) => m.id !== reservation.id && m.status !== "cancelled")
         .map((m) =>
@@ -49,7 +52,8 @@ export async function POST(request: Request) {
         ),
     );
 
-    await emitBookingEvent("booking.cancelled", updated, { cancelledBy: "guest" });
+    // Free the rooms in RAYZA HMS too; failures are retried by the scheduled sync.
+    await syncCancelledReservationsToRayza([updated, ...others.flatMap((m) => (m ? [m] : []))]);
 
     await sendGuestCancellationEmails(updated, {
       paidNgn: view.paidNgn,

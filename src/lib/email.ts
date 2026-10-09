@@ -1,13 +1,17 @@
+import { Logger } from "@/lib/logger";
+import { recordOpsError } from "@/lib/ops-status";
+import { enqueueNotification } from "@/lib/outbox";
 import { site } from "@/content/site";
 import { getServerConfig } from "@/lib/config";
-import { buildInvoiceUrl, buildManageBookingUrl } from "@/lib/booking-engine/manage-link";
-import type { IssuedInvoice } from "@/lib/invoices/store";
+import { buildManageBookingUrl } from "@/lib/booking-engine/manage-link";
 import type { ReservationRecord } from "@/lib/demo-store";
 import type {
   DiningReservation,
   EventInquiry,
   GuestFeedback,
 } from "@/lib/inquiry-store";
+
+const log = new Logger("email");
 
 /** Guest-submitted strings (name, email, message, ...) must never be interpolated into HTML unescaped. */
 export function escapeHtml(value: string): string {
@@ -313,33 +317,52 @@ type ResendEmailInput = {
   bcc?: string[];
 };
 
-/** Shared Resend send path — the one seam every transactional email goes through. */
-async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+async function postToResend(input: ResendEmailInput): Promise<{ ok: boolean; error?: string; retryable: boolean }> {
   const config = getServerConfig();
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: input.from ?? config.email.from,
-      to: input.to,
-      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
-      ...(input.bcc ? { bcc: input.bcc } : {}),
-      subject: input.subject,
-      html: input.html,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error("[email] Resend error:", err);
-    return false;
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: input.from ?? config.email.from,
+        to: input.to,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        ...(input.bcc ? { bcc: input.bcc } : {}),
+        subject: input.subject,
+        html: input.html,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (res.ok) return { ok: true, retryable: false };
+    const error = (await res.text()).slice(0, 500);
+    // 4xx other than rate limiting means the email itself is wrong; retrying won't help.
+    return { ok: false, error: `Resend ${res.status}: ${error}`, retryable: res.status === 429 || res.status >= 500 };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Resend request failed", retryable: true };
   }
+}
 
-  return true;
+/**
+ * Shared Resend send path — the one seam every transactional email goes
+ * through. A send that fails for a passing reason (outage, timeout, rate
+ * limit) is queued in the outbox and retried by the scheduled job.
+ */
+async function sendResendEmail(input: ResendEmailInput): Promise<boolean> {
+  const result = await postToResend(input);
+  if (result.ok) return true;
+  log.error("Email send failed", { subject: input.subject, retryable: result.retryable, error: result.error });
+  await recordOpsError("email", "Email send failed", { subject: input.subject, error: result.error });
+  if (result.retryable) await enqueueNotification("email", input as unknown as Record<string, unknown>, result.error);
+  return false;
+}
+
+/** Outbox retry of a queued email (no re-queueing: the outbox tracks attempts). */
+export async function deliverQueuedEmail(payload: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
+  const { ok, error } = await postToResend(payload as unknown as ResendEmailInput);
+  return { ok, error };
 }
 
 export async function sendReservationEmail(
@@ -348,7 +371,7 @@ export async function sendReservationEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo]", {
+    log.info("Email not sent: no provider (demo)", {
       to: config.email.to,
       subject: `Reservation: ${record.firstName} ${record.lastName}`,
       id: record.id,
@@ -371,7 +394,7 @@ export async function sendGuestReservationConfirmation(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest reservation confirmation", record.email);
+    log.info("Email not sent: no provider (demo)", { kind: "guest reservation confirmation", detail: [record.email] });
     return false;
   }
 
@@ -390,7 +413,7 @@ export async function sendFeedbackEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest feedback", {
+    log.info("Email not sent: no provider (demo)", { kind: "guest feedback",
       to: config.email.to,
       from: `${record.firstName} ${record.lastName}`,
       id: record.id,
@@ -413,7 +436,7 @@ export async function sendGuestFeedbackAck(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest feedback ack", record.email);
+    log.info("Email not sent: no provider (demo)", { kind: "guest feedback ack", detail: [record.email] });
     return false;
   }
 
@@ -431,7 +454,7 @@ export async function sendDiningReservationEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] dining reservation", record.id);
+    log.info("Email not sent: no provider (demo)", { kind: "dining reservation", detail: [record.id] });
     return { guestSent: false, staffSent: false };
   }
 
@@ -459,7 +482,7 @@ export async function sendEventInquiryEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] event inquiry", record.id);
+    log.info("Email not sent: no provider (demo)", { kind: "event inquiry", detail: [record.id] });
     return { guestSent: false, staffSent: false };
   }
 
@@ -486,7 +509,7 @@ export async function sendPaymentConfirmationEmail(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] payment confirmation", payload.reference);
+    log.info("Email not sent: no provider (demo)", { kind: "payment confirmation", detail: [payload.reference] });
     return false;
   }
 
@@ -536,7 +559,7 @@ export async function sendGuestCancellationEmails(
   const config = getServerConfig();
 
   if (!config.email.configured) {
-    console.info("[email:demo] guest cancellation", record.email, amounts);
+    log.info("Email not sent: no provider (demo)", { kind: "guest cancellation", detail: [record.email, amounts] });
     return false;
   }
 
@@ -573,90 +596,58 @@ export async function sendGuestCancellationEmails(
   return guestSent && staffSent;
 }
 
-export function invoiceEmailHtml(invoice: IssuedInvoice): string {
-  const doc = invoice.document;
-  const url = buildInvoiceUrl(invoice.id);
-  const label = invoice.kind === "credit_note" ? "credit note" : "invoice";
-  const body = `
-    <p style="margin:0 0 16px;">Hi ${escapeHtml(doc.guest.name.split(" ")[0] ?? doc.guest.name)},</p>
-    <p style="margin:0 0 8px;">Here is your ${label} from ${escapeHtml(site.name)}.</p>
-    ${detailsCard([
-      ["Number", escapeHtml(invoice.number)],
-      ["Total", formatNairaFromKobo(doc.totals.grossNgn * 100)],
-      ["Paid", invoice.kind === "invoice" ? formatNairaFromKobo(doc.totals.paidNgn * 100) : undefined],
-      ["Balance due", invoice.kind === "invoice" ? formatNairaFromKobo(Math.max(0, doc.totals.balanceNgn) * 100) : undefined],
-    ])}
-    ${url ? `<p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">View ${label}</a></p>` : ""}`;
-  return emailLayout({ preheader: `Your ${label} ${invoice.number}`, bodyHtml: body });
-}
-
-export async function sendInvoiceEmail(invoice: IssuedInvoice): Promise<boolean> {
+/**
+ * RAYZA turned down a booking the guest has already paid for (the room went
+ * to another channel in between). The guest hears we'll be in touch; the
+ * front desk gets what it needs to rebook or refund.
+ */
+export async function sendRayzaRejectedEmails(record: ReservationRecord, reason: string): Promise<boolean> {
   const config = getServerConfig();
   if (!config.email.configured) {
-    console.info("[email:demo] invoice", invoice.number, invoice.document.guest.email);
+    log.info("Email not sent: no provider (demo)", { kind: "rayza rejected", detail: [record.email, reason] });
     return false;
   }
-  return sendResendEmail({
-    from: config.email.reservations.from,
-    to: [invoice.document.guest.email],
-    replyTo: config.email.reservations.replyTo,
-    subject: `${invoice.kind === "credit_note" ? "Credit note" : "Invoice"} ${invoice.number} — ${site.name}`,
-    html: invoiceEmailHtml(invoice),
+  const guestHtml = emailLayout({
+    preheader: "We're finalising your room and will contact you shortly.",
+    bodyHtml: `
+      <p style="margin:0 0 16px;">Hi ${escapeHtml(record.firstName)},</p>
+      <p style="margin:0 0 8px;">Thank you — we've received your payment. We're finalising the room for your stay and our reservations team will contact you shortly to confirm the details.</p>
+      ${detailsCard([
+        ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+        ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
+        ["Reference", escapeHtml(record.id)],
+      ])}`,
   });
-}
-
-/** A staff-written guest message (scheduled template); plain text, escaped, in the house layout. */
-export function guestMessageHtml(body: string): string {
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((p) => `<p style="margin:0 0 14px;">${escapeHtml(p).replace(/\n/g, "<br />")}</p>`)
-    .join("");
-  return emailLayout({ preheader: body.slice(0, 90), bodyHtml: paragraphs });
-}
-
-/** Returns "not_configured" when email isn't set up, so the run can say so. */
-export async function sendGuestMessageEmail(
-  to: string,
-  subject: string,
-  body: string,
-): Promise<"sent" | "failed" | "not_configured"> {
-  const config = getServerConfig();
-  if (!config.email.configured) {
-    console.info("[email:demo] guest message", to, subject);
-    return "not_configured";
-  }
-  const ok = await sendResendEmail({
-    from: config.email.reservations.from,
-    to: [to],
-    replyTo: config.email.reservations.replyTo,
-    subject,
-    html: guestMessageHtml(body),
+  const staffHtml = emailLayout({
+    preheader: `Action needed: RAYZA refused paid booking ${record.id}`,
+    bodyHtml: `
+      <h2 style="margin:0 0 16px;font-family:Georgia,serif;font-weight:normal;">Paid booking not accepted by RAYZA</h2>
+      <p style="margin:0 0 8px;">Rebook the guest in RAYZA (same or better room) or arrange a refund, then contact them.</p>
+      ${detailsCard([
+        ["Guest", escapeHtml(`${record.firstName} ${record.lastName}`)],
+        ["Email", escapeHtml(record.email)],
+        ["Phone", record.phone ? escapeHtml(record.phone) : undefined],
+        ["Room", record.roomId ? escapeHtml(record.roomId) : undefined],
+        ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
+        ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
+        ["RAYZA said", escapeHtml(reason)],
+        ["Reference", escapeHtml(record.id)],
+      ])}`,
   });
-  return ok ? "sent" : "failed";
-}
-
-/** Request-mode bookings: staff approved; the guest pays the deposit from their manage link. */
-export async function sendBookingApprovedEmail(record: ReservationRecord): Promise<boolean> {
-  const config = getServerConfig();
-  const url = buildManageBookingUrl(record.id);
-  if (!config.email.configured || !url) {
-    console.info("[email:demo] booking approved", record.email);
-    return false;
-  }
-  const body = `
-    <p style="margin:0 0 16px;">Hi ${escapeHtml(record.firstName)},</p>
-    <p style="margin:0 0 8px;">Good news — your booking request at ${escapeHtml(site.name)} is confirmed.</p>
-    ${detailsCard([
-      ["Check-in", record.checkIn ? escapeHtml(record.checkIn) : undefined],
-      ["Check-out", record.checkOut ? escapeHtml(record.checkOut) : undefined],
-      ["Deposit due", record.quotedDepositNgn !== undefined ? formatNairaFromKobo(record.quotedDepositNgn * 100) : undefined],
-    ])}
-    <p style="margin:20px 0 0;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 20px;background-color:#14b8a6;color:#0c0a09;border-radius:999px;text-decoration:none;font-weight:600;">Pay your deposit</a></p>`;
-  return sendResendEmail({
-    from: config.email.reservations.from,
-    to: [record.email],
-    replyTo: config.email.reservations.replyTo,
-    subject: `Your booking is confirmed — ${site.name}`,
-    html: emailLayout({ preheader: "Your booking request is confirmed.", bodyHtml: body }),
-  });
+  const [guestSent, staffSent] = await Promise.all([
+    sendResendEmail({
+      from: config.email.reservations.from,
+      to: [record.email],
+      replyTo: config.email.reservations.replyTo,
+      subject: `Your payment is received — ${site.name}`,
+      html: guestHtml,
+    }),
+    sendResendEmail({
+      to: [config.email.to],
+      replyTo: record.email,
+      subject: `[Relief Hotels] ACTION NEEDED — RAYZA refused paid booking ${record.firstName} ${record.lastName}`,
+      html: staffHtml,
+    }),
+  ]);
+  return guestSent && staffSent;
 }

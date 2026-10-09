@@ -1,12 +1,6 @@
-import { dataPath } from "@/lib/data-dir";
 import assert from "node:assert/strict";
-import { promises as fs } from "node:fs";
-import { after, before, describe, it } from "node:test";
-
-const RATE_CONFIG_FILE = dataPath("rate-config.json");
-const KEY = "relief-demo-2026";
-/** Redemptions persist in data/demo-store.json, so each run needs its own code. */
-const ONCE_CODE = `ONCE${Date.now()}`;
+import { after, before, beforeEach, describe, it } from "node:test";
+import { fakeRayza, installFakeRayza, resetFakeRayza, uninstallFakeRayza } from "../helpers/fake-rayza";
 
 function setTestEnv() {
   process.env.DEMO_MODE = "true";
@@ -17,6 +11,7 @@ function setTestEnv() {
   delete process.env.RESEND_API_KEY;
   delete process.env.SUPABASE_URL;
   delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  delete process.env.BOOKING_DEPOSIT_PCT;
 }
 
 /** Unique far-future dates per call so earlier runs' bookings never collide. */
@@ -58,28 +53,15 @@ async function reserve(overrides: Record<string, unknown>) {
   return { res, data: (await res.json()) as Record<string, unknown> };
 }
 
-describe("Booking engine API", () => {
+describe("Booking engine API (RAYZA prices and availability)", () => {
   before(async () => {
     setTestEnv();
-    const { saveRateConfig, DEFAULT_RATE_CONFIG } = await import("@/lib/booking-engine/rate-config");
-    await saveRateConfig({
-      ...DEFAULT_RATE_CONFIG,
-      longStay: [{ minNights: 3, pct: 10 }],
-      coupons: [
-        { code: "ENGINE20", pct: 20, active: true },
-        { code: ONCE_CODE, pct: 5, maxRedemptions: 1, active: true },
-      ],
-      extras: [
-        { id: "breakfast", label: "Breakfast", priceNgn: 10_000, pricing: "per_guest_night", active: true },
-      ],
-    });
+    await installFakeRayza();
   });
 
-  after(async () => {
-    await fs.rm(RATE_CONFIG_FILE, { force: true });
-    const { clearRateConfigCache } = await import("@/lib/booking-engine/rate-config");
-    clearRateConfigCache();
-  });
+  beforeEach(resetFakeRayza);
+
+  after(uninstallFakeRayza);
 
   it("only one of two simultaneous bookings gets the last room", async () => {
     const stay = uniqueStay();
@@ -90,32 +72,23 @@ describe("Booking engine API", () => {
     assert.deepEqual([a.res.status, b.res.status].sort(), [200, 409]);
   });
 
-  it("rejects parties over the room's capacity with a clear code", async () => {
-    const { res, data } = await reserve({ roomId: "guest-room", guests: 3, ...uniqueStay() });
+  it("rejects parties over RAYZA's occupancy with a clear code", async () => {
+    const { res, data } = await reserve({ roomId: "executive-room", guests: 3, ...uniqueStay() });
     assert.equal(res.status, 422);
     assert.equal(data.code, "over_capacity");
   });
 
-  it("books two rooms, with coupon and extras, and charges the server-quoted deposit", async () => {
-    const stay = uniqueStay(3);
-    const { res, data } = await reserve({
-      roomId: "guest-room",
-      guests: 3,
-      rooms: 2,
-      couponCode: "engine20",
-      extraIds: ["breakfast"],
-      ...stay,
-    });
+  it("prices from RAYZA's tax-inclusive rate and charges the server-quoted deposit", async () => {
+    const { res, data } = await reserve({ roomId: "guest-room", guests: 3, rooms: 2, ...uniqueStay(3) });
     assert.equal(res.status, 200, JSON.stringify(data));
-    // 95k × 3 nights × 2 rooms = 570k; −10% long stay = 513k; −20% = 410.4k; + 3 guests × 3 nights × 10k.
-    assert.equal(data.totalNgn, 570_000 - 57_000 - 102_600 + 90_000);
-    assert.equal(data.depositNgn, Math.round((data.totalNgn as number) * 0.2));
+    // ₦50,000 a night (tax inclusive) × 3 nights × 2 rooms.
+    assert.equal(data.totalNgn, 300_000);
+    assert.equal(data.depositNgn, 60_000);
 
     const { findReservationById } = await import("@/lib/demo-store");
     const record = await findReservationById(data.id as string);
     assert.equal(record?.nights, 3);
     assert.equal(record?.units, 2);
-    assert.equal(record?.couponCode, "ENGINE20");
 
     const { POST: initPayment } = await import("@/app/api/paystack/initialize/route");
     const initRes = await initPayment(
@@ -132,18 +105,14 @@ describe("Booking engine API", () => {
     assert.equal(init.amountNgn, data.depositNgn);
   });
 
-  it("enforces a coupon's max uses", async () => {
-    const first = await reserve({ roomId: "executive-room", couponCode: ONCE_CODE, ...uniqueStay() });
-    assert.equal(first.res.status, 200);
-    const second = await reserve({ roomId: "executive-room", couponCode: ONCE_CODE, ...uniqueStay() });
-    assert.equal(second.res.status, 422);
-    assert.equal(second.data.code, "invalid_coupon");
-  });
-
-  it("releases an expired hold and refuses to take payment for it", async () => {
+  it("an unpaid hold takes the room from other guests until it lapses", async () => {
     const stay = uniqueStay();
     const first = await reserve({ roomId: "presidential-suite", ...stay });
     assert.equal(first.res.status, 200);
+    assert.equal(fakeRayza.active().length, 0, "unpaid holds aren't sent to RAYZA");
+
+    const blocked = await reserve({ roomId: "presidential-suite", ...stay });
+    assert.equal(blocked.res.status, 409, "RAYZA still shows it free, but the website hold counts");
 
     const { updateReservationById } = await import("@/lib/demo-store");
     await updateReservationById(first.data.id as string, {
@@ -166,15 +135,64 @@ describe("Booking engine API", () => {
     assert.equal(second.res.status, 200, "room should be bookable once the hold lapsed");
   });
 
-  it("availability explains restricted rooms instead of silently hiding them", async () => {
+  it("an old pending booking without a hold expiry doesn't block the room", async () => {
+    const stay = uniqueStay();
+    const { addReservation } = await import("@/lib/demo-store");
+    await addReservation({
+      firstName: "Old", lastName: "Desk", email: "old@example.com", phone: "+2348000000000",
+      stayPreference: "t", message: "t", itemType: "room", roomId: "presidential-suite",
+      ...stay, nights: 2, guests: 2, emailSent: false, status: "pending",
+    });
+    const { res } = await reserve({ roomId: "presidential-suite", ...stay });
+    assert.equal(res.status, 200);
+  });
+
+  it("availability lists RAYZA's price and free count, and explains restricted rooms", async () => {
     const { GET } = await import("@/app/api/rooms/availability/route");
     const stay = uniqueStay();
+    fakeRayza.frontDesk["guest-room"] = 1;
     const res = await GET(
       new Request(`http://localhost/api/rooms/availability?checkIn=${stay.checkIn}&checkOut=${stay.checkOut}&guests=4&rooms=1`),
     );
-    const data = (await res.json()) as { available: { id: string }[]; restricted: { id: string; code: string }[] };
-    assert.ok(data.available.some((r) => r.id === "presidential-suite"));
-    assert.ok(data.restricted.some((r) => r.id === "guest-room" && r.code === "over_capacity"));
+    const data = (await res.json()) as {
+      liveUnavailable: boolean;
+      available: { id: string; priceFrom: number; availableUnits: number; totalFrom: number }[];
+      restricted: { id: string; code: string }[];
+    };
+    assert.equal(data.liveUnavailable, false);
+    const suite = data.available.find((r) => r.id === "presidential-suite");
+    assert.deepEqual([suite?.priceFrom, suite?.totalFrom, suite?.availableUnits], [200_000, 400_000, 1]);
+    assert.ok(data.restricted.some((r) => r.id === "guest-room" && r.code === "over_capacity"), "RAYZA sleeps 3");
+    assert.ok(!data.available.some((r) => r.id === "presidential-suite" && r.availableUnits > 1));
+  });
+
+  it("sells nothing online when RAYZA can't be reached", async () => {
+    fakeRayza.down = true;
+    const stay = uniqueStay();
+    const { GET } = await import("@/app/api/rooms/availability/route");
+    const res = await GET(
+      new Request(`http://localhost/api/rooms/availability?checkIn=${stay.checkIn}&checkOut=${stay.checkOut}&guests=2&rooms=1`),
+    );
+    const data = (await res.json()) as { liveUnavailable: boolean; available: unknown[] };
+    assert.equal(data.liveUnavailable, true);
+    assert.equal(data.available.length, 0);
+
+    const { res: booked, data: body } = await reserve({ roomId: "guest-room", ...stay });
+    assert.equal(booked.status, 503);
+    assert.equal(body.code, "rayza_unavailable");
+  });
+
+  it("a room type that isn't linked to RAYZA can't be booked online", async () => {
+    const { saveRayzaRoomLinks, clearRayzaCache } = await import("@/lib/integrations/rayza-sync");
+    await saveRayzaRoomLinks({ links: { "guest-room": "guest-room" } });
+    clearRayzaCache();
+    try {
+      const { res, data } = await reserve({ roomId: "executive-room", ...uniqueStay() });
+      assert.equal(res.status, 422);
+      assert.equal(data.code, "unknown_room");
+    } finally {
+      await installFakeRayza();
+    }
   });
 
   it("manage link: view, pay deposit, cancel once, and reject bad tokens", async () => {
@@ -206,67 +224,5 @@ describe("Booking engine API", () => {
     assert.equal(cancelRes.status, 200);
     const again = await cancel(json("http://localhost/api/booking/manage/cancel", { id, t }));
     assert.equal(again.status, 409);
-  });
-
-  it("staff rates endpoint validates and saves the config", async () => {
-    const { GET, PUT } = await import("@/app/api/staff/settings/rates/route");
-    const unauthorized = await GET(new Request("http://localhost/api/staff/settings/rates"));
-    assert.equal(unauthorized.status, 401);
-
-    const current = (await (await GET(new Request(`http://localhost/api/staff/settings/rates?key=${KEY}`))).json()) as {
-      config: Record<string, unknown>;
-    };
-    const invalid = await PUT(
-      json(`http://localhost/api/staff/settings/rates?key=${KEY}`, { ...current.config, depositPct: 150 }, "PUT"),
-    );
-    assert.equal(invalid.status, 400);
-
-    const saved = await PUT(
-      json(`http://localhost/api/staff/settings/rates?key=${KEY}`, { ...current.config, holdMinutes: 45 }, "PUT"),
-    );
-    assert.equal(saved.status, 200);
-    assert.equal(((await saved.json()) as { config: { holdMinutes: number } }).config.holdMinutes, 45);
-  });
-
-  it("walk-ins: no overbooking, stay rules enforced, staff can override rules", async () => {
-    const { POST } = await import("@/app/api/demo/reservations/route");
-    const walkIn = (overrides: Record<string, unknown>) =>
-      POST(
-        json(`http://localhost/api/demo/reservations?key=${KEY}`, {
-          firstName: "Walk",
-          lastName: "In",
-          email: `walkin-${Date.now()}@example.com`,
-          roomId: "presidential-suite",
-          guests: 2,
-          status: "confirmed",
-          paymentMethod: "cash",
-          ...overrides,
-        }),
-      );
-
-    const stay = uniqueStay();
-    const online = await reserve({ roomId: "presidential-suite", ...stay });
-    assert.equal(online.res.status, 200);
-
-    const clash = await walkIn(stay);
-    assert.equal(clash.status, 409, "desk must not double-book the last room");
-    assert.equal(((await clash.json()) as { overridable?: boolean }).overridable, false);
-
-    const crowded = await walkIn({ ...uniqueStay(), roomId: "guest-room", guests: 3 });
-    const crowdedBody = (await crowded.json()) as { code?: string; overridable?: boolean };
-    assert.equal(crowded.status, 422);
-    assert.equal(crowdedBody.code, "over_capacity");
-    assert.equal(crowdedBody.overridable, true);
-
-    const overridden = await walkIn({ ...uniqueStay(), roomId: "guest-room", guests: 3, overrideRules: true });
-    const body = (await overridden.json()) as {
-      depositNgn?: number;
-      reservation?: { holdExpiresAt?: string; quotedDepositNgn?: number; status?: string; message?: string };
-    };
-    assert.equal(overridden.status, 200);
-    assert.equal(body.reservation?.status, "confirmed");
-    assert.equal(body.reservation?.holdExpiresAt, undefined, "desk bookings don't expire");
-    assert.equal(body.depositNgn, body.reservation?.quotedDepositNgn);
-    assert.match(body.reservation?.message ?? "", /Stay rules overridden by staff/);
   });
 });
