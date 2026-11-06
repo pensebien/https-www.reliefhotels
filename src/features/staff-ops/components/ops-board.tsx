@@ -83,7 +83,7 @@ export function OpsBoard() {
   }
 
   function recordTransfer(row: OpsRow) {
-    const suggested = row.paidNgn > 0 ? Math.max(0, (row.totalNgn ?? 0) - row.paidNgn) : (row.depositNgn ?? row.totalNgn ?? 0);
+    const suggested = row.paidNgn > 0 ? Math.max(0, (row.totalNgn ?? 0) - row.paidNgn) : row.amountDueNgn || (row.depositNgn ?? row.totalNgn ?? 0);
     const raw = window.prompt(t("transferPrompt", { guest: row.guest }), suggested ? String(suggested) : "");
     if (raw === null) return;
     const amountNgn = Number.parseInt(raw.replace(/[^\d]/g, ""), 10);
@@ -91,7 +91,9 @@ export function OpsBoard() {
       setNotice({ id: row.id, text: t("invalidAmount"), error: true });
       return;
     }
-    act(row, { action: "record_transfer", amountNgn });
+    const ref = window.prompt(t("markPaidPrompt", { guest: row.guest }), "")?.trim();
+    if (ref === undefined) return;
+    act(row, { action: "record_transfer", amountNgn, ...(ref ? { moniepointRef: ref } : {}) });
   }
 
   function cancel(row: OpsRow) {
@@ -167,6 +169,11 @@ export function OpsBoard() {
                     {row.email}
                     {row.phone ? ` · ${row.phone}` : ""}
                   </p>
+                  {row.paymentMode === "transfer" && row.status === "pending" ? (
+                    <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                      {t("awaitingTransfer", { amount: naira(row.amountDueNgn), ref: row.ref })}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span
@@ -222,7 +229,11 @@ export function OpsBoard() {
                     onClick={() => recordTransfer(row)}
                     className="rounded-lg border border-border px-3 py-1.5 text-sm hover:border-teal disabled:opacity-50"
                   >
-                    {busy === `record_transfer:${row.id}` ? t("working") : t("recordTransfer")}
+                    {busy === `record_transfer:${row.id}`
+                      ? t("working")
+                      : row.paymentMode === "transfer" && row.status === "pending"
+                        ? t("markPaid")
+                        : t("recordTransfer")}
                   </button>
                   {row.status === "confirmed" && rayza !== "sent" ? (
                     <button
@@ -254,6 +265,31 @@ export function OpsBoard() {
                     {busy === `retry_rayza:${row.id}` ? t("working") : t("retryRelease")}
                   </button>
                 </div>
+              ) : null}
+
+              {row.whatsappNumber && row.replies.length > 0 && open ? (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-muted">{t("whatsappGuest")}:</span>
+                  {row.replies
+                    .filter((reply) => (row.status === "confirmed" ? reply.id === "confirmed" : reply.id !== "confirmed"))
+                    .map((reply) => (
+                      <a
+                        key={reply.id}
+                        href={`https://wa.me/${row.whatsappNumber}?text=${encodeURIComponent(reply.text)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-border px-2.5 py-1 hover:border-teal"
+                      >
+                        {t(`reply.${reply.id}`)}
+                      </a>
+                    ))}
+                </div>
+              ) : null}
+              {row.confirmedBy && row.confirmedAt ? (
+                <p className="mt-1 text-xs text-muted">
+                  {t("confirmedBy", { name: row.confirmedBy, at: new Date(row.confirmedAt).toLocaleString("en-NG", { timeZone: "Africa/Lagos" }) })}
+                  {row.moniepointRef ? ` · MP ${row.moniepointRef}` : ""}
+                </p>
               ) : null}
 
               {notice?.id === row.id ? (

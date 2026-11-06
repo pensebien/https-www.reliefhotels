@@ -31,6 +31,15 @@ export type ReservationRecord = {
   lastName: string;
   email: string;
   phone?: string;
+  /** Digits only, international format (e.g. 2348012345678) — where transfer instructions and receipts are sent. */
+  whatsappNumber?: string;
+  /** "transfer" = guest pays the hotel's Moniepoint account and staff confirm it by hand. */
+  paymentMode?: "card" | "transfer";
+  /** Optional reference staff copy from the Moniepoint POS credit alert. */
+  moniepointPaymentRef?: string;
+  /** Audit trail for manual confirmation: who marked it paid, and when. */
+  paymentConfirmedBy?: string;
+  paymentConfirmedAt?: string;
   itemType: "room" | "tour" | "inquiry";
   roomId?: string;
   checkIn?: string;

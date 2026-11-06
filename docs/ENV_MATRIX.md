@@ -133,3 +133,14 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 - [ ] Paystack callback URL updated if URL changed
 - [ ] Restart dev server after `.env.local` edit
 - [ ] Document which matrix row you are on in deploy notes
+
+## Bank transfer via WhatsApp (migration 026)
+
+| Variable | Purpose |
+|----------|---------|
+| `TRANSFER_ACCOUNT_NUMBER` | Hotel Moniepoint account number guests pay. Pay-by-transfer is refused (503) until this and the name are set. |
+| `TRANSFER_ACCOUNT_NAME` | Account name shown to guests. |
+| `TRANSFER_BANK_NAME` | Optional; defaults to `Moniepoint MFB`. |
+| `FRONT_DESK_WHATSAPP` | Hotel customer-service WhatsApp that gets the "new reservation" alert; falls back to `MANAGER_PHONE`. |
+| `WHATSAPP_PROVIDER`, `TERMII_*` / `META_WHATSAPP_*` | Existing senders. Meta needs approved templates for messages outside a 24h guest chat. |
+

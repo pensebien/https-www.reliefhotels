@@ -22,6 +22,7 @@ async function book(guests = 2, roomId = "guest-room"): Promise<string> {
       lastName: "Guest",
       email: `rayza-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`,
       phone: "+2348012345678",
+      whatsappNumber: "2348000000000",
       stayPreference: "t",
       message: "t",
       itemType: "room",
@@ -92,7 +93,7 @@ describe("RAYZA Connect sync", () => {
     const { POST } = await import("@/app/api/reservations/route");
     const res = await POST(
       request("http://localhost/api/reservations", {
-        firstName: "Late", lastName: "Guest", email: "late@example.com", phone: "+2348012345678",
+        firstName: "Late", lastName: "Guest", email: "late@example.com", phone: "+2348012345678", whatsappNumber: "2348012345678",
         stayPreference: "t", message: "t", itemType: "room", roomId: "guest-room", guests: 2, nights: 2,
         checkIn: CHECK_IN, checkOut: CHECK_OUT,
       }),

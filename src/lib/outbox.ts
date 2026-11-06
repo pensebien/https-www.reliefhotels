@@ -15,7 +15,7 @@ import { readJsonFile, updateJsonFile } from "@/lib/json-file-store";
 
 const log = new Logger("outbox");
 
-export type OutboxKind = "email" | "manager-alert";
+export type OutboxKind = "email" | "manager-alert" | "whatsapp";
 
 export type OutboxItem = {
   id: string;
@@ -118,6 +118,11 @@ async function deliver(item: OutboxItem): Promise<{ ok: boolean; error?: string 
   if (item.kind === "email") {
     const { deliverQueuedEmail } = await import("@/lib/email");
     return deliverQueuedEmail(item.payload);
+  }
+  if (item.kind === "whatsapp") {
+    const { deliverWhatsapp } = await import("@/lib/whatsapp-transfer");
+    const ok = await deliverWhatsapp(item.payload as Parameters<typeof deliverWhatsapp>[0], { fromOutbox: true });
+    return { ok, error: ok ? undefined : "WhatsApp send failed" };
   }
   const { notifyManager } = await import("@/lib/notifications");
   const result = await notifyManager(item.payload as unknown as Parameters<typeof notifyManager>[0], { fromOutbox: true });

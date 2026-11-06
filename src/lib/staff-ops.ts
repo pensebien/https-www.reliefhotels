@@ -22,6 +22,13 @@ import {
 import { handlePaymentConfirmed } from "@/lib/payment-confirmed";
 import { roomDisplayName } from "@/lib/room-names";
 import { frontDeskPaymentReference } from "@/lib/staff-payment";
+import {
+  amountDueNgn,
+  bookingRef,
+  quickReplies,
+  sendPaymentConfirmedWhatsapp,
+  transferAccount,
+} from "@/lib/whatsapp-transfer";
 
 const BOARD_LIMIT = 200;
 
@@ -46,6 +53,18 @@ export type OpsRow = {
   /** Paid but RAYZA refused it: someone must rebook or refund. */
   needsAttention: boolean;
   staffNotes?: string;
+  /** Short reference the guest quotes in the transfer description. */
+  ref: string;
+  paymentMode?: ReservationRecord["paymentMode"];
+  /** Digits with country code; null if the guest never gave one. */
+  whatsappNumber: string | null;
+  /** Amount a pay-by-transfer guest was told to send. */
+  amountDueNgn: number;
+  confirmedBy?: string;
+  confirmedAt?: string;
+  moniepointRef?: string;
+  /** One-tap WhatsApp replies for the desk (message text; the board builds the wa.me link). */
+  replies: { id: string; text: string }[];
 };
 
 export async function loadOpsBoard(): Promise<OpsRow[]> {
@@ -60,6 +79,7 @@ export async function loadOpsBoard(): Promise<OpsRow[]> {
     byReservation.set(p.reservationId, [...(byReservation.get(p.reservationId) ?? []), p]);
   }
 
+  const account = transferAccount();
   return live.map((r) => {
     const own = byReservation.get(r.id) ?? [];
     const paidNgn = Math.round(own.filter((p) => p.status === "success").reduce((sum, p) => sum + p.amountKobo, 0) / 100);
@@ -92,6 +112,14 @@ export async function loadOpsBoard(): Promise<OpsRow[]> {
         : null,
       needsAttention: r.status === "confirmed" && row?.state === "failed" && row.wanted === "booked" && Boolean(row.code),
       staffNotes: r.staffNotes,
+      ref: bookingRef(r.id),
+      paymentMode: r.paymentMode,
+      whatsappNumber: r.whatsappNumber ?? null,
+      amountDueNgn: amountDueNgn(r),
+      confirmedBy: r.paymentConfirmedBy,
+      confirmedAt: r.paymentConfirmedAt,
+      moniepointRef: r.moniepointPaymentRef,
+      replies: r.whatsappNumber ? quickReplies(r, account) : [],
     };
   });
 }
@@ -99,19 +127,36 @@ export async function loadOpsBoard(): Promise<OpsRow[]> {
 export type OpsActionResult = { ok: true; message: string } | { ok: false; status: number; error: string };
 
 /**
- * The guest paid by bank transfer straight to the hotel's account (not through
- * the website checkout). Staff attest it arrived; the booking is confirmed and
- * handed to RAYZA exactly as an online payment would be.
+ * The guest paid by bank transfer straight to the hotel's Moniepoint account
+ * (not through the website checkout). Staff saw the credit on the POS and
+ * attest it: the booking is confirmed and handed to RAYZA exactly as an online
+ * payment would be, who confirmed it and when is recorded on the booking, and
+ * a first confirmation sends the guest a WhatsApp receipt.
+ *
+ * `moniepointRef` is the optional reference from the POS alert; it can confirm
+ * only one booking, which also makes a double-tap harmless.
  */
 export async function recordTransferReceived(
   reservationId: string,
   amountNgn: number,
   staffName: string | null,
+  moniepointRef?: string,
 ): Promise<OpsActionResult> {
   const reservation = await findReservationById(reservationId);
   if (!reservation || reservation.itemType !== "room") return { ok: false, status: 404, error: "Booking not found" };
   if (reservation.status === "cancelled") return { ok: false, status: 409, error: "This booking is cancelled" };
 
+  const ref = moniepointRef?.trim() || undefined;
+  if (ref) {
+    const { reservations, payments } = await getActivity();
+    const used =
+      reservations.some((r) => r.moniepointPaymentRef === ref) ||
+      payments.some((p) => p.externalReference?.includes(`MP:${ref}`));
+    if (used) return { ok: false, status: 409, error: "That Moniepoint reference has already been used" };
+  }
+
+  const firstConfirmation = reservation.status !== "confirmed";
+  const confirmedAt = new Date().toISOString();
   const payment = await addPayment({
     reference: frontDeskPaymentReference("moniepoint_transfer"),
     reservationId,
@@ -124,16 +169,25 @@ export async function recordTransferReceived(
     itemLabel: `${roomDisplayName(reservation.roomId)} — bank transfer`,
     paymentMethod: "moniepoint_transfer",
     paymentChannel: "moniepoint",
-    externalReference: `STAFF-ATTESTED${staffName ? `:${staffName}` : ""}`,
+    externalReference: ["STAFF-ATTESTED", staffName, ref ? `MP:${ref}` : null].filter(Boolean).join(":"),
   });
   const confirmed =
     (await updateReservationById(reservationId, {
       status: "confirmed",
       paymentReference: reservation.paymentReference ?? payment.reference,
       holdExpiresAt: undefined,
+      paymentConfirmedBy: staffName ?? "staff",
+      paymentConfirmedAt: confirmedAt,
+      ...(ref ? { moniepointPaymentRef: ref } : {}),
     })) ?? { ...reservation, status: "confirmed" as const };
   await handlePaymentConfirmed(payment, confirmed);
-  return { ok: true, message: `Recorded ₦${amountNgn.toLocaleString("en-NG")} and confirmed the booking` };
+  const whatsapp = firstConfirmation ? await sendPaymentConfirmedWhatsapp(confirmed) : false;
+  return {
+    ok: true,
+    message: `Recorded ₦${amountNgn.toLocaleString("en-NG")} and confirmed the booking${
+      firstConfirmation && confirmed.whatsappNumber ? (whatsapp ? " — guest notified on WhatsApp" : " — send the WhatsApp receipt below") : ""
+    }`,
+  };
 }
 
 export async function retryRayza(reservationId: string): Promise<OpsActionResult> {

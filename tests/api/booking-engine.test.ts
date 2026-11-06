@@ -38,6 +38,7 @@ function reservationBody(overrides: Record<string, unknown>) {
     lastName: "QA",
     email: `engine-${Date.now()}@example.com`,
     phone: "+2348000000000",
+    whatsappNumber: "2348000000000",
     stayPreference: "booking engine test",
     message: "Automated booking-engine test",
     itemType: "room",

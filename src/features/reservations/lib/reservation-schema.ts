@@ -1,3 +1,4 @@
+import { normalizeWhatsappNumber } from "@/lib/whatsapp-number";
 import { z } from "zod";
 
 export const reservationFormSchema = z.object({
@@ -9,6 +10,11 @@ export const reservationFormSchema = z.object({
     .trim()
     .min(7, "Phone number is required")
     .max(30, "Phone number is too long"),
+  whatsappNumber: z
+    .string()
+    .trim()
+    .min(1, "WhatsApp number is required")
+    .refine((v) => normalizeWhatsappNumber(v) !== null, "Enter a valid WhatsApp number with country code"),
   message: z.string().max(2000).default(""),
   experienceInterests: z.array(z.string()).default([]),
   arrivalTime: z.string().default(""),

@@ -608,7 +608,26 @@
     "promoCode": "Promo code",
     "arrivalTimeOptional": "Expected arrival time (optional)",
     "confirmedNoPaymentTitle": "Your booking is confirmed",
-    "confirmedNoPaymentBody": "Nothing to pay now — you'll settle at the hotel. We've sent the details to {email}."
+    "confirmedNoPaymentBody": "Nothing to pay now — you'll settle at the hotel. We've sent the details to {email}.",
+    "whatsapp": "WhatsApp number",
+    "whatsappPlaceholder": "+234 801 234 5678",
+    "whatsappHint": "We send your payment details and confirmation here.",
+    "payByTransfer": "Pay by bank transfer instead",
+    "payByTransferHint": "We'll WhatsApp you our Moniepoint account details. Your room is held while you pay, and confirmed once our desk sees the transfer.",
+    "transferTitle": "Your room is held — complete the transfer",
+    "transferSentWhatsapp": "We've also sent these details to your WhatsApp.",
+    "transferNotSentWhatsapp": "Save these details now — we couldn't reach your WhatsApp yet, but our team will follow up there.",
+    "transferBank": "Bank",
+    "transferAccountName": "Account name",
+    "transferAccountNumber": "Account number",
+    "transferAmount": "Exact amount",
+    "transferReference": "Reference",
+    "copy": "Copy",
+    "copied": "Copied",
+    "copyAccountNumber": "Copy account number",
+    "copyReference": "Copy reference",
+    "transferInstruction": "Transfer exactly {amount} and put #{reference} in the transfer description.",
+    "transferAfter": "Once our front desk sees your payment we'll confirm your reservation on WhatsApp. You can close this page."
   },
   "payment": {
     "verifying": "Verifying your payment…",
@@ -935,6 +954,17 @@
     "cancelConfirm": "Cancel {guest}'s booking? The room is released in RAYZA. Refunds are handled separately.",
     "working": "Working…",
     "actionError": "That didn't work. Try again.",
-    "notes": "Notes"
+    "notes": "Notes",
+    "markPaid": "Mark as paid",
+    "markPaidPrompt": "Moniepoint reference from the POS alert for {guest} (optional):",
+    "whatsappGuest": "WhatsApp guest",
+    "reply": {
+      "confirmed": "Payment confirmed",
+      "notFound": "Payment not seen",
+      "wrongAmount": "Wrong amount",
+      "reminder": "Send reminder"
+    },
+    "confirmedBy": "Confirmed by {name} at {at}",
+    "awaitingTransfer": "Awaiting transfer · expects {amount} · ref #{ref}"
   }
 }

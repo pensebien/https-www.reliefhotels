@@ -31,6 +31,7 @@ function reservationBody() {
     lastName: "QA",
     email: `qa-${Date.now()}@example.com`,
     phone: "+2348000000000",
+    whatsappNumber: "2348000000000",
     stayPreference: `guest-room · ${nights} night(s) · 2 guest(s)`,
     message: "Automated API flow test",
     itemType: "room" as const,

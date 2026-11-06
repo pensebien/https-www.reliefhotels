@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parseYmd } from "@/lib/reservation-dates";
+import { normalizeWhatsappNumber } from "@/lib/whatsapp-number";
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -9,6 +10,10 @@ export const reservationSchema = z
     lastName: z.string().min(1).max(100),
     email: z.string().email(),
     phone: z.string().trim().min(7).max(30),
+    /** WhatsApp number for payment instructions and receipts. Required for rooms; the route normalises it. */
+    whatsappNumber: z.string().trim().max(30).optional(),
+    /** "transfer": pay the hotel's Moniepoint account; the desk confirms it by hand. */
+    paymentMode: z.enum(["card", "transfer"]).default("card"),
     stayPreference: z.string().min(1).max(200),
     message: z.string().min(1).max(5000),
     itemType: z.enum(["room", "tour", "inquiry"]).default("room"),
@@ -24,6 +29,14 @@ export const reservationSchema = z
   })
   .superRefine((data, ctx) => {
     if (data.itemType !== "room") return;
+
+    if (!data.whatsappNumber || !normalizeWhatsappNumber(data.whatsappNumber)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A valid WhatsApp number with country code is required",
+        path: ["whatsappNumber"],
+      });
+    }
 
     if (!data.checkIn) {
       ctx.addIssue({

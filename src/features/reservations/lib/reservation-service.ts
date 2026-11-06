@@ -47,6 +47,7 @@ export function buildReservationPayload(
     lastName: formData.lastName.trim(),
     email: formData.email.trim(),
     phone: formData.phone.trim(),
+    whatsappNumber: formData.whatsappNumber.trim(),
     itemType: "room" as const,
     roomId: stayContext.itemId,
     checkIn: stayContext.checkIn,

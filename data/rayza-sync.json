@@ -1,0 +1,14 @@
+{
+  "rows": [
+    {
+      "reservationId": "c06995fe-c581-42a9-98a0-900a94bd23fb",
+      "state": "pushed",
+      "wanted": "booked",
+      "refs": [
+        "BK-RH-C06995FEC581"
+      ],
+      "attempts": 1,
+      "at": "2026-11-06T01:49:51.864Z"
+    }
+  ]
+}

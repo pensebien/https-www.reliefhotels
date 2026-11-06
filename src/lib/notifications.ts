@@ -9,7 +9,10 @@ export type NotificationEvent =
   | "payment.verified"
   | "event.inquiry.created"
   | "dining.reservation.created"
-  | "booking.needs_attention";
+  | "booking.needs_attention"
+  | "transfer.instructions"
+  | "transfer.desk_alert"
+  | "transfer.confirmed";
 
 export type NotifyPayload = {
   event: NotificationEvent;

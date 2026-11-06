@@ -27,6 +27,7 @@ async function createPendingReservation(page: Page, label: string) {
       lastName: label,
       email,
       phone: "+2348030000001",
+      whatsappNumber: "2348000000000",
       stayPreference: `guest-room · ${nights} night(s) · 2 guest(s)`,
       message: `E2E ${label}`,
       itemType: "room",

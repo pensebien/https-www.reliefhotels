@@ -16,6 +16,7 @@ import type {
   ReservationFlowStatus,
   ReservationFormData,
   StayContext,
+  TransferInstructions,
 } from "../types";
 
 const defaultFormData: ReservationFormData = {
@@ -23,6 +24,7 @@ const defaultFormData: ReservationFormData = {
   lastName: "",
   email: "",
   phone: "",
+  whatsappNumber: "",
   message: "",
   experienceInterests: [],
   arrivalTime: "",
@@ -74,6 +76,8 @@ export function useReservationFlow(options: ReservationFlowProps) {
   /** Confirmed with nothing to pay now (a 0% deposit). */
   const [confirmedWithoutPayment, setConfirmedWithoutPayment] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  /** Set once a pay-by-transfer booking is made: the account to pay and the reference to quote. */
+  const [transfer, setTransfer] = useState<TransferInstructions | null>(null);
 
   const checkIn = initialCheckIn;
 
@@ -186,7 +190,11 @@ export function useReservationFlow(options: ReservationFlowProps) {
     });
   }, []);
 
-  const submitReservation = useCallback(async (): Promise<{ id: string; noPaymentNeeded: boolean } | null> => {
+  const submitReservation = useCallback(async (paymentMode: "card" | "transfer" = "card"): Promise<{
+    id: string;
+    noPaymentNeeded: boolean;
+    transfer?: TransferInstructions;
+  } | null> => {
     const parsed = reservationFormSchema.safeParse(formData);
 
     if (!parsed.success) {
@@ -210,15 +218,20 @@ export function useReservationFlow(options: ReservationFlowProps) {
       const res = await fetch("/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, paymentMode }),
       });
-      const data = (await res.json()) as { id?: string; error?: string; noPaymentNeeded?: boolean };
+      const data = (await res.json()) as {
+        id?: string;
+        error?: string;
+        noPaymentNeeded?: boolean;
+        transfer?: TransferInstructions;
+      };
 
       if (!res.ok || !data.id) {
         throw new Error(data.error ?? "Unable to create reservation");
       }
 
-      return { id: data.id, noPaymentNeeded: data.noPaymentNeeded === true };
+      return { id: data.id, noPaymentNeeded: data.noPaymentNeeded === true, transfer: data.transfer };
     } catch (error) {
       setStatus("error");
       setErrorMessage(
@@ -265,6 +278,23 @@ export function useReservationFlow(options: ReservationFlowProps) {
     [formData.email, itemId, useDemoTestAmount],
   );
 
+  const handleReserveByTransfer = useCallback(async () => {
+    const created = await submitReservation("transfer");
+    if (!created) return;
+    if (created.noPaymentNeeded) {
+      setConfirmedWithoutPayment(true);
+      setStatus("success");
+      return;
+    }
+    if (!created.transfer) {
+      setStatus("error");
+      setErrorMessage("Bank transfer details are unavailable. Please pay by card or contact the hotel.");
+      return;
+    }
+    setTransfer(created.transfer);
+    setStatus("success");
+  }, [submitReservation]);
+
   const handleReserveAndPay = useCallback(async () => {
     const created = await submitReservation();
     if (!created) return;
@@ -302,6 +332,8 @@ export function useReservationFlow(options: ReservationFlowProps) {
     submitReservation,
     initiatePayment,
     handleReserveAndPay,
+    handleReserveByTransfer,
+    transfer,
     confirmedWithoutPayment,
   };
 }

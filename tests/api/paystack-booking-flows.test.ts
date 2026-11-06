@@ -49,6 +49,7 @@ function customerBody() {
     lastName: "Online",
     email: `customer-qa-${Date.now()}@example.com`,
     phone: "+2348022222222",
+    whatsappNumber: "2348000000000",
     stayPreference: `guest-room · ${nights} night(s) · 2 guest(s)`,
     message: "Customer Paystack QA",
     itemType: "room" as const,

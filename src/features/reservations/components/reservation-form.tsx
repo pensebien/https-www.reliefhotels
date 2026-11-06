@@ -2,9 +2,10 @@
 
 import { experienceOptions } from "@/content/experience-options";
 import { cn, formatNaira } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, CreditCard, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Banknote, Check, Copy, CreditCard, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { FormEvent, useState } from "react";
+import type { TransferInstructions } from "../types";
 import { reservationFormSchema } from "../lib/reservation-schema";
 import { useReservationFlow } from "../hooks/use-reservation-flow";
 import type { ReservationFlowProps, ReservationFormData } from "../types";
@@ -35,6 +36,8 @@ export function ReservationForm(props: ReservationFlowProps) {
     errorMessage,
     depositNgn,
     handleReserveAndPay,
+    handleReserveByTransfer,
+    transfer,
     toggleExperienceInterest,
     nights: stayNights,
     guests: stayGuests,
@@ -77,6 +80,10 @@ export function ReservationForm(props: ReservationFlowProps) {
     if (validateStep1()) {
       setStep(2);
     }
+  }
+
+  if (status === "success" && transfer) {
+    return <TransferInstructionsPanel transfer={transfer} />;
   }
 
   if (status === "success" && confirmedWithoutPayment) {
@@ -249,6 +256,27 @@ export function ReservationForm(props: ReservationFlowProps) {
               ) : null}
             </div>
 
+            <div className="space-y-2 sm:col-span-2">
+              <label htmlFor="res-whatsapp" className={labelClassName}>
+                {t("whatsapp")}
+              </label>
+              <input
+                id="res-whatsapp"
+                type="tel"
+                required
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder={t("whatsappPlaceholder")}
+                value={formData.whatsappNumber}
+                onChange={(e) => updateField("whatsappNumber", e.target.value)}
+                className={inputClassName}
+              />
+              <p className="text-xs leading-5 text-muted">{t("whatsappHint")}</p>
+              {validationErrors.whatsappNumber ? (
+                <p className="text-xs text-red-600">{validationErrors.whatsappNumber}</p>
+              ) : null}
+            </div>
+
             <fieldset className="space-y-3 sm:col-span-2">
               <legend className={labelClassName}>{t("experienceInterests")}</legend>
               <p className="text-xs leading-5 text-muted">{t("experienceInterestsHint")}</p>
@@ -362,6 +390,16 @@ export function ReservationForm(props: ReservationFlowProps) {
               {status === "loading" ? t("submitting") : t("payDeposit")}
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => void handleReserveByTransfer()}
+            disabled={status === "loading"}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-teal px-6 py-3.5 text-sm font-medium transition-colors hover:bg-teal/10 disabled:opacity-60"
+          >
+            <Banknote className="h-4 w-4" />
+            {t("payByTransfer")}
+          </button>
+          <p className="mt-2 text-xs leading-5 text-muted">{t("payByTransferHint")}</p>
 
           {useDemoTestAmount ? (
             <p className="mt-2 text-xs text-muted">
@@ -372,5 +410,78 @@ export function ReservationForm(props: ReservationFlowProps) {
         </>
       )}
     </form>
+  );
+}
+
+function TransferInstructionsPanel({ transfer }: { transfer: TransferInstructions }) {
+  const t = useTranslations("booking");
+  const [copied, setCopied] = useState<"account" | "reference" | null>(null);
+
+  async function copy(kind: "account" | "reference", value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(kind);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      // Clipboard blocked: the value is still on screen to select by hand.
+    }
+  }
+
+  const amount = formatNaira(transfer.amountNgn);
+  return (
+    <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-6 sm:p-8" role="status">
+      <h3 className="font-serif text-2xl font-semibold">{t("transferTitle")}</h3>
+      <p className="mt-2 text-muted">
+        {transfer.whatsappSent ? t("transferSentWhatsapp") : t("transferNotSentWhatsapp")}
+      </p>
+
+      <dl className="mt-5 space-y-3 rounded-xl border border-border bg-background p-4 text-sm">
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">{t("transferBank")}</dt>
+          <dd className="font-medium">{transfer.bankName}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">{t("transferAccountName")}</dt>
+          <dd className="font-medium">{transfer.accountName}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-muted">{t("transferAccountNumber")}</dt>
+          <dd className="flex items-center gap-2 font-mono text-lg font-semibold">
+            {transfer.accountNumber}
+            <button
+              type="button"
+              onClick={() => void copy("account", transfer.accountNumber)}
+              aria-label={t("copyAccountNumber")}
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 font-sans text-xs font-medium hover:border-teal"
+            >
+              {copied === "account" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied === "account" ? t("copied") : t("copy")}
+            </button>
+          </dd>
+        </div>
+        <div className="flex justify-between gap-4">
+          <dt className="text-muted">{t("transferAmount")}</dt>
+          <dd className="font-semibold">{amount}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt className="text-muted">{t("transferReference")}</dt>
+          <dd className="flex items-center gap-2 font-mono font-semibold">
+            #{transfer.reference}
+            <button
+              type="button"
+              onClick={() => void copy("reference", transfer.reference)}
+              aria-label={t("copyReference")}
+              className="inline-flex items-center gap-1 rounded-lg border border-border px-2 py-1 font-sans text-xs font-medium hover:border-teal"
+            >
+              {copied === "reference" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied === "reference" ? t("copied") : t("copy")}
+            </button>
+          </dd>
+        </div>
+      </dl>
+
+      <p className="mt-4 text-sm font-medium">{t("transferInstruction", { amount, reference: transfer.reference })}</p>
+      <p className="mt-2 text-xs leading-5 text-muted">{t("transferAfter")}</p>
+    </div>
   );
 }

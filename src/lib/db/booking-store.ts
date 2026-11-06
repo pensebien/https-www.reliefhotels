@@ -39,6 +39,12 @@ type ReservationRow = {
   booking_channel?: "online" | "desk" | null;
   custom_fields?: Record<string, string | boolean> | null;
   tags?: string[] | null;
+  // Migration 026.
+  whatsapp_number?: string | null;
+  payment_mode?: "card" | "transfer" | null;
+  moniepoint_payment_ref?: string | null;
+  payment_confirmed_by?: string | null;
+  payment_confirmed_at?: string | null;
 };
 
 type PaymentRow = {
@@ -98,6 +104,11 @@ function mapReservation(row: ReservationRow): ReservationRecord {
     bookingChannel: row.booking_channel ?? undefined,
     customFields: row.custom_fields ?? undefined,
     tags: row.tags ?? undefined,
+    whatsappNumber: row.whatsapp_number ?? undefined,
+    paymentMode: row.payment_mode ?? undefined,
+    moniepointPaymentRef: row.moniepoint_payment_ref ?? undefined,
+    paymentConfirmedBy: row.payment_confirmed_by ?? undefined,
+    paymentConfirmedAt: row.payment_confirmed_at ?? undefined,
   };
 }
 
@@ -164,6 +175,11 @@ function reservationPatchToRow(
   if (patch.bookingChannel !== undefined) update.booking_channel = patch.bookingChannel;
   if (patch.customFields !== undefined) update.custom_fields = patch.customFields;
   if (patch.tags !== undefined) update.tags = patch.tags;
+  if (patch.whatsappNumber !== undefined) update.whatsapp_number = patch.whatsappNumber;
+  if (patch.paymentMode !== undefined) update.payment_mode = patch.paymentMode;
+  if (patch.moniepointPaymentRef !== undefined) update.moniepoint_payment_ref = patch.moniepointPaymentRef;
+  if (patch.paymentConfirmedBy !== undefined) update.payment_confirmed_by = patch.paymentConfirmedBy;
+  if (patch.paymentConfirmedAt !== undefined) update.payment_confirmed_at = patch.paymentConfirmedAt;
   return update;
 }
 

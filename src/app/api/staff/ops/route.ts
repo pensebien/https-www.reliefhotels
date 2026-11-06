@@ -20,6 +20,7 @@ const actionSchema = z.discriminatedUnion("action", [
     action: z.literal("record_transfer"),
     reservationId: z.string().min(1).max(64),
     amountNgn: z.number().int().min(1).max(100_000_000),
+    moniepointRef: z.string().trim().max(64).optional(),
   }),
   z.object({ action: z.literal("retry_rayza"), reservationId: z.string().min(1).max(64) }),
   z.object({ action: z.literal("cancel"), reservationId: z.string().min(1).max(64) }),
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const result =
       input.action === "record_transfer"
-        ? await recordTransferReceived(input.reservationId, input.amountNgn, staffName)
+        ? await recordTransferReceived(input.reservationId, input.amountNgn, staffName, input.moniepointRef)
         : input.action === "retry_rayza"
           ? await retryRayza(input.reservationId)
           : await cancelBooking(input.reservationId, staffName);

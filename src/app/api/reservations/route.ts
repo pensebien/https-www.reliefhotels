@@ -5,6 +5,8 @@ import { reserveRoom } from "@/lib/booking-engine/reserve";
 import { addReservation, updateReservationById, type ReservationRecord } from "@/lib/demo-store";
 import { sendGuestReservationConfirmation, sendReservationEmail } from "@/lib/email";
 import { reservationSchema } from "@/lib/schemas/reservation";
+import { amountDueNgn, bookingRef, sendTransferNotifications, transferAccount } from "@/lib/whatsapp-transfer";
+import { normalizeWhatsappNumber } from "@/lib/whatsapp-number";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -22,6 +24,13 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
+    // Checked before a room is held, so a missing account never strands a hold.
+    if (data.paymentMode === "transfer" && data.itemType === "room" && !transferAccount()) {
+      return NextResponse.json(
+        { error: "Bank transfer isn't available right now. Please pay by card or contact the hotel.", code: "transfer_unavailable" },
+        { status: 503 },
+      );
+    }
     const guest = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -57,6 +66,10 @@ export async function POST(request: Request) {
       }
       record = result.record;
       quote = result.quote;
+      const whatsappNumber = normalizeWhatsappNumber(data.whatsappNumber ?? "") ?? undefined;
+      record =
+        (await updateReservationById(record.id, { whatsappNumber, paymentMode: data.paymentMode })) ??
+        { ...record, whatsappNumber, paymentMode: data.paymentMode };
     } else {
       record = await addReservation({
         ...guest,
@@ -79,6 +92,12 @@ export async function POST(request: Request) {
       await syncConfirmedReservationToRayza(record);
     }
 
+    // Pay-by-transfer: WhatsApp the guest the account + exact amount, and alert
+    // the front desk. Not needed when nothing is due (already confirmed above).
+    const transferFlow = data.paymentMode === "transfer" && quote !== undefined && !noPaymentNeeded;
+    const account = transferFlow ? transferAccount() : null;
+    const whatsapp = transferFlow ? await sendTransferNotifications(record) : null;
+
     const [sent] = await Promise.all([
       sendReservationEmail(record),
       sendGuestReservationConfirmation(record),
@@ -94,6 +113,16 @@ export async function POST(request: Request) {
       notified: false,
       demo: !process.env.RESEND_API_KEY,
       noPaymentNeeded,
+      ...(transferFlow && account
+        ? {
+            transfer: {
+              ...account,
+              reference: bookingRef(record.id),
+              amountNgn: amountDueNgn(record),
+              whatsappSent: whatsapp?.guest ?? false,
+            },
+          }
+        : {}),
       ...(quote
         ? {
             totalNgn: quote.totalNgn,

@@ -1,0 +1,11 @@
+[2026-11-06T01:49:51.677Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"guest reservation confirmation","detail":["transfer-1793929791585-3@example.com"]}
+[2026-11-06T01:49:51.677Z] [INFO] [email] Email not sent: no provider (demo) {"to":"reservations@reliefhotelsandsuites.com","subject":"Reservation: Ada Transfer","id":"6e508c7b-4235-4ff4-bd31-d30eeb56b330"}
+[2026-11-06T01:49:51.735Z] [INFO] [email] Email not sent: no provider (demo) {"to":"reservations@reliefhotelsandsuites.com","subject":"Reservation: Ada Transfer","id":"adf0bb08-119e-46c0-b875-70a65055ea28"}
+[2026-11-06T01:49:51.735Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"guest reservation confirmation","detail":["transfer-1793929791687-5@example.com"]}
+[2026-11-06T01:49:51.783Z] [INFO] [email] Email not sent: no provider (demo) {"to":"reservations@reliefhotelsandsuites.com","subject":"Reservation: Ada Transfer","id":"c06995fe-c581-42a9-98a0-900a94bd23fb"}
+[2026-11-06T01:49:51.783Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"guest reservation confirmation","detail":["transfer-1793929791736-6@example.com"]}
+[2026-11-06T01:49:51.866Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"payment confirmation","detail":["RH-MPTF-20261106-ae7faf"]}
+[2026-11-06T01:49:51.937Z] [INFO] [email] Email not sent: no provider (demo) {"to":"reservations@reliefhotelsandsuites.com","subject":"Reservation: Ada Transfer","id":"45c2189c-75a4-43a9-8468-b8c54502239b"}
+[2026-11-06T01:49:51.937Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"guest reservation confirmation","detail":["transfer-1793929791887-7@example.com"]}
+[2026-11-06T01:49:52.000Z] [INFO] [email] Email not sent: no provider (demo) {"to":"reservations@reliefhotelsandsuites.com","subject":"Reservation: Ada Transfer","id":"d9af4827-5bb5-4566-9353-9861d577e293"}
+[2026-11-06T01:49:52.000Z] [INFO] [email] Email not sent: no provider (demo) {"kind":"guest reservation confirmation","detail":["transfer-1793929791951-8@example.com"]}

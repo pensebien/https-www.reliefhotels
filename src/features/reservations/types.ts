@@ -3,6 +3,7 @@ export type ReservationFormData = {
   lastName: string;
   email: string;
   phone: string;
+  whatsappNumber: string;
   message: string;
   experienceInterests: string[];
   arrivalTime: string;
@@ -44,4 +45,16 @@ export type BookQueryParams = {
   checkOut?: string;
   nights?: number;
   guests?: number;
+};
+
+/** What the guest needs to pay by bank transfer — mirrors the reservations API's `transfer` block. */
+export type TransferInstructions = {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  /** Short booking reference to put in the transfer description. */
+  reference: string;
+  amountNgn: number;
+  /** Whether the instructions also reached the guest's WhatsApp. */
+  whatsappSent: boolean;
 };
