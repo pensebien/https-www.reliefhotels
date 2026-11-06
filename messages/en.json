@@ -966,5 +966,29 @@
     },
     "confirmedBy": "Confirmed by {name} at {at}",
     "awaitingTransfer": "Awaiting transfer · expects {amount} · ref #{ref}"
+  },
+  "confirmPayment": {
+    "metaTitle": "Confirm payment | Relief Hotels staff",
+    "eyebrow": "Front desk",
+    "title": "Confirm bank transfer",
+    "invalid": "This confirmation link is not valid or the booking no longer exists.",
+    "reference": "Reference",
+    "guest": "Guest",
+    "whatsapp": "WhatsApp",
+    "room": "Room",
+    "stay": "Stay",
+    "expected": "Expected amount",
+    "checkFirst": "Check the credit on the Moniepoint POS or app first. Only confirm when the money has arrived.",
+    "holdExpired": "This booking's room hold has lapsed. The room may have been taken; RAYZA will say so if it can't accept it.",
+    "amountReceived": "Amount received (₦)",
+    "amountMismatch": "This differs from the expected {expected}. Confirm only if that is what arrived.",
+    "moniepointRef": "Moniepoint reference (optional)",
+    "confirmButton": "I have received the payment",
+    "invalidAmount": "Enter the amount received in naira.",
+    "error": "That didn't work. Try again.",
+    "done": "Payment confirmed.",
+    "alreadyConfirmed": "This booking is already confirmed.",
+    "confirmedBy": "Confirmed by {name} at {at}",
+    "cancelled": "This booking was cancelled, so it can't be confirmed."
   }
 }

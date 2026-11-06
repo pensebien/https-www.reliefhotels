@@ -9,6 +9,7 @@ import { installFakeRayza, uninstallFakeRayza } from "../helpers/fake-rayza";
 const KEY = "relief-demo-2026";
 const DESK = "2348099990000";
 const GUEST = "2348031112222";
+const RUN = Date.now().toString(36);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- loose JSON responses in a test
 type Json = Record<string, any>;
@@ -179,7 +180,7 @@ describe("Pay by transfer over WhatsApp", () => {
     sent.length = 0;
     const amountNgn = booked.json.transfer.amountNgn as number;
 
-    const paid = await ops({ action: "record_transfer", reservationId: booked.json.id, amountNgn, moniepointRef: "MP-TEST-1" });
+    const paid = await ops({ action: "record_transfer", reservationId: booked.json.id, amountNgn, moniepointRef: `MP-TEST-1-${RUN}` });
     assert.equal(paid.status, 200, JSON.stringify(paid.json));
     const receipt = sent.find((m) => m.to === GUEST && /Payment confirmed/.test(m.text));
     assert.ok(receipt, "guest got the payment-confirmed message");
@@ -188,20 +189,97 @@ describe("Pay by transfer over WhatsApp", () => {
     const { findReservationById } = await import("@/lib/demo-store");
     const r = (await findReservationById(booked.json.id))!;
     assert.equal(r.status, "confirmed");
-    assert.equal(r.moniepointPaymentRef, "MP-TEST-1");
+    assert.equal(r.moniepointPaymentRef, `MP-TEST-1-${RUN}`);
     assert.ok(r.paymentConfirmedBy);
     assert.ok(r.paymentConfirmedAt);
 
     // A second tap with the same POS reference is refused, so nothing is double-counted.
     sent.length = 0;
-    const again = await ops({ action: "record_transfer", reservationId: booked.json.id, amountNgn, moniepointRef: "MP-TEST-1" });
+    const again = await ops({ action: "record_transfer", reservationId: booked.json.id, amountNgn, moniepointRef: `MP-TEST-1-${RUN}` });
     assert.equal(again.status, 409);
     assert.equal(sent.filter((m) => /Payment confirmed/.test(m.text)).length, 0);
 
     // The same reference cannot confirm a different booking.
     const other = await post(body());
-    const reuse = await ops({ action: "record_transfer", reservationId: other.json.id, amountNgn, moniepointRef: "MP-TEST-1" });
+    const reuse = await ops({ action: "record_transfer", reservationId: other.json.id, amountNgn, moniepointRef: `MP-TEST-1-${RUN}` });
     assert.equal(reuse.status, 409);
+  });
+
+  it("the desk alert carries a confirm link that only works for that booking", async () => {
+    sent.length = 0;
+    const booked = await post(body());
+    const alert = sent.find((m) => m.to === DESK)!;
+    const link = alert.text.match(/https?:\/\/\S+\/confirm-payment\?\S+/)?.[0];
+    assert.ok(link, "alert contains the confirm link");
+    const url = new URL(link);
+    const id = url.searchParams.get("id")!;
+    const token = url.searchParams.get("t")!;
+    assert.equal(id, booked.json.id);
+
+    const { isValidConfirmToken } = await import("@/lib/booking-engine/confirm-link");
+    const { signReservationId } = await import("@/lib/booking-engine/manage-link");
+    assert.equal(isValidConfirmToken(id, token), true);
+    assert.equal(isValidConfirmToken("another-booking", token), false);
+    // A guest's manage-booking link must never confirm a payment.
+    assert.equal(isValidConfirmToken(id, signReservationId(id)), false);
+  });
+
+  it("opening the confirm page never confirms; the POST does, once", async () => {
+    sent.length = 0;
+    const booked = await post(body());
+    const id = booked.json.id as string;
+    const { signConfirmToken } = await import("@/lib/booking-engine/confirm-link");
+    const t = signConfirmToken(id);
+    const amountNgn = booked.json.transfer.amountNgn as number;
+
+    const Page = (await import("@/app/[locale]/confirm-payment/page")).default;
+    await Page({ params: Promise.resolve({ locale: "en" }), searchParams: Promise.resolve({ id, t }) }).catch(() => null);
+    const { findReservationById } = await import("@/lib/demo-store");
+    assert.equal((await findReservationById(id))!.status, "pending", "viewing must not confirm");
+
+    const confirm = async (payload: Record<string, unknown>) => {
+      const { POST } = await import("@/app/api/confirm-payment/route");
+      const res = await POST(
+        new Request("http://localhost/api/confirm-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }),
+      );
+      return { status: res.status, json: (await res.json()) as Json };
+    };
+
+    assert.equal((await confirm({ id, t: "bad-token", amountNgn })).status, 403);
+    assert.equal((await findReservationById(id))!.status, "pending");
+
+    sent.length = 0;
+    const ok = await confirm({ id, t, amountNgn, moniepointRef: `MP-LINK-1-${RUN}` });
+    assert.equal(ok.status, 200, JSON.stringify(ok.json));
+    const r = (await findReservationById(id))!;
+    assert.equal(r.status, "confirmed");
+    assert.match(r.paymentConfirmedBy ?? "", /^WhatsApp link \(CS \+2348099990000\)$/);
+    assert.ok(r.paymentConfirmedAt);
+    assert.equal(sent.filter((m) => m.to === GUEST && /Payment confirmed/.test(m.text)).length, 1);
+
+    sent.length = 0;
+    assert.equal((await confirm({ id, t, amountNgn })).status, 409, "second tap is refused");
+    assert.equal(sent.length, 0);
+  });
+
+  it("a cancelled booking can't be confirmed from the link", async () => {
+    const booked = await post(body());
+    const id = booked.json.id as string;
+    await ops({ action: "cancel", reservationId: id });
+    const { signConfirmToken } = await import("@/lib/booking-engine/confirm-link");
+    const { POST } = await import("@/app/api/confirm-payment/route");
+    const res = await POST(
+      new Request("http://localhost/api/confirm-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, t: signConfirmToken(id), amountNgn: 1000 }),
+      }),
+    );
+    assert.equal(res.status, 409);
   });
 
   it("the ops board exposes the reference, amount and quick replies", async () => {

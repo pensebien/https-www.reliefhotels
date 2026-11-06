@@ -10,7 +10,7 @@
 import { getServerConfig } from "@/lib/config";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-function linkSecret(): string {
+export function linkSecret(): string {
   const secret =
     process.env.BOOKING_LINK_SECRET?.trim() ||
     process.env.STAFF_SESSION_SECRET?.trim() ||

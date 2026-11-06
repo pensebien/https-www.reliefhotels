@@ -141,6 +141,6 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `TRANSFER_ACCOUNT_NUMBER` | Hotel Moniepoint account number guests pay. Pay-by-transfer is refused (503) until this and the name are set. |
 | `TRANSFER_ACCOUNT_NAME` | Account name shown to guests. |
 | `TRANSFER_BANK_NAME` | Optional; defaults to `Moniepoint MFB`. |
-| `FRONT_DESK_WHATSAPP` | Hotel customer-service WhatsApp that gets the "new reservation" alert; falls back to `MANAGER_PHONE`. |
+| `FRONT_DESK_WHATSAPP` | Customer-service WhatsApp (`+2349124784058`) that gets the "new reservation" alert with a signed **confirm-payment link**; falls back to `MANAGER_PHONE`. Needs `NEXT_PUBLIC_APP_URL=https://www.reliefhotelsandsuites.com` so the link points at production. |
 | `WHATSAPP_PROVIDER`, `TERMII_*` / `META_WHATSAPP_*` | Existing senders. Meta needs approved templates for messages outside a 24h guest chat. |
 
