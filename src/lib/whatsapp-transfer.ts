@@ -13,6 +13,7 @@
  * costs a booking its payment instructions.
  */
 
+import { buildConfirmPaymentUrl } from "@/lib/booking-engine/confirm-link";
 import { logNotificationAttempt } from "@/lib/db/notification-log";
 import type { ReservationRecord } from "@/lib/demo-store";
 import { Logger } from "@/lib/logger";
@@ -43,7 +44,7 @@ export function transferAccount(): TransferAccount | null {
 }
 
 /** Where internal alerts go: the hotel's customer-service WhatsApp, else the manager's phone. */
-function frontDeskNumber(): string | null {
+export function frontDeskNumber(): string | null {
   const raw = process.env.FRONT_DESK_WHATSAPP ?? process.env.MANAGER_PHONE;
   return raw ? normalizeWhatsappNumber(raw) : null;
 }
@@ -94,7 +95,8 @@ export function frontDeskAlertMessage(r: ReservationRecord): string {
     `Reference: #${bookingRef(r.id)}`,
     `Expected amount: ${naira(amountDueNgn(r))}`,
     `Room: ${roomDisplayName(r.roomId)} · ${r.checkIn} → ${r.checkOut}`,
-    `Match it on the Moniepoint POS, then mark it paid in the staff portal.`,
+    `First check the credit on the Moniepoint POS. Only when the money has arrived, tap to confirm:`,
+    buildConfirmPaymentUrl(r.id) ?? `(confirm link unavailable — mark it paid in the staff portal)`,
   ].join("\n");
 }
 
