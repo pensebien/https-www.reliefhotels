@@ -98,8 +98,12 @@ describe("Pay by transfer over WhatsApp", () => {
     beforeWrap = globalThis.fetch;
     wrappedFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input instanceof Request ? input.url : input);
-      if (url.startsWith("https://api.ng.termii.com/api/whatsapp/send")) {
+      if (url === "https://api.termii.com/api/sms/send") {
         const b = JSON.parse(String(init?.body));
+        assert.equal(b.channel, "whatsapp");
+        assert.equal(b.type, "plain");
+        assert.equal(b.from, "relief");
+        assert.equal(b.api_key, "termii-test");
         sent.push({ to: b.to, text: b.sms });
         return new Response("{}", { status: 200 });
       }

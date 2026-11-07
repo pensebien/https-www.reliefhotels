@@ -143,4 +143,7 @@ NEXT_PUBLIC_APP_URL=https://xxxx.ngrok-free.app
 | `TRANSFER_BANK_NAME` | Optional; defaults to `Moniepoint MFB`. |
 | `FRONT_DESK_WHATSAPP` | Customer-service WhatsApp (`+2349124784058`) that gets the "new reservation" alert with a signed **confirm-payment link**; falls back to `MANAGER_PHONE`. Needs `NEXT_PUBLIC_APP_URL=https://www.reliefhotelsandsuites.com` so the link points at production. |
 | `WHATSAPP_PROVIDER`, `TERMII_*` / `META_WHATSAPP_*` | Existing senders. Meta needs approved templates for messages outside a 24h guest chat. |
-
+| `TERMII_API_KEY` | Termii key. WhatsApp goes via `POST {TERMII_BASE_URL}/api/sms/send` with `channel: "whatsapp"` (`src/services/termii.ts`). |
+| `TERMII_SENDER_ID` | WhatsApp sender/device approved on the Termii account (`TERMII_WHATSAPP_DEVICE_ID` overrides it for WhatsApp only). |
+| `TERMII_BASE_URL` | Optional; default `https://api.termii.com`. Use the base URL shown in your Termii dashboard if it differs. |
+| `NOTIFY_CHANNEL` | Not needed for the transfer messages (they always send when Termii is configured). `console` only stops failed sends from being queued for retry. |
