@@ -1,4 +1,5 @@
 import { Logger } from "@/lib/logger";
+import { sendTermiiWhatsApp as sendTermiiWhatsAppService } from "@/services/termii";
 import { enqueueNotification } from "@/lib/outbox";
 import { logNotificationAttempt } from "@/lib/db/notification-log";
 
@@ -81,25 +82,7 @@ async function sendTermiiSms(to: string, message: string): Promise<boolean> {
 }
 
 async function sendTermiiWhatsApp(to: string, message: string): Promise<boolean> {
-  const apiKey = process.env.TERMII_API_KEY;
-  const deviceId =
-    process.env.TERMII_WHATSAPP_DEVICE_ID ?? process.env.TERMII_SENDER_ID;
-  if (!apiKey || !deviceId) return false;
-
-  const res = await fetch("https://api.ng.termii.com/api/whatsapp/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_key: apiKey,
-      to,
-      from: deviceId,
-      type: "text",
-      channel: "whatsapp",
-      sms: message,
-    }),
-  });
-
-  return res.ok;
+  return (await sendTermiiWhatsAppService({ to, message })).ok;
 }
 
 async function sendMetaWhatsApp(to: string, message: string): Promise<boolean> {
